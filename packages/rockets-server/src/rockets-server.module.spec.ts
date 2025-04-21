@@ -22,7 +22,6 @@ import { getEntityManagerToken } from '@nestjs/typeorm';
 import { ormConfig } from './__fixtures__/ormconfig.fixture';
 import { IssueTokenServiceFixture } from './__fixtures__/services/issue-token.service.fixture';
 import { ValidateTokenServiceFixture } from './__fixtures__/services/validate-token.service.fixture';
-import { VerifyTokenServiceFixture } from './__fixtures__/services/verify-token.service.fixture';
 import { UserOtpEntityFixture } from './__fixtures__/user/user-otp-entity.fixture';
 import { UserPasswordHistoryEntityFixture } from './__fixtures__/user/user-password-history.entity.fixture';
 import { UserProfileEntityFixture } from './__fixtures__/user/user-profile.entity.fixture';
@@ -159,13 +158,11 @@ describe('AuthenticationCombinedImportModule Integration', () => {
             imports: [TypeOrmModuleFixture, MockConfigModule],
             inject: [
               ConfigService,
-              VerifyTokenServiceFixture,
               IssueTokenServiceFixture,
               ValidateTokenServiceFixture,
             ],
             useFactory: (
               configService: ConfigService,
-              verifyTokenService: VerifyTokenServiceFixture,
               issueTokenService: IssueTokenServiceFixture,
               validateTokenService: ValidateTokenServiceFixture,
             ): RocketsServerOptionsInterface => ({
@@ -181,7 +178,6 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                 userLookupService: mockUserLookupService,
                 mailerService: mockEmailService,
                 userMutateService: mockUserMutateService,
-                // verifyTokenService,
                 issueTokenService,
                 validateTokenService,
               },

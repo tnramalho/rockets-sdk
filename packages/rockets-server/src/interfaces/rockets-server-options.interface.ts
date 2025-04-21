@@ -12,7 +12,6 @@ import {
   AuthenticationOptionsInterface,
   IssueTokenServiceInterface,
   VerifyTokenService,
-  VerifyTokenServiceInterface,
 } from '@concepta/nestjs-authentication';
 import {
   EmailOptionsInterface,
