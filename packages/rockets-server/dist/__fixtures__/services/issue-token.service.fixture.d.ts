@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import { JwtSignOptions } from '@nestjs/jwt';
 import { AuthenticationResponseInterface } from '@concepta/nestjs-common';
 import { IssueTokenServiceInterface } from '@concepta/nestjs-authentication';

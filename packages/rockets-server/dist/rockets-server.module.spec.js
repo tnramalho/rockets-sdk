@@ -6,7 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TypeOrmModuleFixture = exports.mockUserMutateService = exports.mockEmailService = exports.mockUserLookupService = void 0;
+exports.TypeOrmModuleFixture = exports.mockEmailService = exports.mockUserModelService = void 0;
 const nestjs_jwt_1 = require("@concepta/nestjs-jwt");
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
@@ -16,18 +16,15 @@ const nestjs_auth_jwt_1 = require("@concepta/nestjs-auth-jwt");
 const nestjs_auth_refresh_1 = require("@concepta/nestjs-auth-refresh");
 const auth_refresh_strategy_1 = require("@concepta/nestjs-auth-refresh/dist/auth-refresh.strategy");
 const nestjs_authentication_1 = require("@concepta/nestjs-authentication");
-const typeorm_common_1 = require("@concepta/typeorm-common");
-const typeorm_1 = require("@nestjs/typeorm");
 const ormconfig_fixture_1 = require("./__fixtures__/ormconfig.fixture");
 const issue_token_service_fixture_1 = require("./__fixtures__/services/issue-token.service.fixture");
 const validate_token_service_fixture_1 = require("./__fixtures__/services/validate-token.service.fixture");
-const verify_token_service_fixture_1 = require("./__fixtures__/services/verify-token.service.fixture");
 const user_otp_entity_fixture_1 = require("./__fixtures__/user/user-otp-entity.fixture");
 const user_password_history_entity_fixture_1 = require("./__fixtures__/user/user-password-history.entity.fixture");
 const user_profile_entity_fixture_1 = require("./__fixtures__/user/user-profile.entity.fixture");
 const user_entity_fixture_1 = require("./__fixtures__/user/user.entity.fixture");
 const rockets_server_module_1 = require("./rockets-server.module");
-exports.mockUserLookupService = {
+exports.mockUserModelService = {
     bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
@@ -36,28 +33,20 @@ exports.mockUserLookupService = {
         username: 'test',
         email: 'test@example.com',
     }),
-};
-exports.mockEmailService = {
-    sendMail: jest.fn().mockResolvedValue(undefined),
-};
-exports.mockUserMutateService = {
     update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+};
+exports.mockEmailService = {
+    sendMail: jest.fn().mockResolvedValue(undefined),
 };
 let TypeOrmModuleFixture = class TypeOrmModuleFixture {
 };
 TypeOrmModuleFixture = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        providers: [
-            {
-                provide: (0, typeorm_1.getEntityManagerToken)(),
-                useFactory: typeorm_common_1.createEntityManagerMock,
-            },
-        ],
-        exports: [(0, typeorm_1.getEntityManagerToken)()],
+        providers: [],
     })
 ], TypeOrmModuleFixture);
 exports.TypeOrmModuleFixture = TypeOrmModuleFixture;
@@ -134,11 +123,10 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                     imports: [TypeOrmModuleFixture, MockConfigModule],
                     inject: [
                         config_1.ConfigService,
-                        verify_token_service_fixture_1.VerifyTokenServiceFixture,
                         issue_token_service_fixture_1.IssueTokenServiceFixture,
                         validate_token_service_fixture_1.ValidateTokenServiceFixture,
                     ],
-                    useFactory: (configService, verifyTokenService, issueTokenService, validateTokenService) => ({
+                    useFactory: (configService, issueTokenService, validateTokenService) => ({
                         typeorm: ormconfig_fixture_1.ormConfig,
                         jwt: {
                             settings: {
@@ -148,9 +136,8 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                             },
                         },
                         services: {
-                            userLookupService: exports.mockUserLookupService,
+                            userModelService: exports.mockUserModelService,
                             mailerService: exports.mockEmailService,
-                            userMutateService: exports.mockUserMutateService,
                             issueTokenService,
                             validateTokenService,
                         },
@@ -181,9 +168,7 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                     typeorm: ormconfig_fixture_1.ormConfig,
                     jwt: {
                         settings: {
-                            access: { secret: 'test-secret-forroot' },
                             default: { secret: 'test-secret-forroot' },
-                            refresh: { secret: 'test-secret-forroot' },
                         },
                     },
                     services: {
@@ -219,7 +204,7 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                     },
                     services: {
                         mailerService: exports.mockEmailService,
-                        userMutateService: exports.mockUserMutateService,
+                        userModelService: exports.mockUserModelService,
                         issueTokenService: new issue_token_service_fixture_1.IssueTokenServiceFixture(),
                         validateTokenService: new validate_token_service_fixture_1.ValidateTokenServiceFixture(),
                     },

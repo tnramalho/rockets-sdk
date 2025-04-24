@@ -1,4 +1,4 @@
-import { UserMutateService, UserLookupService } from '@concepta/nestjs-user';
+import { UserModelService } from '@concepta/nestjs-user';
 import { AuthUser } from '@concepta/nestjs-authentication';
 import {
   Body,
@@ -32,10 +32,8 @@ import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 @ApiBearerAuth()
 export class RocketsServerUserController {
   constructor(
-    @Inject(UserMutateService)
-    private readonly userMutateService: UserMutateService,
-    @Inject(UserLookupService)
-    private readonly userLookupService: UserLookupService,
+    @Inject(UserModelService)
+    private readonly userModelService: UserModelService,
   ) {}
 
   @ApiOperation({
@@ -58,7 +56,7 @@ export class RocketsServerUserController {
   async findById(
     @AuthUser('id') id: string,
   ): Promise<RocketsServerUserEntityInterface | null> {
-    return this.userLookupService.byId(id);
+    return this.userModelService.byId(id);
   }
 
   @ApiOperation({
@@ -99,6 +97,6 @@ export class RocketsServerUserController {
     @AuthUser('id') id: string,
     @Body() userUpdateDto: RocketsServerUserUpdateDto,
   ): Promise<RocketsServerUserEntityInterface> {
-    return this.userMutateService.update({ id, ...userUpdateDto });
+    return this.userModelService.update({ ...userUpdateDto, id });
   }
 }

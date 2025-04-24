@@ -8,7 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModuleFixture = void 0;
 const common_1 = require("@nestjs/common");
-const user_lookup_service_fixture_1 = require("./user-lookup.service.fixture");
+const user_model_service_fixture_1 = require("./user-model.service.fixture");
 const user_controller_fixture_1 = require("./user.controller.fixture");
 let UserModuleFixture = class UserModuleFixture {
 };
@@ -16,8 +16,8 @@ UserModuleFixture = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
         controllers: [user_controller_fixture_1.UserControllerFixtures],
-        providers: [user_lookup_service_fixture_1.UserLookupServiceFixture],
-        exports: [user_lookup_service_fixture_1.UserLookupServiceFixture],
+        providers: [user_model_service_fixture_1.UserModelServiceFixture],
+        exports: [user_model_service_fixture_1.UserModelServiceFixture],
     })
 ], UserModuleFixture);
 exports.UserModuleFixture = UserModuleFixture;

@@ -1,5 +1,5 @@
 import { AuthPublic } from '@concepta/nestjs-authentication';
-import { UserMutateService } from '@concepta/nestjs-user';
+import { UserModelService } from '@concepta/nestjs-user';
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -22,8 +22,8 @@ import { RocketsServerUserEntityInterface } from '../../interfaces/user/rockets-
 @ApiTags('auth')
 export class AuthSignupController {
   constructor(
-    @Inject(UserMutateService)
-    private readonly userMutateService: UserMutateService,
+    @Inject(UserModelService)
+    private readonly userModelService: UserModelService,
   ) {}
 
   @ApiOperation({
@@ -60,6 +60,6 @@ export class AuthSignupController {
   async create(
     @Body() userCreateDto: RocketsServerUserCreateDto,
   ): Promise<RocketsServerUserEntityInterface> {
-    return this.userMutateService.create(userCreateDto);
+    return this.userModelService.create(userCreateDto);
   }
 }

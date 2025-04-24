@@ -47,7 +47,7 @@ Auth/
    - Description: User registration endpoint supporting email signup with optional password
    - Status: Partially Implemented
    - Existing Components:
-     - `UserMutateService` for user creation
+     - `UserModelService` for user creation
      - `UserPasswordService` for password handling
      - `AuthVerifyService` for confirm email flow
    - Missing Features:
@@ -102,8 +102,8 @@ Auth/
    - Description: Manages user profile information, allowing retrieval and updates of user data
    - Status: Implemented
    - Existing Components:
-     - `UserMutateService` for user create/update/remove
-     - `UserLookupService` for user queries
+     - `UserModelService` for user create/update/remove
+     - `UserModelService` for user queries
      - `UserPasswordService` for password management
 
 2. `/factors` (GET/POST)
@@ -141,7 +141,7 @@ Auth/
    - Status: Implemented
    - Existing Components:
      - `InvitationService` for invitation management
-     - `UserMutateService` for user creation
+     - `UserModelService` for user creation
 
 2. `/admin/generate_link` (POST)
    - Description: Generates secure links for various flows (magic link, signup, recovery, email change)
@@ -162,7 +162,7 @@ Auth/
    - Description: Lists all users with pagination support for administrative purposes
    - Status: Partially Implemented
    - Existing Components:
-     - `UserLookupService` for user queries
+     - `UserModelService` for user queries
      - `UserAccessQueryService` for access control
    - Missing Features:
      - Pagination
@@ -175,8 +175,8 @@ Auth/
    - Description: Manages individual user accounts with full CRUD operations
    - Status: Implemented
    - Existing Components:
-     - `UserMutateService` for user operations
-     - `UserLookupService` for user queries
+     - `UserModelService` for user operations
+     - `UserModelService` for user queries
      - `UserPasswordService` for password management
 
 6. `/admin/users/{userId}/factors` (GET)

@@ -15,7 +15,7 @@ import {
   AuthJwtVerifyTokenService,
 } from '@concepta/nestjs-auth-jwt';
 import { EmailSendInterface } from '@concepta/nestjs-common';
-import { RocketsServerUserMutateServiceInterface } from './interfaces/rockets-server-user-mutate-service.interface';
+import { RocketsServerUserModelServiceInterface } from './interfaces/rockets-server-user-model-service.interface';
 import { IssueTokenServiceFixture } from './__fixtures__/services/issue-token.service.fixture';
 import { ValidateTokenServiceFixture } from './__fixtures__/services/validate-token.service.fixture';
 import { ormConfig } from './__fixtures__/ormconfig.fixture';
@@ -43,25 +43,21 @@ export class TestController {
   }
 }
 
-// Mock user lookup service
-const mockUserLookupService = {
-  byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  byEmail: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-};
-
 // Mock email service
 const mockEmailService: EmailSendInterface = {
   sendMail: jest.fn().mockResolvedValue(undefined),
 };
 
 // Mock user mutate service
-const mockUserMutateService: RocketsServerUserMutateServiceInterface = {
+const mockUserModelService: RocketsServerUserModelServiceInterface = {
   update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
   create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
   replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
   remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  byEmail: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
 };
 
 // Mock configuration module
@@ -101,10 +97,8 @@ describe('RocketsServer (e2e)', () => {
             },
           },
           services: {
-            userLookupService: mockUserLookupService,
+            userModelService: mockUserModelService,
             mailerService: mockEmailService,
-            userMutateService: mockUserMutateService,
-            // verifyTokenService: new VerifyTokenServiceFixture(),
             issueTokenService: new IssueTokenServiceFixture(),
             validateTokenService: new ValidateTokenServiceFixture(),
           },

@@ -17,8 +17,7 @@ import { UserOptionsInterface } from '@concepta/nestjs-user/dist/interfaces/user
 import { UserPasswordHistoryServiceInterface } from '@concepta/nestjs-user/dist/interfaces/user-password-history-service.interface';
 import { RocketsServerNotificationServiceInterface } from './rockets-server-notification.service.interface';
 import { RocketsServerSettingsInterface } from './rockets-server-settings.interface';
-import { RocketsServerUserLookupServiceInterface } from './rockets-server-user-lookup-service.interface';
-import { RocketsServerUserMutateServiceInterface } from './rockets-server-user-mutate-service.interface';
+import { RocketsServerUserModelServiceInterface } from './rockets-server-user-model-service.interface';
 export interface RocketsServerOptionsInterface {
     settings?: RocketsServerSettingsInterface;
     authentication?: AuthenticationOptionsInterface;
@@ -34,8 +33,7 @@ export interface RocketsServerOptionsInterface {
     otp?: OtpOptionsInterface;
     email?: Partial<EmailOptionsInterface>;
     services: {
-        userLookupService?: RocketsServerUserLookupServiceInterface;
-        userMutateService?: RocketsServerUserMutateServiceInterface;
+        userModelService?: RocketsServerUserModelServiceInterface;
         notificationService?: RocketsServerNotificationServiceInterface;
         verifyTokenService?: VerifyTokenService;
         issueTokenService?: IssueTokenServiceInterface;

@@ -47,20 +47,18 @@ TestController = __decorate([
     (0, common_1.UseGuards)(nestjs_auth_jwt_1.AuthJwtGuard)
 ], TestController);
 exports.TestController = TestController;
-const mockUserLookupService = {
-    byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-    bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-    byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-    byEmail: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-};
 const mockEmailService = {
     sendMail: jest.fn().mockResolvedValue(undefined),
 };
-const mockUserMutateService = {
+const mockUserModelService = {
     update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
     remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    byEmail: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
 };
 let MockConfigModule = class MockConfigModule {
 };
@@ -101,9 +99,8 @@ describe('RocketsServer (e2e)', () => {
                         },
                     },
                     services: {
-                        userLookupService: mockUserLookupService,
+                        userModelService: mockUserModelService,
                         mailerService: mockEmailService,
-                        userMutateService: mockUserMutateService,
                         issueTokenService: new issue_token_service_fixture_1.IssueTokenServiceFixture(),
                         validateTokenService: new validate_token_service_fixture_1.ValidateTokenServiceFixture(),
                     },

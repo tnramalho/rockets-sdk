@@ -21,15 +21,14 @@ const rockets_server_user_update_dto_1 = require("../../dto/user/rockets-server-
 const rockets_server_user_dto_1 = require("../../dto/user/rockets-server-user.dto");
 const nestjs_auth_jwt_1 = require("@concepta/nestjs-auth-jwt");
 let RocketsServerUserController = class RocketsServerUserController {
-    constructor(userMutateService, userLookupService) {
-        this.userMutateService = userMutateService;
-        this.userLookupService = userLookupService;
+    constructor(userModelService) {
+        this.userModelService = userModelService;
     }
     async findById(id) {
-        return this.userLookupService.byId(id);
+        return this.userModelService.byId(id);
     }
     async update(id, userUpdateDto) {
-        return this.userMutateService.update(Object.assign({ id }, userUpdateDto));
+        return this.userModelService.update(Object.assign(Object.assign({}, userUpdateDto), { id }));
     }
 };
 __decorate([
@@ -99,10 +98,8 @@ RocketsServerUserController = __decorate([
     (0, common_1.UseGuards)(nestjs_auth_jwt_1.AuthJwtGuard),
     (0, swagger_1.ApiTags)('user'),
     (0, swagger_1.ApiBearerAuth)(),
-    __param(0, (0, common_1.Inject)(nestjs_user_1.UserMutateService)),
-    __param(1, (0, common_1.Inject)(nestjs_user_1.UserLookupService)),
-    __metadata("design:paramtypes", [nestjs_user_1.UserMutateService,
-        nestjs_user_1.UserLookupService])
+    __param(0, (0, common_1.Inject)(nestjs_user_1.UserModelService)),
+    __metadata("design:paramtypes", [nestjs_user_1.UserModelService])
 ], RocketsServerUserController);
 exports.RocketsServerUserController = RocketsServerUserController;
 //# sourceMappingURL=rockets-server-user.controller.js.map

@@ -20,11 +20,11 @@ const swagger_1 = require("@nestjs/swagger");
 const rockets_server_user_create_dto_1 = require("../../dto/user/rockets-server-user-create.dto");
 const rockets_server_user_dto_1 = require("../../dto/user/rockets-server-user.dto");
 let AuthSignupController = class AuthSignupController {
-    constructor(userMutateService) {
-        this.userMutateService = userMutateService;
+    constructor(userModelService) {
+        this.userModelService = userModelService;
     }
     async create(userCreateDto) {
-        return this.userMutateService.create(userCreateDto);
+        return this.userModelService.create(userCreateDto);
     }
 };
 __decorate([
@@ -67,8 +67,8 @@ AuthSignupController = __decorate([
     (0, common_1.Controller)('signup'),
     (0, nestjs_authentication_1.AuthPublic)(),
     (0, swagger_1.ApiTags)('auth'),
-    __param(0, (0, common_1.Inject)(nestjs_user_1.UserMutateService)),
-    __metadata("design:paramtypes", [nestjs_user_1.UserMutateService])
+    __param(0, (0, common_1.Inject)(nestjs_user_1.UserModelService)),
+    __metadata("design:paramtypes", [nestjs_user_1.UserModelService])
 ], AuthSignupController);
 exports.AuthSignupController = AuthSignupController;
 //# sourceMappingURL=auth-signup.controller.js.map

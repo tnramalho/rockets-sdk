@@ -18,14 +18,14 @@ const common_1 = require("@nestjs/common");
 const rockets_server_constants_1 = require("../rockets-server.constants");
 const rockets_server_notification_service_1 = require("./rockets-server-notification.service");
 let RocketsServerOtpService = class RocketsServerOtpService {
-    constructor(settings, userLookupService, otpService, otpNotificationService) {
+    constructor(settings, userModelService, otpService, otpNotificationService) {
         this.settings = settings;
-        this.userLookupService = userLookupService;
+        this.userModelService = userModelService;
         this.otpService = otpService;
         this.otpNotificationService = otpNotificationService;
     }
     async sendOtp(email) {
-        const user = await this.userLookupService.byEmail(email);
+        const user = await this.userModelService.byEmail(email);
         const { assignment, category, expiresIn } = this.settings.otp;
         if (user) {
             const otp = await this.otpService.create({
@@ -33,7 +33,7 @@ let RocketsServerOtpService = class RocketsServerOtpService {
                 otp: {
                     category,
                     type: 'uuid',
-                    assignee: { id: user.id },
+                    assigneeId: user.id,
                     expiresIn: expiresIn,
                 },
             });
@@ -45,7 +45,7 @@ let RocketsServerOtpService = class RocketsServerOtpService {
     }
     async confirmOtp(email, passcode) {
         const { assignment, category } = this.settings.otp;
-        const user = await this.userLookupService.byEmail(email);
+        const user = await this.userModelService.byEmail(email);
         if (!user) {
             throw new nestjs_otp_1.OtpException();
         }

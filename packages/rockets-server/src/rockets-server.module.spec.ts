@@ -17,8 +17,6 @@ import {
   VerifyTokenService,
 } from '@concepta/nestjs-authentication';
 import { EmailSendInterface } from '@concepta/nestjs-common';
-import { createEntityManagerMock } from '@concepta/typeorm-common';
-import { getEntityManagerToken } from '@nestjs/typeorm';
 import { ormConfig } from './__fixtures__/ormconfig.fixture';
 import { IssueTokenServiceFixture } from './__fixtures__/services/issue-token.service.fixture';
 import { ValidateTokenServiceFixture } from './__fixtures__/services/validate-token.service.fixture';
@@ -27,11 +25,10 @@ import { UserPasswordHistoryEntityFixture } from './__fixtures__/user/user-passw
 import { UserProfileEntityFixture } from './__fixtures__/user/user-profile.entity.fixture';
 import { UserFixture } from './__fixtures__/user/user.entity.fixture';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
-import { RocketsServerUserLookupServiceInterface } from './interfaces/rockets-server-user-lookup-service.interface';
-import { RocketsServerUserMutateServiceInterface } from './interfaces/rockets-server-user-mutate-service.interface';
+import { RocketsServerUserModelServiceInterface } from './interfaces/rockets-server-user-model-service.interface';
 import { RocketsServerModule } from './rockets-server.module';
 // Mock user lookup service
-export const mockUserLookupService: RocketsServerUserLookupServiceInterface = {
+export const mockUserModelService: RocketsServerUserModelServiceInterface = {
   bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
   byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
   byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
@@ -40,6 +37,10 @@ export const mockUserLookupService: RocketsServerUserLookupServiceInterface = {
     username: 'test',
     email: 'test@example.com',
   }),
+  update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
 };
 
 // Mock email service
@@ -47,23 +48,9 @@ export const mockEmailService: EmailSendInterface = {
   sendMail: jest.fn().mockResolvedValue(undefined),
 };
 
-// Mock user mutate service
-export const mockUserMutateService: RocketsServerUserMutateServiceInterface = {
-  update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-};
-
 @Global()
 @Module({
-  providers: [
-    {
-      provide: getEntityManagerToken(),
-      useFactory: createEntityManagerMock,
-    },
-  ],
-  exports: [getEntityManagerToken()],
+  providers: [],
 })
 export class TypeOrmModuleFixture {}
 // Mock configuration module
@@ -175,9 +162,8 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                 },
               },
               services: {
-                userLookupService: mockUserLookupService,
+                userModelService: mockUserModelService,
                 mailerService: mockEmailService,
-                userMutateService: mockUserMutateService,
                 issueTokenService,
                 validateTokenService,
               },
@@ -262,7 +248,7 @@ describe('AuthenticationCombinedImportModule Integration', () => {
             },
             services: {
               mailerService: mockEmailService,
-              userMutateService: mockUserMutateService,
+              userModelService: mockUserModelService,
               // otpService: new OtpServiceFixture(),
               // verifyTokenService: new VerifyTokenServiceFixture(),
               issueTokenService: new IssueTokenServiceFixture(),

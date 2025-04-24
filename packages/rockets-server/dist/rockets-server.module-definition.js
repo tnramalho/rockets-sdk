@@ -101,41 +101,41 @@ function createRocketsServerImports(options) {
             },
         }),
         nestjs_auth_jwt_1.AuthJwtModule.forRootAsync({
-            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserLookupService],
-            useFactory: (options, userLookupService) => {
+            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserModelService],
+            useFactory: (options, userModelService) => {
                 var _a, _b, _c, _d, _e, _f;
                 return {
                     appGuard: (_a = options.authJwt) === null || _a === void 0 ? void 0 : _a.appGuard,
                     verifyTokenService: ((_b = options.authJwt) === null || _b === void 0 ? void 0 : _b.verifyTokenService) ||
                         ((_c = options.services) === null || _c === void 0 ? void 0 : _c.verifyTokenService),
-                    userLookupService: ((_d = options.authJwt) === null || _d === void 0 ? void 0 : _d.userLookupService) ||
-                        ((_e = options.services) === null || _e === void 0 ? void 0 : _e.userLookupService) ||
-                        userLookupService,
+                    userModelService: ((_d = options.authJwt) === null || _d === void 0 ? void 0 : _d.userModelService) ||
+                        ((_e = options.services) === null || _e === void 0 ? void 0 : _e.userModelService) ||
+                        userModelService,
                     settings: (_f = options.authJwt) === null || _f === void 0 ? void 0 : _f.settings,
                 };
             },
         }),
         nestjs_auth_refresh_1.AuthRefreshModule.forRootAsync({
-            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserLookupService],
+            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserModelService],
             controllers: [],
-            useFactory: (options, userLookupService) => {
+            useFactory: (options, userModelService) => {
                 var _a, _b, _c, _d, _e, _f, _g;
                 return {
                     verifyTokenService: ((_a = options.refresh) === null || _a === void 0 ? void 0 : _a.verifyTokenService) ||
                         ((_b = options.services) === null || _b === void 0 ? void 0 : _b.verifyTokenService),
                     issueTokenService: ((_c = options.refresh) === null || _c === void 0 ? void 0 : _c.issueTokenService) ||
                         ((_d = options.services) === null || _d === void 0 ? void 0 : _d.issueTokenService),
-                    userLookupService: ((_e = options.refresh) === null || _e === void 0 ? void 0 : _e.userLookupService) ||
-                        ((_f = options.services) === null || _f === void 0 ? void 0 : _f.userLookupService) ||
-                        userLookupService,
+                    userModelService: ((_e = options.refresh) === null || _e === void 0 ? void 0 : _e.userModelService) ||
+                        ((_f = options.services) === null || _f === void 0 ? void 0 : _f.userModelService) ||
+                        userModelService,
                     settings: (_g = options.refresh) === null || _g === void 0 ? void 0 : _g.settings,
                 };
             },
         }),
         nestjs_auth_local_1.AuthLocalModule.forRootAsync({
-            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserLookupService],
+            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserModelService],
             controllers: [],
-            useFactory: (options, userLookupService) => {
+            useFactory: (options, userModelService) => {
                 var _a, _b, _c, _d, _e, _f, _g, _h;
                 return {
                     passwordValidationService: (_a = options.authLocal) === null || _a === void 0 ? void 0 : _a.passwordValidationService,
@@ -143,9 +143,9 @@ function createRocketsServerImports(options) {
                         ((_c = options.services) === null || _c === void 0 ? void 0 : _c.validateUserService),
                     issueTokenService: ((_d = options.authLocal) === null || _d === void 0 ? void 0 : _d.issueTokenService) ||
                         ((_e = options.services) === null || _e === void 0 ? void 0 : _e.issueTokenService),
-                    userLookupService: ((_f = options.authLocal) === null || _f === void 0 ? void 0 : _f.userLookupService) ||
-                        ((_g = options.services) === null || _g === void 0 ? void 0 : _g.userLookupService) ||
-                        userLookupService,
+                    userModelService: ((_f = options.authLocal) === null || _f === void 0 ? void 0 : _f.userModelService) ||
+                        ((_g = options.services) === null || _g === void 0 ? void 0 : _g.userModelService) ||
+                        userModelService,
                     settings: (_h = options.authLocal) === null || _h === void 0 ? void 0 : _h.settings,
                 };
             },
@@ -155,22 +155,21 @@ function createRocketsServerImports(options) {
                 RAW_OPTIONS_TOKEN,
                 nestjs_email_1.EmailService,
                 nestjs_otp_1.OtpService,
-                nestjs_user_1.UserLookupService,
-                nestjs_user_1.UserMutateService,
+                nestjs_user_1.UserModelService,
+                nestjs_user_1.UserPasswordService,
             ],
             controllers: [],
-            useFactory: (options, defaultEmailService, defaultOtpService, userLookupService, userMutateService) => {
+            useFactory: (options, defaultEmailService, defaultOtpService, userModelService, defaultUserPasswordService) => {
                 var _a, _b, _c, _d, _e, _f, _g;
                 return {
                     emailService: defaultEmailService,
                     otpService: defaultOtpService,
-                    userLookupService: ((_a = options.authRecovery) === null || _a === void 0 ? void 0 : _a.userLookupService) ||
-                        ((_b = options.services) === null || _b === void 0 ? void 0 : _b.userLookupService) ||
-                        userLookupService,
-                    userMutateService: ((_c = options.authRecovery) === null || _c === void 0 ? void 0 : _c.userMutateService) ||
-                        options.services.userMutateService ||
-                        userMutateService,
-                    entityManagerProxy: (_d = options.authRecovery) === null || _d === void 0 ? void 0 : _d.entityManagerProxy,
+                    userModelService: ((_a = options.authRecovery) === null || _a === void 0 ? void 0 : _a.userModelService) ||
+                        ((_b = options.services) === null || _b === void 0 ? void 0 : _b.userModelService) ||
+                        userModelService,
+                    userPasswordService: ((_c = options.authRecovery) === null || _c === void 0 ? void 0 : _c.userPasswordService) ||
+                        ((_d = options.services) === null || _d === void 0 ? void 0 : _d.userPasswordService) ||
+                        defaultUserPasswordService,
                     notificationService: ((_e = options.authRecovery) === null || _e === void 0 ? void 0 : _e.notificationService) ||
                         ((_f = options.services) === null || _f === void 0 ? void 0 : _f.notificationService),
                     settings: (_g = options.authRecovery) === null || _g === void 0 ? void 0 : _g.settings,
@@ -181,26 +180,21 @@ function createRocketsServerImports(options) {
             inject: [
                 RAW_OPTIONS_TOKEN,
                 nestjs_email_1.EmailService,
-                nestjs_user_1.UserLookupService,
-                nestjs_user_1.UserMutateService,
+                nestjs_user_1.UserModelService,
                 nestjs_otp_1.OtpService,
             ],
             controllers: [],
-            useFactory: (options, defaultEmailService, userLookupService, userMutateService, defaultOtpService) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h;
+            useFactory: (options, defaultEmailService, userModelService, defaultOtpService) => {
+                var _a, _b, _c, _d, _e;
                 return {
                     emailService: defaultEmailService,
                     otpService: defaultOtpService,
-                    userLookupService: ((_a = options.authVerify) === null || _a === void 0 ? void 0 : _a.userLookupService) ||
-                        ((_b = options.services) === null || _b === void 0 ? void 0 : _b.userLookupService) ||
-                        userLookupService,
-                    userMutateService: ((_c = options.authVerify) === null || _c === void 0 ? void 0 : _c.userMutateService) ||
-                        ((_d = options.services) === null || _d === void 0 ? void 0 : _d.userMutateService) ||
-                        userMutateService,
-                    entityManagerProxy: (_e = options.authVerify) === null || _e === void 0 ? void 0 : _e.entityManagerProxy,
-                    notificationService: ((_f = options.authVerify) === null || _f === void 0 ? void 0 : _f.notificationService) ||
-                        ((_g = options.services) === null || _g === void 0 ? void 0 : _g.notificationService),
-                    settings: (_h = options.authVerify) === null || _h === void 0 ? void 0 : _h.settings,
+                    userModelService: ((_a = options.authVerify) === null || _a === void 0 ? void 0 : _a.userModelService) ||
+                        ((_b = options.services) === null || _b === void 0 ? void 0 : _b.userModelService) ||
+                        userModelService,
+                    notificationService: ((_c = options.authVerify) === null || _c === void 0 ? void 0 : _c.notificationService) ||
+                        ((_d = options.services) === null || _d === void 0 ? void 0 : _d.notificationService),
+                    settings: (_e = options.authVerify) === null || _e === void 0 ? void 0 : _e.settings,
                 };
             },
         }),
@@ -223,19 +217,17 @@ function createRocketsServerImports(options) {
             inject: [RAW_OPTIONS_TOKEN],
             controllers: [],
             useFactory: (options) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                 return {
                     settings: (_a = options.user) === null || _a === void 0 ? void 0 : _a.settings,
-                    userLookupService: ((_b = options.user) === null || _b === void 0 ? void 0 : _b.userLookupService) ||
-                        ((_c = options.services) === null || _c === void 0 ? void 0 : _c.userLookupService),
-                    userMutateService: ((_d = options.user) === null || _d === void 0 ? void 0 : _d.userMutateService) ||
-                        ((_e = options.services) === null || _e === void 0 ? void 0 : _e.userMutateService),
-                    userPasswordService: ((_f = options.user) === null || _f === void 0 ? void 0 : _f.userPasswordService) ||
-                        ((_g = options.services) === null || _g === void 0 ? void 0 : _g.userPasswordService),
-                    userAccessQueryService: ((_h = options.user) === null || _h === void 0 ? void 0 : _h.userAccessQueryService) ||
-                        ((_j = options.services) === null || _j === void 0 ? void 0 : _j.userAccessQueryService),
-                    userPasswordHistoryService: ((_k = options.user) === null || _k === void 0 ? void 0 : _k.userPasswordHistoryService) ||
-                        ((_l = options.services) === null || _l === void 0 ? void 0 : _l.userPasswordHistoryService),
+                    userModelService: ((_b = options.user) === null || _b === void 0 ? void 0 : _b.userModelService) ||
+                        ((_c = options.services) === null || _c === void 0 ? void 0 : _c.userModelService),
+                    userPasswordService: ((_d = options.user) === null || _d === void 0 ? void 0 : _d.userPasswordService) ||
+                        ((_e = options.services) === null || _e === void 0 ? void 0 : _e.userPasswordService),
+                    userAccessQueryService: ((_f = options.user) === null || _f === void 0 ? void 0 : _f.userAccessQueryService) ||
+                        ((_g = options.services) === null || _g === void 0 ? void 0 : _g.userAccessQueryService),
+                    userPasswordHistoryService: ((_h = options.user) === null || _h === void 0 ? void 0 : _h.userPasswordHistoryService) ||
+                        ((_j = options.services) === null || _j === void 0 ? void 0 : _j.userPasswordHistoryService),
                 };
             },
             entities: Object.assign(Object.assign({ [user_constants_1.USER_MODULE_USER_ENTITY_KEY]: options.entities.user }, (((_a = options.entities) === null || _a === void 0 ? void 0 : _a.userPasswordHistory)
@@ -290,9 +282,9 @@ function createRocketsServerProviders(options) {
         ...((_a = options.providers) !== null && _a !== void 0 ? _a : []),
         {
             provide: rockets_server_constants_1.RocketsServerUserLookupService,
-            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserLookupService],
-            useFactory: async (options, userLookupService) => {
-                return options.services.userLookupService || userLookupService;
+            inject: [RAW_OPTIONS_TOKEN, nestjs_user_1.UserModelService],
+            useFactory: async (options, userModelService) => {
+                return options.services.userModelService || userModelService;
             },
         },
         rockets_server_otp_service_1.RocketsServerOtpService,
