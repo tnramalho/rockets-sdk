@@ -112,8 +112,4 @@ dist
 
 # .yarn meta
 .yarn
-# dist folders
-dist/
-*/dist/
-**/dist/
 
