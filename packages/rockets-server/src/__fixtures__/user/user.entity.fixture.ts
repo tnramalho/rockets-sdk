@@ -1,4 +1,4 @@
-import { UserSqliteEntity } from '@concepta/nestjs-user';
+import { UserSqliteEntity } from '@concepta/nestjs-typeorm-ext';
 import { Entity, OneToMany, OneToOne } from 'typeorm';
 import { UserProfileEntityFixture } from './user-profile.entity.fixture';
 import { UserOtpEntityFixture } from './user-otp-entity.fixture';

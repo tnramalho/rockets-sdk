@@ -13,7 +13,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserCreateDto"
+                "$ref": "#/components/schemas/RocketsServerUserCreateDto"
               },
               "examples": {
                 "standard": {
@@ -35,7 +35,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/RocketsServerUserDto"
                 }
               }
             }
@@ -64,7 +64,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/RocketsServerUserDto"
                 }
               }
             }
@@ -96,7 +96,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserUpdateDto"
+                "$ref": "#/components/schemas/RocketsServerUserUpdateDto"
               },
               "examples": {
                 "user": {
@@ -117,7 +117,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/RocketsServerUserDto"
                 }
               }
             }
@@ -154,7 +154,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthLocalLoginDto"
+                "$ref": "#/components/schemas/RocketsServerLoginDto"
               },
               "examples": {
                 "standard": {
@@ -174,7 +174,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsServerJwtResponseDto"
                 }
               }
             }
@@ -200,7 +200,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRefreshDto"
+                "$ref": "#/components/schemas/RocketsServerRefreshDto"
               },
               "examples": {
                 "standard": {
@@ -219,7 +219,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsServerJwtResponseDto"
                 }
               }
             }
@@ -250,7 +250,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRecoveryRecoverLoginDto"
+                "$ref": "#/components/schemas/RocketsServerRecoverLoginDto"
               },
               "examples": {
                 "standard": {
@@ -288,7 +288,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRecoveryRecoverPasswordDto"
+                "$ref": "#/components/schemas/RocketsServerRecoverPasswordDto"
               },
               "examples": {
                 "standard": {
@@ -324,7 +324,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRecoveryUpdatePasswordDto"
+                "$ref": "#/components/schemas/RocketsServerUpdatePasswordDto"
               },
               "examples": {
                 "standard": {
@@ -362,8 +362,8 @@
             "required": true,
             "in": "path",
             "description": "Recovery passcode to validate",
-            "example": "abc123def456",
             "schema": {
+              "example": "abc123def456",
               "type": "string"
             }
           }
@@ -449,7 +449,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsServerJwtResponseDto"
                 }
               }
             }
@@ -463,6 +463,96 @@
         },
         "tags": [
           "otp"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthLocalController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "DTO containing username and password.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLocalLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DTO containing an access token and a refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/verify/send": {
+      "post": {
+        "operationId": "AuthVerifyController_send",
+        "summary": "Send Verify account email by providing an email that will receive link to confirm account.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "DTO of email verify.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthVerifyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/verify/confirm": {
+      "patch": {
+        "operationId": "AuthVerifyController_confirm",
+        "summary": "confirm email providing passcode.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "DTO of verify email.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthVerifyUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
         ]
       }
     }
@@ -484,7 +574,7 @@
       }
     },
     "schemas": {
-      "UserCreateDto": {
+      "RocketsServerUserCreateDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -499,9 +589,13 @@
             "type": "boolean",
             "description": "Active"
           },
-          "password": {
+          "passwordHash": {
             "type": "string",
-            "description": "Plain text password to set"
+            "description": "Password hash"
+          },
+          "passwordSalt": {
+            "type": "string",
+            "description": "Password salt"
           }
         },
         "required": [
@@ -509,7 +603,7 @@
           "username"
         ]
       },
-      "UserDto": {
+      "RocketsServerUserDto": {
         "type": "object",
         "properties": {
           "dateCreated": {
@@ -560,9 +654,13 @@
           "active"
         ]
       },
-      "UserUpdateDto": {
+      "RocketsServerUserUpdateDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier"
+          },
           "email": {
             "type": "string",
             "description": "Email"
@@ -571,17 +669,20 @@
             "type": "boolean",
             "description": "Active"
           },
-          "password": {
+          "passwordHash": {
             "type": "string",
-            "description": "Plain text password to set"
+            "description": "Password hash"
           },
-          "passwordCurrent": {
+          "passwordSalt": {
             "type": "string",
-            "description": "Current password to validate"
+            "description": "Password salt"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
-      "AuthLocalLoginDto": {
+      "RocketsServerLoginDto": {
         "type": "object",
         "properties": {
           "username": {
@@ -598,7 +699,7 @@
           "password"
         ]
       },
-      "AuthenticationJwtResponseDto": {
+      "RocketsServerJwtResponseDto": {
         "type": "object",
         "properties": {
           "accessToken": {
@@ -615,7 +716,7 @@
           "refreshToken"
         ]
       },
-      "AuthRefreshDto": {
+      "RocketsServerRefreshDto": {
         "type": "object",
         "properties": {
           "refreshToken": {
@@ -627,7 +728,7 @@
           "refreshToken"
         ]
       },
-      "AuthRecoveryRecoverLoginDto": {
+      "RocketsServerRecoverLoginDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -640,7 +741,7 @@
           "email"
         ]
       },
-      "AuthRecoveryRecoverPasswordDto": {
+      "RocketsServerRecoverPasswordDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -653,7 +754,7 @@
           "email"
         ]
       },
-      "AuthRecoveryUpdatePasswordDto": {
+      "RocketsServerUpdatePasswordDto": {
         "type": "object",
         "properties": {
           "passcode": {
@@ -701,6 +802,66 @@
         },
         "required": [
           "email",
+          "passcode"
+        ]
+      },
+      "AuthLocalLoginDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username"
+          },
+          "password": {
+            "type": "string",
+            "description": "Password"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "AuthenticationJwtResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token to use for request authorization."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "JWT refresh token to use for obtaining a new access token."
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken"
+        ]
+      },
+      "AuthVerifyDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "user email",
+            "description": "Verify email by providing an email that will receive a confirmation link"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "AuthVerifyUpdateDto": {
+        "type": "object",
+        "properties": {
+          "passcode": {
+            "type": "string",
+            "title": "account confirm passcode",
+            "description": "Passcode used to confirm account"
+          }
+        },
+        "required": [
           "passcode"
         ]
       }

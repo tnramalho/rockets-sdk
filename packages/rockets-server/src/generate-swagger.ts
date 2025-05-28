@@ -5,8 +5,10 @@ import * as path from 'path';
 import { Module } from '@nestjs/common';
 import { RocketsServerModule } from './rockets-server.module';
 import { Entity } from 'typeorm';
-import { UserSqliteEntity } from '@concepta/nestjs-user';
-import { OtpSqliteEntity } from '@concepta/nestjs-otp';
+import {
+  UserSqliteEntity,
+  OtpSqliteEntity,
+} from '@concepta/nestjs-typeorm-ext';
 
 // Create concrete entity implementations for TypeORM
 @Entity()
@@ -41,12 +43,10 @@ async function generateSwaggerJson() {
               default: { secret: 'test-secret' },
             },
           },
-          // The following is the minimum required by RocketsServerModule
           entities: {
             user: { entity: UserEntity },
             userOtp: { entity: UserOtpEntity },
           },
-
           services: {
             mailerService: {
               sendMail: () => Promise.resolve(),

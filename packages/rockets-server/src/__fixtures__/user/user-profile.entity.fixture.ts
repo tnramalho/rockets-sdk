@@ -1,7 +1,7 @@
 import { Column, Entity, OneToOne } from 'typeorm';
 
 import { UserFixture } from './user.entity.fixture';
-import { UserProfileSqliteEntity } from '@concepta/nestjs-user';
+import { UserProfileSqliteEntity } from '@concepta/nestjs-typeorm-ext';
 
 /**
  * User Profile Entity Fixture

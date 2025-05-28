@@ -200,7 +200,6 @@ export function createRocketsServerImports(options: {
     }),
     AuthRefreshModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN, UserModelService],
-      controllers: [],
       useFactory: (
         options: RocketsServerOptionsInterface,
         userModelService: UserModelService,
@@ -222,7 +221,6 @@ export function createRocketsServerImports(options: {
     }),
     AuthLocalModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN, UserModelService],
-      controllers: [],
       useFactory: (
         options: RocketsServerOptionsInterface,
         userModelService: UserModelService,
@@ -252,7 +250,6 @@ export function createRocketsServerImports(options: {
         UserModelService,
         UserPasswordService,
       ],
-      controllers: [],
       useFactory: (
         options: RocketsServerOptionsInterface,
         defaultEmailService: EmailService,
@@ -281,7 +278,6 @@ export function createRocketsServerImports(options: {
     }),
     AuthVerifyModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN, EmailService, UserModelService, OtpService],
-      controllers: [],
       useFactory: (
         options: RocketsServerOptionsInterface,
         defaultEmailService: EmailServiceInterface,
@@ -318,7 +314,23 @@ export function createRocketsServerImports(options: {
     }),
     UserModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
-      controllers: [],
+      imports: [
+        TypeOrmExtModule.forFeature({
+          [USER_MODULE_USER_ENTITY_KEY]: options.entities.user,
+          ...(options.entities?.userPasswordHistory
+            ? {
+                [USER_MODULE_USER_PASSWORD_HISTORY_ENTITY_KEY]:
+                  options.entities.userPasswordHistory,
+              }
+            : {}),
+          ...(options.entities?.userProfile
+            ? {
+                [USER_MODULE_USER_PROFILE_ENTITY_KEY]:
+                  options.entities.userProfile,
+              }
+            : {}),
+        }),
+      ],
       useFactory: (options: RocketsServerOptionsInterface) => {
         return {
           settings: options.user?.settings,
@@ -336,32 +348,20 @@ export function createRocketsServerImports(options: {
             options.services?.userPasswordHistoryService,
         };
       },
-      entities: {
-        [USER_MODULE_USER_ENTITY_KEY]: options.entities.user,
-        ...(options.entities?.userPasswordHistory
-          ? {
-              [USER_MODULE_USER_PASSWORD_HISTORY_ENTITY_KEY]:
-                options.entities.userPasswordHistory,
-            }
-          : {}),
-        ...(options.entities?.userProfile
-          ? {
-              [USER_MODULE_USER_PROFILE_ENTITY_KEY]:
-                options.entities.userProfile,
-            }
-          : {}),
-      },
     }),
     OtpModule.forRootAsync({
+      imports: [
+        TypeOrmExtModule.forFeature({
+          userOtp: options.entities.userOtp,
+        }),
+      ],
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerOptionsInterface) => {
         return {
           settings: options.otp?.settings,
         };
       },
-      entities: {
-        userOtp: options.entities.userOtp,
-      },
+      entities: ['userOtp'],
     }),
     EmailModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],

@@ -1,6 +1,6 @@
 import { Entity, ManyToOne } from 'typeorm';
 import { ReferenceIdInterface } from '@concepta/nestjs-common';
-import { OtpSqliteEntity } from '@concepta/nestjs-otp';
+import { OtpSqliteEntity } from '@concepta/nestjs-typeorm-ext';
 import { UserFixture } from './user.entity.fixture';
 
 /**
