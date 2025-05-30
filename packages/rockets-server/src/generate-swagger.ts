@@ -8,6 +8,7 @@ import { Entity } from 'typeorm';
 import {
   UserSqliteEntity,
   OtpSqliteEntity,
+  TypeOrmExtModule,
 } from '@concepta/nestjs-typeorm-ext';
 
 // Create concrete entity implementations for TypeORM
@@ -27,14 +28,37 @@ async function generateSwaggerJson() {
   try {
     @Module({
       imports: [
+        TypeOrmExtModule.forRootAsync({
+          inject: [],
+          useFactory: () => {
+            return {
+              type: 'sqlite',
+              database: ':memory:',
+              synchronize: false,
+              autoLoadEntities: true,
+              // Register our entities
+              entities: [UserEntity, UserOtpEntity],
+            };
+          },
+        }),
         RocketsServerModule.forRoot({
-          typeorm: {
-            type: 'sqlite',
-            database: ':memory:',
-            synchronize: false,
-            autoLoadEntities: true,
-            // Register our entities
-            entities: [UserEntity, UserOtpEntity],
+          user: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                user: {
+                  entity: UserEntity,
+                },
+              }),
+            ],
+          },
+          otp: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                userOtp: {
+                  entity: UserOtpEntity,
+                },
+              }),
+            ],
           },
           jwt: {
             settings: {
@@ -42,10 +66,6 @@ async function generateSwaggerJson() {
               refresh: { secret: 'test-secret' },
               default: { secret: 'test-secret' },
             },
-          },
-          entities: {
-            user: { entity: UserEntity },
-            userOtp: { entity: UserOtpEntity },
           },
           services: {
             mailerService: {

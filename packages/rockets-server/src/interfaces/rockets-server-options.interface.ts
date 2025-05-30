@@ -20,7 +20,6 @@ import {
 import { JwtOptions } from '@concepta/nestjs-jwt/dist/jwt.module-definition';
 import { OtpOptionsInterface } from '@concepta/nestjs-otp';
 import { PasswordOptionsInterface } from '@concepta/nestjs-password';
-import { TypeOrmExtOptions } from '@concepta/nestjs-typeorm-ext';
 import { UserPasswordServiceInterface } from '@concepta/nestjs-user';
 import { UserOptionsInterface } from '@concepta/nestjs-user/dist/interfaces/user-options.interface';
 import { UserPasswordHistoryServiceInterface } from '@concepta/nestjs-user/dist/interfaces/user-password-history-service.interface';
@@ -82,8 +81,6 @@ export interface RocketsServerOptionsInterface {
   user?: UserOptionsInterface;
 
   password?: PasswordOptionsInterface;
-
-  typeorm: TypeOrmExtOptions;
 
   otp?: OtpOptionsInterface;
 

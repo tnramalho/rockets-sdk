@@ -71,7 +71,7 @@ best practices for NestJS application development.
 - **Extensibility**: Easy to extend with custom DTOs, entities, and services to
   meet specific application requirements.
 - **TypeORM Integration**: Seamless integration with TypeORM for database
-  operations.
+  operations using SQLite entities.
 - **Configurable Settings**: Extensive configuration options to customize the
   behavior of the module.
 
@@ -113,32 +113,38 @@ as it provides a pre-configured setup for all these components.
 Start by installing the necessary packages:
 
 ```sh
-yarn add @concepta/rockets-server @nestjs/typeorm typeorm sqlite3
+yarn add @concepta/rockets-server @concepta/nestjs-typeorm-ext typeorm sqlite3
 ```
 
 #### Step 2: Create Entities
 
-Create the required entities by extending the base entities provided by the
+Create the required entities by extending the base SQLite entities provided by the
 module:
 
 ```typescript
 // user.entity.ts
-import { Entity } from 'typeorm';
-import { UserSqliteEntity } from '@concepta/nestjs-user';
+import { Entity, OneToMany, OneToOne } from 'typeorm';
+import { UserSqliteEntity } from '@concepta/nestjs-typeorm-ext';
+import { UserOtpEntity } from './user-otp.entity';
 
 @Entity()
-export class UserEntity extends UserSqliteEntity {}
+export class UserEntity extends UserSqliteEntity {
+  @OneToMany(() => UserOtpEntity, (userOtp) => userOtp.assignee)
+  userOtps?: UserOtpEntity[];
+}
 ```
 
 ```typescript
 // user-otp.entity.ts
-import { Entity } from 'typeorm';
-import { OtpSqliteEntity } from '@concepta/nestjs-otp';
+import { Entity, ManyToOne } from 'typeorm';
+import { ReferenceIdInterface } from '@concepta/nestjs-common';
+import { OtpSqliteEntity } from '@concepta/nestjs-typeorm-ext';
 import { UserEntity } from './user.entity';
 
 @Entity()
 export class UserOtpEntity extends OtpSqliteEntity {
-  assignee: UserEntity;
+  @ManyToOne(() => UserEntity, (user) => user.userOtps)
+  assignee!: ReferenceIdInterface;
 }
 ```
 
@@ -150,19 +156,21 @@ Configure the `RocketsServerModule` in your application module:
 // app.module.ts
 import { Module } from '@nestjs/common';
 import { RocketsServerModule } from '@concepta/rockets-server';
+import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import { UserEntity } from './entities/user.entity';
 import { UserOtpEntity } from './entities/user-otp.entity';
 
 @Module({
   imports: [
+    // Database configuration
+    TypeOrmExtModule.forRoot({
+      type: 'sqlite',
+      database: 'rockets.sqlite',
+      synchronize: true,
+      autoLoadEntities: true,
+    }),
+    // RocketsServer configuration
     RocketsServerModule.forRoot({
-      // Database configuration
-      typeorm: {
-        type: 'sqlite',
-        database: 'rockets.sqlite',
-        synchronize: true,
-        autoLoadEntities: true,
-      },
       // JWT settings
       jwt: {
         settings: {
@@ -179,10 +187,34 @@ import { UserOtpEntity } from './entities/user-otp.entity';
           },
         },
       },
-      // Entity mappings
-      entities: {
-        user: { entity: UserEntity },
-        userOtp: { entity: UserOtpEntity },
+      // User module configuration with entity imports
+      user: {
+        imports: [
+          TypeOrmExtModule.forFeature({
+            user: {
+              entity: UserEntity,
+            },
+          }),
+        ],
+      },
+      // OTP module configuration with entity imports
+      otp: {
+        imports: [
+          TypeOrmExtModule.forFeature({
+            userOtp: {
+              entity: UserOtpEntity,
+            },
+          }),
+        ],
+      },
+      // Email service implementation
+      services: {
+        mailerService: {
+          sendMail: (options) => {
+            console.log('Would send email:', options);
+            return Promise.resolve();
+          },
+        },
       },
       // Email settings
       settings: {
@@ -194,15 +226,6 @@ import { UserOtpEntity } from './entities/user-otp.entity';
               fileName: 'otp-email.hbs',
               subject: 'Your verification code',
             },
-          },
-        },
-      },
-      // Email service implementation
-      services: {
-        mailerService: {
-          sendMail: (options) => {
-            console.log('Would send email:', options);
-            return Promise.resolve();
           },
         },
       },
@@ -218,11 +241,11 @@ Once configured, the module provides several ready-to-use endpoints for
 authentication, user management, and other features. You can access these
 endpoints through the built-in controllers:
 
+- `/auth/signup`: Register a new user
 - `/auth/login`: Log in with username and password
 - `/auth/refresh`: Refresh an access token
 - `/auth/password`: Change password
 - `/auth/recovery`: Initiate password recovery
-- `/auth/signup`: Register a new user
 - `/otp`: OTP generation and validation
 - `/user`: User management (create, read, update, delete)
 
@@ -242,8 +265,26 @@ Here are some example API requests to test your setup:
 ```bash
 curl -X POST http://localhost:3000/auth/signup \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "Password123!", 
-      "username": "testuser"}'
+  -d '{
+    "email": "user@example.com", 
+    "password": "Password123!", 
+    "username": "testuser",
+    "active": true
+  }'
+```
+
+Response:
+
+```json
+{
+  "id": "1",
+  "email": "user@example.com",
+  "username": "testuser",
+  "active": true,
+  "dateCreated": "2024-01-01T00:00:00.000Z",
+  "dateUpdated": "2024-01-01T00:00:00.000Z",
+  "version": 1
+}
 ```
 
 ##### 2. Log in and obtain a JWT token
@@ -278,6 +319,22 @@ curl -X POST http://localhost:3000/auth/refresh \
   -d '{"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}'
 ```
 
+##### 5. Send OTP
+
+```bash
+curl -X POST http://localhost:3000/otp/send \
+  -H "Content-Type: application/json" \
+  -d '{"assignee": "user@example.com", "category": "email_verification"}'
+```
+
+##### 6. Confirm OTP
+
+```bash
+curl -X POST http://localhost:3000/otp/confirm \
+  -H "Content-Type: application/json" \
+  -d '{"assignee": "user@example.com", "category": "email_verification", "passcode": "123456"}'
+```
+
 ## How to Guides
 
 ### 1. How to Configure RocketsServerModule Settings
@@ -289,6 +346,7 @@ its behavior. Here's how to configure some common settings:
 
 ```typescript
 RocketsServerModule.forRoot({
+  ...
   settings: {
     email: {
       from: 'noreply@example.com',
@@ -311,6 +369,7 @@ RocketsServerModule.forRoot({
 
 ```typescript
 RocketsServerModule.forRoot({
+  ...
   settings: {
     otp: {
       expiresIn: 3600, // 1 hour in seconds
@@ -324,6 +383,7 @@ RocketsServerModule.forRoot({
 
 ```typescript
 RocketsServerModule.forRoot({
+  ...
   jwt: {
     settings: {
       access: { 
@@ -461,6 +521,8 @@ features for building secure and scalable NestJS applications.
   implementation.
 - **API Documentation**: Built-in Swagger documentation generator for your API
   endpoints.
+- **Testing Support**: Comprehensive testing utilities and patterns for unit
+  and e2e tests.
 
 ### Design Choices
 
@@ -510,8 +572,9 @@ modules. Here are some integration examples:
 
 ```typescript
 // custom-user.entity.ts
-import { Entity, Column } from 'typeorm';
-import { UserSqliteEntity } from '@concepta/nestjs-user';
+import { Entity, Column, OneToMany } from 'typeorm';
+import { UserSqliteEntity } from '@concepta/nestjs-typeorm-ext';
+import { UserOtpEntity } from './user-otp.entity';
 
 @Entity()
 export class CustomUserEntity extends UserSqliteEntity {
@@ -520,13 +583,19 @@ export class CustomUserEntity extends UserSqliteEntity {
   
   @Column({ default: 'en' })
   language: string;
+
+  @OneToMany(() => UserOtpEntity, (userOtp) => userOtp.assignee)
+  userOtps?: UserOtpEntity[];
 }
 
 // In your module configuration
 RocketsServerModule.forRoot({
-  entities: {
-    user: { entity: CustomUserEntity },
-    // Other entities...
+  user: {
+    imports: [
+      TypeOrmExtModule.forFeature({
+        user: { entity: CustomUserEntity },
+      }),
+    ],
   },
   // Other options...
 });
@@ -537,10 +606,10 @@ RocketsServerModule.forRoot({
 ```typescript
 // custom-mailer.service.ts
 import { Injectable } from '@nestjs/common';
-import { MailerServiceInterface } from '@concepta/nestjs-email';
+import { EmailSendInterface } from '@concepta/nestjs-common';
 
 @Injectable()
-export class CustomMailerService implements MailerServiceInterface {
+export class CustomMailerService implements EmailSendInterface {
   async sendMail(options: any): Promise<any> {
     // Custom email sending logic
     console.log('Sending email:', options);
@@ -555,6 +624,52 @@ RocketsServerModule.forRoot({
     mailerService: new CustomMailerService(),
   },
   // Other options...
+});
+```
+
+##### Async Configuration with Dependency Injection
+
+```typescript
+RocketsServerModule.forRootAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService) => ({
+    jwt: {
+      settings: {
+        access: { 
+          secret: configService.get('JWT_ACCESS_SECRET'),
+          expiresIn: configService.get('JWT_ACCESS_EXPIRES_IN', '15m'),
+        },
+        refresh: { 
+          secret: configService.get('JWT_REFRESH_SECRET'),
+          expiresIn: configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
+        },
+        default: { 
+          secret: configService.get('JWT_DEFAULT_SECRET'),
+        },
+      },
+    },
+    settings: {
+      email: {
+        from: configService.get('EMAIL_FROM'),
+        baseUrl: configService.get('BASE_URL'),
+      },
+    },
+  }),
+  user: {
+    imports: [
+      TypeOrmExtModule.forFeature({
+        user: { entity: UserEntity },
+      }),
+    ],
+  },
+  otp: {
+    imports: [
+      TypeOrmExtModule.forFeature({
+        userOtp: { entity: UserOtpEntity },
+      }),
+    ],
+  },
 });
 ```
 

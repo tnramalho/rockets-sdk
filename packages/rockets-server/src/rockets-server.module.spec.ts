@@ -27,6 +27,7 @@ import { UserFixture } from './__fixtures__/user/user.entity.fixture';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerUserModelServiceInterface } from './interfaces/rockets-server-user-model-service.interface';
 import { RocketsServerModule } from './rockets-server.module';
+import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 // Mock user lookup service
 export const mockUserModelService: RocketsServerUserModelServiceInterface = {
   bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
@@ -80,6 +81,12 @@ function testModuleFactory(
       GlobalModuleFixture,
       MockConfigModule,
       JwtModule.forRoot({}),
+      TypeOrmExtModule.forRootAsync({
+        inject: [],
+        useFactory: () => {
+          return ormConfig;
+        },
+      }),
       ...extraImports,
     ],
   };
@@ -148,12 +155,29 @@ describe('AuthenticationCombinedImportModule Integration', () => {
               IssueTokenServiceFixture,
               ValidateTokenServiceFixture,
             ],
+            user: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  user: {
+                    entity: UserFixture,
+                  },
+                }),
+              ],
+            },
+            otp: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  userOtp: {
+                    entity: UserOtpEntityFixture,
+                  },
+                }),
+              ],
+            },
             useFactory: (
               configService: ConfigService,
               issueTokenService: IssueTokenServiceFixture,
               validateTokenService: ValidateTokenServiceFixture,
             ): RocketsServerOptionsInterface => ({
-              typeorm: ormConfig,
               jwt: {
                 settings: {
                   access: { secret: configService.get('jwt.secret') },
@@ -168,14 +192,6 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                 validateTokenService,
               },
             }),
-            entities: {
-              user: {
-                entity: UserFixture,
-              },
-              userOtp: {
-                entity: UserOtpEntityFixture,
-              },
-            },
           }),
         ]),
       ).compile();
@@ -202,7 +218,24 @@ describe('AuthenticationCombinedImportModule Integration', () => {
         testModuleFactory([
           TypeOrmModuleFixture,
           RocketsServerModule.forRoot({
-            typeorm: ormConfig,
+            user: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  user: {
+                    entity: UserFixture,
+                  },
+                }),
+              ],
+            },
+            otp: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  userOtp: {
+                    entity: UserOtpEntityFixture,
+                  },
+                }),
+              ],
+            },
             jwt: {
               settings: {
                 default: { secret: 'test-secret-forroot' },
@@ -210,14 +243,6 @@ describe('AuthenticationCombinedImportModule Integration', () => {
             },
             services: {
               mailerService: mockEmailService,
-            },
-            entities: {
-              user: {
-                entity: UserFixture,
-              },
-              userOtp: {
-                entity: UserOtpEntityFixture,
-              },
             },
           }),
         ]),
@@ -238,7 +263,30 @@ describe('AuthenticationCombinedImportModule Integration', () => {
         testModuleFactory([
           TypeOrmModuleFixture,
           RocketsServerModule.forRoot({
-            typeorm: ormConfig,
+            user: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  user: {
+                    entity: UserFixture,
+                  },
+                  userPasswordHistory: {
+                    entity: UserPasswordHistoryEntityFixture,
+                  },
+                  userProfile: {
+                    entity: UserProfileEntityFixture,
+                  },
+                }),
+              ],
+            },
+            otp: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  userOtp: {
+                    entity: UserOtpEntityFixture,
+                  },
+                }),
+              ],
+            },
             jwt: {
               settings: {
                 access: { secret: 'test-secret' },
@@ -249,24 +297,8 @@ describe('AuthenticationCombinedImportModule Integration', () => {
             services: {
               mailerService: mockEmailService,
               userModelService: mockUserModelService,
-              // otpService: new OtpServiceFixture(),
-              // verifyTokenService: new VerifyTokenServiceFixture(),
               issueTokenService: new IssueTokenServiceFixture(),
               validateTokenService: new ValidateTokenServiceFixture(),
-            },
-            entities: {
-              user: {
-                entity: UserFixture,
-              },
-              userPasswordHistory: {
-                entity: UserPasswordHistoryEntityFixture,
-              },
-              userProfile: {
-                entity: UserProfileEntityFixture,
-              },
-              userOtp: {
-                entity: UserOtpEntityFixture,
-              },
             },
           }),
         ]),

@@ -19,17 +19,11 @@ import { JwtModule } from '@concepta/nestjs-jwt';
 import { JwtOptionsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-options.interface';
 import { OtpModule, OtpService } from '@concepta/nestjs-otp';
 import { PasswordModule } from '@concepta/nestjs-password';
-import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import {
   UserModule,
   UserModelService,
   UserPasswordService,
 } from '@concepta/nestjs-user';
-import {
-  USER_MODULE_USER_ENTITY_KEY,
-  USER_MODULE_USER_PASSWORD_HISTORY_ENTITY_KEY,
-  USER_MODULE_USER_PROFILE_ENTITY_KEY,
-} from '@concepta/nestjs-user/dist/user.constants';
 import {
   ConfigurableModuleBuilder,
   DynamicModule,
@@ -43,7 +37,6 @@ import { AuthTokenRefreshController } from './controllers/auth/auth-refresh.cont
 import { AuthSignupController } from './controllers/auth/auth-signup.controller';
 import { RocketsServerOtpController } from './controllers/otp/rockets-server-otp.controller';
 import { RocketsServerUserController } from './controllers/user/rockets-server-user.controller';
-import { RocketsServerEntitiesOptionsInterface } from './interfaces/rockets-server-entities-options.interface';
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
@@ -88,15 +81,16 @@ function definitionTransform(
   extras: RocketsServerOptionsExtrasInterface,
 ): DynamicModule {
   const { imports = [], providers = [], exports = [] } = definition;
-  const { entities, controllers } = extras;
+  const { controllers, user, otp } = extras;
 
   // TODO: need to define this, if set it as required we need to have defaults on extras
-  if (!entities) throw new Error('Entities Required');
+  if (!user?.imports) throw new Error('Make sure imports entities for user');
+  if (!otp?.imports) throw new Error('Make sure imports entities for otp');
 
   return {
     ...definition,
     global: extras.global,
-    imports: createRocketsServerImports({ imports, entities }),
+    imports: createRocketsServerImports({ imports, extras }),
     controllers: createRocketsServerControllers({ controllers }),
     providers: createRocketsServerProviders({ providers }),
     exports: createRocketsServerExports({ exports }),
@@ -137,7 +131,7 @@ export function createRocketsServerSettingsProvider(
  */
 export function createRocketsServerImports(options: {
   imports: DynamicModule['imports'];
-  entities: RocketsServerEntitiesOptionsInterface['entities'];
+  extras: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['imports'] {
   return [
     ...(options.imports || []),
@@ -306,31 +300,10 @@ export function createRocketsServerImports(options: {
         };
       },
     }),
-    TypeOrmExtModule.forRootAsync({
-      inject: [RAW_OPTIONS_TOKEN],
-      useFactory: (options: RocketsServerOptionsInterface) => {
-        return options.typeorm;
-      },
-    }),
+
     UserModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
-      imports: [
-        TypeOrmExtModule.forFeature({
-          [USER_MODULE_USER_ENTITY_KEY]: options.entities.user,
-          ...(options.entities?.userPasswordHistory
-            ? {
-                [USER_MODULE_USER_PASSWORD_HISTORY_ENTITY_KEY]:
-                  options.entities.userPasswordHistory,
-              }
-            : {}),
-          ...(options.entities?.userProfile
-            ? {
-                [USER_MODULE_USER_PROFILE_ENTITY_KEY]:
-                  options.entities.userProfile,
-              }
-            : {}),
-        }),
-      ],
+      imports: [...(options.extras?.user?.imports || [])],
       useFactory: (options: RocketsServerOptionsInterface) => {
         return {
           settings: options.user?.settings,
@@ -350,11 +323,7 @@ export function createRocketsServerImports(options: {
       },
     }),
     OtpModule.forRootAsync({
-      imports: [
-        TypeOrmExtModule.forFeature({
-          userOtp: options.entities.userOtp,
-        }),
-      ],
+      imports: [...(options.extras?.otp?.imports || [])],
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerOptionsInterface) => {
         return {

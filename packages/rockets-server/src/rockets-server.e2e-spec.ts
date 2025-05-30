@@ -27,6 +27,7 @@ import {
 import { UserFixture } from './__fixtures__/user/user.entity.fixture';
 import { UserOtpEntityFixture } from './__fixtures__/user/user-otp-entity.fixture';
 import { VerifyTokenServiceInterface } from '@concepta/nestjs-authentication';
+import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 
 // Test controller with protected route
 @Controller('test')
@@ -87,8 +88,13 @@ describe('RocketsServer (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         MockConfigModule,
+        TypeOrmExtModule.forRootAsync({
+          inject: [],
+          useFactory: () => {
+            return ormConfig;
+          },
+        }),
         RocketsServerModule.forRoot({
-          typeorm: ormConfig,
           jwt: {
             settings: {
               access: { secret: 'test-secret' },
@@ -96,19 +102,29 @@ describe('RocketsServer (e2e)', () => {
               refresh: { secret: 'test-secret' },
             },
           },
+          user: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                user: {
+                  entity: UserFixture,
+                },
+              }),
+            ],
+          },
+          otp: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                userOtp: {
+                  entity: UserOtpEntityFixture,
+                },
+              }),
+            ],
+          },
           services: {
             userModelService: mockUserModelService,
             mailerService: mockEmailService,
             issueTokenService: new IssueTokenServiceFixture(),
             validateTokenService: new ValidateTokenServiceFixture(),
-          },
-          entities: {
-            user: {
-              entity: UserFixture,
-            },
-            userOtp: {
-              entity: UserOtpEntityFixture,
-            },
           },
         }),
       ],
