@@ -7,7 +7,7 @@ import {
   AuthUser,
   IssueTokenServiceInterface,
 } from '@concepta/nestjs-authentication';
-import { Controller, Inject, Post, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
   ApiOkResponse,
@@ -59,6 +59,7 @@ export class AuthPasswordController {
   @ApiUnauthorizedResponse({
     description: 'Invalid credentials or inactive account',
   })
+  @HttpCode(200)
   @Post()
   async login(
     @AuthUser() user: RocketsServerUserInterface,

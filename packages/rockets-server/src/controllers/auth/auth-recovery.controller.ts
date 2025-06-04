@@ -19,8 +19,8 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
   ApiParam,
+  ApiTags,
 } from '@nestjs/swagger';
 import { RocketsServerRecoverLoginDto } from '../../dto/auth/rockets-server-recover-login.dto';
 import { RocketsServerRecoverPasswordDto } from '../../dto/auth/rockets-server-recover-password.dto';
