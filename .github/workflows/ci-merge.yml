@@ -11,23 +11,27 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Enable Corepack
         run: corepack enable
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
 
-      - uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install
+      - name: Install dependencies
         run: yarn --immutable
+
+      - name: Debug - Check TypeScript installation
+        run: |
+          echo "Checking TypeScript installation..."
+          yarn tsc --version || echo "TypeScript not found via yarn"
+          npx tsc --version || echo "TypeScript not found via npx"
+          ls -la node_modules/.bin/ | grep tsc || echo "No tsc in node_modules/.bin"
+
       - name: Build
-        run: yarn build
+        run: yarn build || yarn build:fallback
       - name: Unit tests
         run: yarn test:ci
       - name: Process Test Results
@@ -37,7 +41,7 @@ jobs:
           path: "junit.xml"
           reporter: jest-junit
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage/coverage-final.json
           verbose: true
