@@ -1,19 +1,14 @@
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { registerAs } from '@nestjs/config';
 import { randomUUID } from 'crypto';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
 
-import { ExtractJwt } from 'passport-jwt';
-
-import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server.constants';
-import { AuthenticationSettingsInterface } from '@concepta/nestjs-authentication/dist/interfaces/authentication-settings.interface';
-import { JwtSettingsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-settings.interface';
-import { AuthJwtSettingsInterface } from '@concepta/nestjs-auth-jwt/dist/interfaces/auth-jwt-settings.interface';
-import { AuthRefreshSettingsInterface } from '@concepta/nestjs-auth-refresh/dist/interfaces/auth-refresh-settings.interface';
 import {
   JwtConfigUndefinedException,
   JwtFallbackConfigUndefinedException,
 } from '@concepta/nestjs-jwt';
+import { JwtSettingsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-settings.interface';
 import { RocketsServerSettingsInterface } from '../interfaces/rockets-server-settings.interface';
+import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server.constants';
 import { formatTokenUrl } from '../rockets-server.utils';
 
 /**
@@ -24,11 +19,6 @@ import { formatTokenUrl } from '../rockets-server.utils';
 export const authenticationOptionsDefaultConfig = registerAs(
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   (): RocketsServerSettingsInterface => {
-    // Core configuration
-    const authentication: AuthenticationSettingsInterface = {
-      enableGuards: true,
-    };
-
     // JWT configuration
     const jwt: JwtSettingsInterface = {
       default: {
@@ -55,16 +45,6 @@ export const authenticationOptionsDefaultConfig = registerAs(
     configureAccessSecret(jwt.access);
     configureRefreshSecret(jwt.refresh, jwt.access);
 
-    // Auth JWT configuration
-    const authJwt: Partial<AuthJwtSettingsInterface> = {
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    };
-
-    // Auth Refresh configuration
-    const refresh: Partial<AuthRefreshSettingsInterface> = {
-      jwtFromRequest: ExtractJwt.fromBodyField('refreshToken'),
-    };
-
     return {
       email: {
         from: 'from',
@@ -83,18 +63,6 @@ export const authenticationOptionsDefaultConfig = registerAs(
         type: 'uuid',
         expiresIn: '1h',
       },
-
-      // Core authentication settings
-      authentication,
-
-      // JWT settings
-      jwt,
-
-      // Auth JWT settings
-      authJwt: authJwt,
-
-      // Refresh settings
-      refresh: refresh,
     };
   },
 );
