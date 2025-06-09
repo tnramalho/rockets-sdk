@@ -945,6 +945,8 @@ __metadata:
     "@types/passport-jwt": "npm:^3.0.13"
     "@types/passport-strategy": "npm:^0.2.38"
     "@types/supertest": "npm:^6.0.2"
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.14.1"
     express-serve-static-core: "npm:^0.1.1"
     jest-mock-extended: "npm:^2.0.9"
     jsonwebtoken: "npm:^9.0.2"
@@ -955,8 +957,6 @@ __metadata:
     supertest: "npm:^6.3.4"
     ts-node: "npm:^10.9.2"
   peerDependencies:
-    class-transformer: "*"
-    class-validator: "*"
     rxjs: ^7.1.0
     typeorm: ^0.3.0
   bin:
