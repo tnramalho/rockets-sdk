@@ -1,1 +1,0 @@
-{"version":3,"file":"rockets-server-otp-clear.dto.d.ts","sourceRoot":"","sources":["../../src/dto/rockets-server-otp-clear.dto.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,YAAY,EAAE,MAAM,yBAAyB,CAAC;AAEvD,qBAAa,wBAAyB,YAAW,IAAI,CAAC,YAAY,EAAE,UAAU,GAAG,UAAU,CAAC;IAG1F,QAAQ,EAAE,MAAM,CAAC;IAGjB,QAAQ,EAAE;QAAE,EAAE,EAAE,MAAM,CAAA;KAAE,CAAC;CAC1B"}

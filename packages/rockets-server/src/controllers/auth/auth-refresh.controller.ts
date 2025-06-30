@@ -1,25 +1,25 @@
-import { Controller, Inject, Post, UseGuards } from '@nestjs/common';
-import {
-  ApiBody,
-  ApiOkResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-  ApiOperation,
-  ApiSecurity,
-} from '@nestjs/swagger';
-import { RocketsServerUserInterface } from '../../interfaces/common/rockets-server-user.interface';
-import { RocketsServerAuthenticationResponseInterface } from '../../interfaces/common/rockets-server-authentication-response.interface';
-import {
-  IssueTokenServiceInterface,
-  AuthUser,
-  AuthPublic,
-} from '@concepta/nestjs-authentication';
 import {
   AuthRefreshGuard,
   AuthRefreshIssueTokenService,
 } from '@concepta/nestjs-auth-refresh';
-import { RocketsServerRefreshDto } from '../../dto/auth/rockets-server-refresh.dto';
+import {
+  AuthPublic,
+  AuthUser,
+  IssueTokenServiceInterface,
+} from '@concepta/nestjs-authentication';
+import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiSecurity,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { RocketsServerJwtResponseDto } from '../../dto/auth/rockets-server-jwt-response.dto';
+import { RocketsServerRefreshDto } from '../../dto/auth/rockets-server-refresh.dto';
+import { RocketsServerAuthenticationResponseInterface } from '../../interfaces/common/rockets-server-authentication-response.interface';
+import { RocketsServerUserInterface } from '../../interfaces/common/rockets-server-user.interface';
 
 /**
  * Controller for JWT refresh token operations
@@ -60,6 +60,7 @@ export class AuthTokenRefreshController {
     description: 'Invalid or expired refresh token',
   })
   @Post()
+  @HttpCode(200)
   async refresh(
     @AuthUser() user: RocketsServerUserInterface,
   ): Promise<RocketsServerAuthenticationResponseInterface> {

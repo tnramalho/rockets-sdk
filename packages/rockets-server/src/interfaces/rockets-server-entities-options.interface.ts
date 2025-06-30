@@ -1,17 +1,15 @@
-import { TypeOrmExtEntityOptionInterface } from '@concepta/nestjs-typeorm-ext';
 import {
+  RepositoryEntityOptionInterface,
   UserEntityInterface,
+  UserPasswordHistoryEntityInterface,
   UserProfileEntityInterface,
-} from '@concepta/nestjs-user';
-import { UserEntitiesOptionsInterface } from '@concepta/nestjs-user/dist/interfaces/user-entities-options.interface';
-import { UserPasswordHistoryEntityInterface } from '@concepta/nestjs-user/dist/interfaces/user-password-history-entity.interface';
+} from '@concepta/nestjs-common';
 
-export interface RocketsServerEntitiesOptionsInterface
-  extends UserEntitiesOptionsInterface {
+export interface RocketsServerEntitiesOptionsInterface {
   entities: {
-    user: TypeOrmExtEntityOptionInterface<UserEntityInterface>;
-    userPasswordHistory?: TypeOrmExtEntityOptionInterface<UserPasswordHistoryEntityInterface>;
-    userProfile?: TypeOrmExtEntityOptionInterface<UserProfileEntityInterface>;
-    userOtp: TypeOrmExtEntityOptionInterface;
+    user: RepositoryEntityOptionInterface<UserEntityInterface>;
+    userPasswordHistory?: RepositoryEntityOptionInterface<UserPasswordHistoryEntityInterface>;
+    userProfile?: RepositoryEntityOptionInterface<UserProfileEntityInterface>;
+    userOtp: RepositoryEntityOptionInterface;
   };
 }

@@ -13,7 +13,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserCreateDto"
+                "$ref": "#/components/schemas/RocketsServerUserCreateDto"
               },
               "examples": {
                 "standard": {
@@ -35,7 +35,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/RocketsServerUserDto"
                 }
               }
             }
@@ -64,7 +64,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/RocketsServerUserDto"
                 }
               }
             }
@@ -96,7 +96,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserUpdateDto"
+                "$ref": "#/components/schemas/RocketsServerUserUpdateDto"
               },
               "examples": {
                 "user": {
@@ -117,7 +117,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/RocketsServerUserDto"
                 }
               }
             }
@@ -154,7 +154,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthLocalLoginDto"
+                "$ref": "#/components/schemas/RocketsServerLoginDto"
               },
               "examples": {
                 "standard": {
@@ -174,7 +174,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsServerJwtResponseDto"
                 }
               }
             }
@@ -200,7 +200,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRefreshDto"
+                "$ref": "#/components/schemas/RocketsServerRefreshDto"
               },
               "examples": {
                 "standard": {
@@ -219,7 +219,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsServerJwtResponseDto"
                 }
               }
             }
@@ -250,7 +250,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRecoveryRecoverLoginDto"
+                "$ref": "#/components/schemas/RocketsServerRecoverLoginDto"
               },
               "examples": {
                 "standard": {
@@ -288,7 +288,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRecoveryRecoverPasswordDto"
+                "$ref": "#/components/schemas/RocketsServerRecoverPasswordDto"
               },
               "examples": {
                 "standard": {
@@ -324,7 +324,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AuthRecoveryUpdatePasswordDto"
+                "$ref": "#/components/schemas/RocketsServerUpdatePasswordDto"
               },
               "examples": {
                 "standard": {
@@ -362,8 +362,8 @@
             "required": true,
             "in": "path",
             "description": "Recovery passcode to validate",
-            "example": "abc123def456",
             "schema": {
+              "example": "abc123def456",
               "type": "string"
             }
           }
@@ -449,7 +449,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsServerJwtResponseDto"
                 }
               }
             }
@@ -484,7 +484,7 @@
       }
     },
     "schemas": {
-      "UserCreateDto": {
+      "RocketsServerUserCreateDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -499,9 +499,13 @@
             "type": "boolean",
             "description": "Active"
           },
-          "password": {
+          "passwordHash": {
             "type": "string",
-            "description": "Plain text password to set"
+            "description": "Password hash"
+          },
+          "passwordSalt": {
+            "type": "string",
+            "description": "Password salt"
           }
         },
         "required": [
@@ -509,7 +513,7 @@
           "username"
         ]
       },
-      "UserDto": {
+      "RocketsServerUserDto": {
         "type": "object",
         "properties": {
           "dateCreated": {
@@ -560,9 +564,13 @@
           "active"
         ]
       },
-      "UserUpdateDto": {
+      "RocketsServerUserUpdateDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier"
+          },
           "email": {
             "type": "string",
             "description": "Email"
@@ -571,17 +579,20 @@
             "type": "boolean",
             "description": "Active"
           },
-          "password": {
+          "passwordHash": {
             "type": "string",
-            "description": "Plain text password to set"
+            "description": "Password hash"
           },
-          "passwordCurrent": {
+          "passwordSalt": {
             "type": "string",
-            "description": "Current password to validate"
+            "description": "Password salt"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
-      "AuthLocalLoginDto": {
+      "RocketsServerLoginDto": {
         "type": "object",
         "properties": {
           "username": {
@@ -598,7 +609,7 @@
           "password"
         ]
       },
-      "AuthenticationJwtResponseDto": {
+      "RocketsServerJwtResponseDto": {
         "type": "object",
         "properties": {
           "accessToken": {
@@ -615,7 +626,7 @@
           "refreshToken"
         ]
       },
-      "AuthRefreshDto": {
+      "RocketsServerRefreshDto": {
         "type": "object",
         "properties": {
           "refreshToken": {
@@ -627,7 +638,7 @@
           "refreshToken"
         ]
       },
-      "AuthRecoveryRecoverLoginDto": {
+      "RocketsServerRecoverLoginDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -640,7 +651,7 @@
           "email"
         ]
       },
-      "AuthRecoveryRecoverPasswordDto": {
+      "RocketsServerRecoverPasswordDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -653,7 +664,7 @@
           "email"
         ]
       },
-      "AuthRecoveryUpdatePasswordDto": {
+      "RocketsServerUpdatePasswordDto": {
         "type": "object",
         "properties": {
           "passcode": {

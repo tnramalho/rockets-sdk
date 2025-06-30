@@ -1,4 +1,4 @@
-import { UserEntityInterface } from '@concepta/nestjs-user';
+import { UserEntityInterface } from '@concepta/nestjs-common';
 
 /**
  * User Entity Interface

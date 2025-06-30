@@ -1,7 +1,7 @@
 import { ReferenceIdInterface } from '@concepta/nestjs-common';
 import { OtpException, OtpService } from '@concepta/nestjs-otp';
 import { Inject, Injectable } from '@nestjs/common';
-import { RocketsServerUserLookupServiceInterface } from '../interfaces/rockets-server-user-lookup-service.interface';
+import { RocketsServerUserModelServiceInterface } from '../interfaces/rockets-server-user-model-service.interface';
 import {
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerUserLookupService,
@@ -20,7 +20,7 @@ export class RocketsServerOtpService
     @Inject(ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
     private readonly settings: RocketsServerSettingsInterface,
     @Inject(RocketsServerUserLookupService)
-    private readonly userLookupService: RocketsServerUserLookupServiceInterface,
+    private readonly userModelService: RocketsServerUserModelServiceInterface,
     private readonly otpService: OtpService,
     @Inject(RocketsServerNotificationService)
     private readonly otpNotificationService: RocketsServerOtpNotificationServiceInterface,
@@ -28,7 +28,7 @@ export class RocketsServerOtpService
 
   async sendOtp(email: string): Promise<void> {
     // Find user by email
-    const user = await this.userLookupService.byEmail(email);
+    const user = await this.userModelService.byEmail(email);
     const { assignment, category, expiresIn } = this.settings.otp;
     if (user) {
       // Generate OTP
@@ -37,7 +37,7 @@ export class RocketsServerOtpService
         otp: {
           category,
           type: 'uuid',
-          assignee: { id: user.id },
+          assigneeId: user.id,
           expiresIn: expiresIn, // 1 hour expiration
         },
       });
@@ -57,7 +57,7 @@ export class RocketsServerOtpService
   ): Promise<ReferenceIdInterface> {
     const { assignment, category } = this.settings.otp;
     // Find user by email
-    const user = await this.userLookupService.byEmail(email);
+    const user = await this.userModelService.byEmail(email);
 
     if (!user) {
       throw new OtpException();

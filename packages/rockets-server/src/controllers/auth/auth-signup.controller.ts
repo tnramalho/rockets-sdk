@@ -1,5 +1,9 @@
 import { AuthPublic } from '@concepta/nestjs-authentication';
-import { UserMutateService } from '@concepta/nestjs-user';
+import {
+  PasswordStorageService,
+  PasswordStorageServiceInterface,
+} from '@concepta/nestjs-password';
+import { UserDto, UserModelService } from '@concepta/nestjs-user';
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -9,9 +13,9 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { plainToClass } from 'class-transformer';
 import { RocketsServerUserCreateDto } from '../../dto/user/rockets-server-user-create.dto';
 import { RocketsServerUserDto } from '../../dto/user/rockets-server-user.dto';
-import { RocketsServerUserEntityInterface } from '../../interfaces/user/rockets-server-user-entity.interface';
 
 /**
  * Controller for user registration/signup
@@ -22,8 +26,10 @@ import { RocketsServerUserEntityInterface } from '../../interfaces/user/rockets-
 @ApiTags('auth')
 export class AuthSignupController {
   constructor(
-    @Inject(UserMutateService)
-    private readonly userMutateService: UserMutateService,
+    @Inject(UserModelService)
+    private readonly userModelService: UserModelService,
+    @Inject(PasswordStorageService)
+    protected readonly passwordStorageService: PasswordStorageServiceInterface,
   ) {}
 
   @ApiOperation({
@@ -59,7 +65,16 @@ export class AuthSignupController {
   @Post()
   async create(
     @Body() userCreateDto: RocketsServerUserCreateDto,
-  ): Promise<RocketsServerUserEntityInterface> {
-    return this.userMutateService.create(userCreateDto);
+  ): Promise<UserDto> {
+    const passwordHash = await this.passwordStorageService.hash(
+      userCreateDto.password,
+    );
+
+    const result = await this.userModelService.create({
+      ...userCreateDto,
+      ...passwordHash,
+    });
+
+    return plainToClass(UserDto, result);
   }
 }

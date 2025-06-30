@@ -1,6 +1,5 @@
 import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 import { EmailSendInterface, ExceptionsFilter } from '@concepta/nestjs-common';
-import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import {
   Controller,
   Get,
@@ -18,12 +17,12 @@ import {
 } from '@nestjs/swagger';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { ormConfig } from './__fixtures__/ormconfig.fixture';
 import { UserOtpEntityFixture } from './__fixtures__/user/user-otp-entity.fixture';
 import { UserFixture } from './__fixtures__/user/user.entity.fixture';
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { AuthSignupController } from './controllers/auth/auth-signup.controller';
 import { RocketsServerModule } from './rockets-server.module';
+import { SqliteAdapterModule } from './__fixtures__/sqlite-adapter/sqlite-adapter.module';
 
 // Test controller with protected route
 @Controller('test')
@@ -70,11 +69,8 @@ describe('RocketsServer (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         MockConfigModule,
-        TypeOrmExtModule.forRootAsync({
-          inject: [],
-          useFactory: () => {
-            return ormConfig;
-          },
+        SqliteAdapterModule.forRoot({
+          dbPath: ':memory:',
         }),
         RocketsServerModule.forRoot({
           jwt: {
@@ -86,7 +82,7 @@ describe('RocketsServer (e2e)', () => {
           },
           user: {
             imports: [
-              TypeOrmExtModule.forFeature({
+              SqliteAdapterModule.forFeature({
                 user: {
                   entity: UserFixture,
                 },
@@ -95,7 +91,7 @@ describe('RocketsServer (e2e)', () => {
           },
           otp: {
             imports: [
-              TypeOrmExtModule.forFeature({
+              SqliteAdapterModule.forFeature({
                 userOtp: {
                   entity: UserOtpEntityFixture,
                 },

@@ -20,14 +20,12 @@ import {
 import { JwtOptions } from '@concepta/nestjs-jwt/dist/jwt.module-definition';
 import { OtpOptionsInterface } from '@concepta/nestjs-otp';
 import { PasswordOptionsInterface } from '@concepta/nestjs-password';
-import { TypeOrmExtOptions } from '@concepta/nestjs-typeorm-ext';
 import { UserPasswordServiceInterface } from '@concepta/nestjs-user';
 import { UserOptionsInterface } from '@concepta/nestjs-user/dist/interfaces/user-options.interface';
 import { UserPasswordHistoryServiceInterface } from '@concepta/nestjs-user/dist/interfaces/user-password-history-service.interface';
 import { RocketsServerNotificationServiceInterface } from './rockets-server-notification.service.interface';
 import { RocketsServerSettingsInterface } from './rockets-server-settings.interface';
-import { RocketsServerUserLookupServiceInterface } from './rockets-server-user-lookup-service.interface';
-import { RocketsServerUserMutateServiceInterface } from './rockets-server-user-mutate-service.interface';
+import { RocketsServerUserModelServiceInterface } from './rockets-server-user-model-service.interface';
 
 /**
  * Combined options interface for the AuthenticationCombinedModule
@@ -84,8 +82,6 @@ export interface RocketsServerOptionsInterface {
 
   password?: PasswordOptionsInterface;
 
-  typeorm: TypeOrmExtOptions;
-
   otp?: OtpOptionsInterface;
 
   email?: Partial<EmailOptionsInterface>;
@@ -99,14 +95,7 @@ export interface RocketsServerOptionsInterface {
      * Used in: AuthJwtModule, AuthRefreshModule, AuthLocalModule, AuthRecoveryModule
      * Required: true
      */
-    userLookupService?: RocketsServerUserLookupServiceInterface;
-
-    /**
-     * User mutation service for user operations
-     * Used in: AuthRecoveryModule
-     * Required: true
-     */
-    userMutateService?: RocketsServerUserMutateServiceInterface;
+    userModelService?: RocketsServerUserModelServiceInterface;
 
     /**
      * Notification service for sending recovery notifications

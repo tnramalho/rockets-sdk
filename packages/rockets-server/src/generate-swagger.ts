@@ -5,8 +5,11 @@ import * as path from 'path';
 import { Module } from '@nestjs/common';
 import { RocketsServerModule } from './rockets-server.module';
 import { Entity } from 'typeorm';
-import { UserSqliteEntity } from '@concepta/nestjs-user';
-import { OtpSqliteEntity } from '@concepta/nestjs-otp';
+import {
+  UserSqliteEntity,
+  OtpSqliteEntity,
+  TypeOrmExtModule,
+} from '@concepta/nestjs-typeorm-ext';
 
 // Create concrete entity implementations for TypeORM
 @Entity()
@@ -25,14 +28,37 @@ async function generateSwaggerJson() {
   try {
     @Module({
       imports: [
+        TypeOrmExtModule.forRootAsync({
+          inject: [],
+          useFactory: () => {
+            return {
+              type: 'sqlite',
+              database: ':memory:',
+              synchronize: false,
+              autoLoadEntities: true,
+              // Register our entities
+              entities: [UserEntity, UserOtpEntity],
+            };
+          },
+        }),
         RocketsServerModule.forRoot({
-          typeorm: {
-            type: 'sqlite',
-            database: ':memory:',
-            synchronize: false,
-            autoLoadEntities: true,
-            // Register our entities
-            entities: [UserEntity, UserOtpEntity],
+          user: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                user: {
+                  entity: UserEntity,
+                },
+              }),
+            ],
+          },
+          otp: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                userOtp: {
+                  entity: UserOtpEntity,
+                },
+              }),
+            ],
           },
           jwt: {
             settings: {
@@ -41,12 +67,6 @@ async function generateSwaggerJson() {
               default: { secret: 'test-secret' },
             },
           },
-          // The following is the minimum required by RocketsServerModule
-          entities: {
-            user: { entity: UserEntity },
-            userOtp: { entity: UserOtpEntity },
-          },
-
           services: {
             mailerService: {
               sendMail: () => Promise.resolve(),
