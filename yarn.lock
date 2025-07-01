@@ -421,6 +421,57 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bitwild/rockets-server@workspace:packages/rockets-server":
+  version: 0.0.0-use.local
+  resolution: "@bitwild/rockets-server@workspace:packages/rockets-server"
+  dependencies:
+    "@concepta/nestjs-access-control": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-auth-jwt": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-auth-local": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-auth-recovery": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-auth-refresh": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-auth-verify": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-authentication": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-common": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-crud": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-email": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-jwt": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-otp": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-password": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-typeorm-ext": "npm:^7.0.0-alpha.4"
+    "@concepta/nestjs-user": "npm:^7.0.0-alpha.4"
+    "@nestjs/common": "npm:^10.4.1"
+    "@nestjs/config": "npm:^3.2.3"
+    "@nestjs/core": "npm:^10.4.1"
+    "@nestjs/jwt": "npm:^10.2.0"
+    "@nestjs/passport": "npm:^10.0.3"
+    "@nestjs/platform-express": "npm:^10.4.1"
+    "@nestjs/swagger": "npm:^7.4.0"
+    "@nestjs/testing": "npm:^10.4.1"
+    "@nestjs/typeorm": "npm:^10.0.2"
+    "@types/jsonwebtoken": "npm:9.0.6"
+    "@types/passport-jwt": "npm:^3.0.13"
+    "@types/passport-strategy": "npm:^0.2.38"
+    "@types/supertest": "npm:^6.0.2"
+    express-serve-static-core: "npm:^0.1.1"
+    jest-mock-extended: "npm:^2.0.9"
+    jsonwebtoken: "npm:^9.0.2"
+    passport: "npm:^0.7.0"
+    passport-jwt: "npm:^4.0.1"
+    passport-strategy: "npm:^1.0.0"
+    sqlite3: "npm:^5.1.4"
+    supertest: "npm:^6.3.4"
+    ts-node: "npm:^10.9.2"
+  peerDependencies:
+    class-transformer: "*"
+    class-validator: "*"
+    rxjs: ^7.1.0
+    typeorm: ^0.3.0
+  bin:
+    rockets-swagger: ./bin/generate-swagger.js
+  languageName: unknown
+  linkType: soft
+
 "@colors/colors@npm:1.5.0":
   version: 1.5.0
   resolution: "@colors/colors@npm:1.5.0"
@@ -912,57 +963,6 @@ __metadata:
   checksum: 10c0/d75d3f34b99d7f198ac15bf0b629085c75a17c7632d1ae072daa268505db6827366caceaf62d080e81802c786c5c718b35465665a947291964279ee0efa0a786
   languageName: node
   linkType: hard
-
-"@concepta/rockets-server@workspace:packages/rockets-server":
-  version: 0.0.0-use.local
-  resolution: "@concepta/rockets-server@workspace:packages/rockets-server"
-  dependencies:
-    "@concepta/nestjs-access-control": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-auth-jwt": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-auth-local": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-auth-recovery": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-auth-refresh": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-auth-verify": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-authentication": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-common": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-crud": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-email": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-jwt": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-otp": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-password": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-typeorm-ext": "npm:^7.0.0-alpha.4"
-    "@concepta/nestjs-user": "npm:^7.0.0-alpha.4"
-    "@nestjs/common": "npm:^10.4.1"
-    "@nestjs/config": "npm:^3.2.3"
-    "@nestjs/core": "npm:^10.4.1"
-    "@nestjs/jwt": "npm:^10.2.0"
-    "@nestjs/passport": "npm:^10.0.3"
-    "@nestjs/platform-express": "npm:^10.4.1"
-    "@nestjs/swagger": "npm:^7.4.0"
-    "@nestjs/testing": "npm:^10.4.1"
-    "@nestjs/typeorm": "npm:^10.0.2"
-    "@types/jsonwebtoken": "npm:9.0.6"
-    "@types/passport-jwt": "npm:^3.0.13"
-    "@types/passport-strategy": "npm:^0.2.38"
-    "@types/supertest": "npm:^6.0.2"
-    express-serve-static-core: "npm:^0.1.1"
-    jest-mock-extended: "npm:^2.0.9"
-    jsonwebtoken: "npm:^9.0.2"
-    passport: "npm:^0.7.0"
-    passport-jwt: "npm:^4.0.1"
-    passport-strategy: "npm:^1.0.0"
-    sqlite3: "npm:^5.1.4"
-    supertest: "npm:^6.3.4"
-    ts-node: "npm:^10.9.2"
-  peerDependencies:
-    class-transformer: "*"
-    class-validator: "*"
-    rxjs: ^7.1.0
-    typeorm: ^0.3.0
-  bin:
-    rockets-swagger: ./bin/generate-swagger.js
-  languageName: unknown
-  linkType: soft
 
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1

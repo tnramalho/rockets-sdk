@@ -2,8 +2,8 @@
 
 ## Project
 
-[![NPM Latest](https://img.shields.io/npm/v/@concepta/rockets-server)](https://www.npmjs.com/package/@concepta/rockets-server)
-[![NPM Downloads](https://img.shields.io/npm/dw/@concepta/rockets-server)](https://www.npmjs.com/package/@concepta/rockets-server)
+[![NPM Latest](https://img.shields.io/npm/v/@bitwild/rockets-server)](https://www.npmjs.com/package/@bitwild/rockets-server)
+[![NPM Downloads](https://img.shields.io/npm/dw/@bitwild/rockets-server)](https://www.npmjs.com/package/@bitwild/rockets-server)
 [![GH Last Commit](https://img.shields.io/github/last-commit/conceptadev/rockets?logo=github)](https://github.com/conceptadev/rockets)
 [![GH Contrib](https://img.shields.io/github/contributors/conceptadev/rockets?logo=github)](https://github.com/conceptadev/rockets/graphs/contributors)
 [![NestJS Dep](https://img.shields.io/github/package-json/dependency-version/conceptadev/rockets/@nestjs/common?label=NestJS&logo=nestjs&filename=packages%2Fnestjs-core%2Fpackage.json)](https://www.npmjs.com/package/@nestjs/common)
@@ -77,7 +77,7 @@ maintaining flexibility for customization and extension.
 Install the Rockets SDK and its peer dependencies:
 
 ```bash
-npm install @concepta/rockets-server @concepta/nestjs-typeorm-ext typeorm
+npm install @bitwild/rockets-server @concepta/nestjs-typeorm-ext typeorm
 ```
 
 **Note**: We use SQLite for the examples as it requires no additional setup.
@@ -135,7 +135,7 @@ Create your main application module with the Rockets SDK:
 ```typescript
 // app.module.ts
 import { Module } from '@nestjs/common';
-import { RocketsServerModule } from '@concepta/rockets-server';
+import { RocketsServerModule } from '@bitwild/rockets-server';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import { UserEntity } from './entities/user.entity';
 import { UserOtpEntity } from './entities/user-otp.entity';

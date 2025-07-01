@@ -1,7 +1,7 @@
 {
-  "name": "@concepta/rockets-server",
-  "version": "7.0.0-alpha.4",
-  "description": "Rockets",
+  "name": "@bitwild/rockets-server",
+  "version": "0.1.0-dev.1",
+  "description": "Rockets Server",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "BSD-3-Clause",
