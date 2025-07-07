@@ -73,11 +73,6 @@ import { FederatedEntity } from './entities/federated.entity';
           }),
         ],
       },
-      jwt: {
-        settings: {
-          default: { secret: 'test-secret-forroot' },
-        },
-      },
       services: {
         mailerService: mockEmailService,
       },

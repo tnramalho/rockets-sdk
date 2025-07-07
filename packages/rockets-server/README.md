@@ -4,9 +4,8 @@
 
 [![NPM Latest](https://img.shields.io/npm/v/@bitwild/rockets-server)](https://www.npmjs.com/package/@bitwild/rockets-server)
 [![NPM Downloads](https://img.shields.io/npm/dw/@bitwild/rockets-server)](https://www.npmjs.com/package/@bitwild/rockets-server)
-[![GH Last Commit](https://img.shields.io/github/last-commit/conceptadev/rockets?logo=github)](https://github.com/conceptadev/rockets)
-[![GH Contrib](https://img.shields.io/github/contributors/conceptadev/rockets?logo=github)](https://github.com/conceptadev/rockets/graphs/contributors)
-[![NestJS Dep](https://img.shields.io/github/package-json/dependency-version/conceptadev/rockets/@nestjs/common?label=NestJS&logo=nestjs&filename=packages%2Fnestjs-core%2Fpackage.json)](https://www.npmjs.com/package/@nestjs/common)
+[![GH Last Commit](https://img.shields.io/github/last-commit/btwld/rockets?logo=github)](https://github.com/btwld/rockets)
+[![GH Contrib](https://img.shields.io/github/contributors/btwld/rockets?logo=github)](https://github.com/btwld/rockets/graphs/contributors)
 
 ## Table of Contents
 
@@ -34,12 +33,10 @@
   - [otp](#otp)
   - [email](#email)
   - [services](#services)
-  - [Environment-based Configuration](#environment-based-configuration)
 - [Explanation](#explanation)
   - [Architecture Overview](#architecture-overview)
   - [Design Decisions](#design-decisions)
   - [Core Concepts](#core-concepts)
-  - [Integration Patterns](#integration-patterns)
 
 ---
 
@@ -74,15 +71,40 @@ maintaining flexibility for customization and extension.
 
 ### Installation
 
-Install the Rockets SDK and its peer dependencies:
+**⚠️ CRITICAL: Alpha Version Issue**:
+> **The current alpha version (7.0.0-alpha.4) has a dependency injection issue with AuthJwtGuard that prevents the minimal setup from working. This is a known issue being investigated.**
+
+**Version Requirements**:
+- NestJS: `^10.0.0`
+- Node.js: `>=18.0.0`
+- TypeScript: `>=4.8.0`
+
+Let's create a new NestJS project:
 
 ```bash
-npm install @bitwild/rockets-server @concepta/nestjs-typeorm-ext typeorm
+npx @nestjs/cli@10 new my-app-with-rockets --package-manager yarn --language TypeScript --strict
 ```
 
-**Note**: We use SQLite for the examples as it requires no additional setup.
-For production, you can easily switch to PostgreSQL, MySQL, or other databases.
-If you want to use SQLite in development, also install: `npm install sqlite3`
+
+Install the Rockets SDK and all required dependencies:
+
+```bash
+yarn add @bitwild/rockets-server @concepta/nestjs-typeorm-ext @concepta/nestjs-common typeorm @nestjs/typeorm @nestjs/config @nestjs/swagger
+```
+
+**Database Support**: Choose your database driver:
+
+```bash
+# SQLite (development)
+yarn add sqlite3
+
+# PostgreSQL (recommended for production)
+yarn add pg
+
+# MySQL
+yarn add mysql2
+```
+
 
 ---
 
@@ -128,13 +150,27 @@ export class UserOtpEntity extends OtpSqliteEntity {
 }
 ```
 
-#### Step 2: Configure Your Module
+#### Step 2: Set Up Environment Variables (Production Only)
 
-Create your main application module with the Rockets SDK:
+For production, create a `.env` file with JWT secrets:
+
+```env
+# Required for production
+JWT_MODULE_ACCESS_SECRET=your-super-secret-jwt-access-key-here
+# Optional - defaults to access secret if not provided
+JWT_MODULE_REFRESH_SECRET=your-super-secret-jwt-refresh-key-here
+```
+
+**Note**: In development, JWT secrets are auto-generated if not provided.
+
+#### Step 3: Configure Your Module
+
+Create your main application module with the minimal Rockets SDK setup:
 
 ```typescript
 // app.module.ts
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RocketsServerModule } from '@bitwild/rockets-server';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import { UserEntity } from './entities/user.entity';
@@ -142,6 +178,12 @@ import { UserOtpEntity } from './entities/user-otp.entity';
 
 @Module({
   imports: [
+    // REQUIRED: Configuration module for environment variables
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    
     // Database configuration - SQLite in-memory for easy testing
     TypeOrmExtModule.forRoot({
       type: 'sqlite',
@@ -149,21 +191,16 @@ import { UserOtpEntity } from './entities/user-otp.entity';
       synchronize: true,    // Auto-create tables (dev only)
       autoLoadEntities: true,
       logging: false,       // Set to true to see SQL queries
+      entities: [UserEntity, UserOtpEntity],
     }),
     
-    // Rockets SDK configuration
-    RocketsServerModule.forRoot({
-      // JWT configuration
-      jwt: {
-        settings: {
-          default: { 
-            secret: 'your-default-secret-key-here',
-            signOptions: { expiresIn: '1h' }
-          },
-        },
-      },
+    // Rockets SDK configuration - minimal setup
+    RocketsServerModule.forRootAsync({
+      // REQUIRED: Import ConfigModule for dependency injection
+      imports: [ConfigModule],
+      inject: [ConfigService],
       
-      // User module with entity configuration
+      // REQUIRED: User entity imports
       user: {
         imports: [
           TypeOrmExtModule.forFeature({
@@ -172,7 +209,7 @@ import { UserOtpEntity } from './entities/user-otp.entity';
         ],
       },
       
-      // OTP module with entity configuration
+      // REQUIRED: OTP entity imports
       otp: {
         imports: [
           TypeOrmExtModule.forFeature({
@@ -181,46 +218,48 @@ import { UserOtpEntity } from './entities/user-otp.entity';
         ],
       },
       
-      // Required services
-      services: {
-        mailerService: {
-          sendMail: (options) => {
-            console.log('📧 Email would be sent:', {
-              to: options.to,
-              subject: options.subject,
-              // Don't log the full content in examples
-            });
-            return Promise.resolve();
-          },
-        },
-      },
-      
-      // Email and OTP settings
-      settings: {
-        email: {
-          from: 'noreply@yourapp.com',
-          baseUrl: 'http://localhost:3000',
-          templates: {
-            sendOtp: {
-              fileName: 'otp.template.hbs',
-              subject: 'Your verification code',
+      useFactory: (configService: ConfigService) => ({
+        // Required services
+        services: {
+          mailerService: {
+            sendMail: (options: any) => {
+              console.log('📧 Email would be sent:', {
+                to: options.to,
+                subject: options.subject,
+                // Don't log the full content in examples
+              });
+              return Promise.resolve();
             },
           },
         },
-        otp: {
-          assignment: 'userOtp',
-          category: 'auth-login',
-          type: 'uuid',
-          expiresIn: '1h',
+        
+        // Email and OTP settings
+        settings: {
+          email: {
+            from: 'noreply@yourapp.com',
+            baseUrl: 'http://localhost:3000',
+            templates: {
+              sendOtp: {
+                fileName: 'otp.template.hbs',
+                subject: 'Your verification code',
+              },
+            },
+          },
+          otp: {
+            assignment: 'userOtp',
+            category: 'auth-login',
+            type: 'numeric',
+            expiresIn: '10m',
+          },
         },
-      },
+      }),
     }),
   ],
 })
 export class AppModule {}
 ```
 
-#### Step 3: Create Your Main Application
+#### Step 4: Create Your Main Application
 
 ```typescript
 // main.ts
@@ -292,7 +331,7 @@ curl -X POST http://localhost:3000/signup \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "SecurePass123!",
+    "password": "SecurePass123",
     "username": "testuser"
   }'
 ```
@@ -319,7 +358,7 @@ curl -X POST http://localhost:3000/token/password \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
-    "password": "SecurePass123!"
+    "password": "SecurePass123"
   }'
 ```
 
@@ -334,6 +373,8 @@ Expected response (200 OK):
 
 **Note**: The login endpoint returns a 200 OK status (not 201 Created) as it's retrieving
 tokens, not creating a new resource.
+
+**Defaults Working**: All authentication endpoints work out-of-the-box with sensible defaults.
 
 #### 4. Access Protected Endpoint
 
@@ -388,11 +429,39 @@ Expected OTP confirm response (200 OK):
 ```
 
 🎉 **Congratulations!** You now have a fully functional authentication system
-with user management, JWT tokens, and API documentation running entirely
-in-memory.
+with user management, JWT tokens, and API documentation running with minimal configuration.
 
 **💡 Pro Tip**: Since we're using an in-memory database, all data is lost when
 you restart the application. This is perfect for testing and development!
+
+### Troubleshooting
+
+#### Common Issues
+
+**AuthJwtGuard Dependency Error**
+
+If you encounter this error:
+```
+Nest can't resolve dependencies of the AuthJwtGuard (AUTHENTICATION_MODULE_SETTINGS_TOKEN, ?). Please make sure that the argument Reflector at index [1] is available in the AuthJwtModule context.
+```
+
+****Solution: Version Compatibility Issues**
+
+If you're getting dependency resolution errors:
+
+1. **NestJS Version**: Ensure you're using NestJS `^10.0.0`
+2. **Alpha Packages**: All `@concepta/*` packages should use the same alpha version (e.g., `^7.0.0-alpha.4`)
+3. **Clean Installation**: Try deleting `node_modules` and `package-lock.json`, then run `yarn install`
+
+**Module Resolution Errors**
+
+If TypeScript can't find modules like `@concepta/nestjs-typeorm-ext`:
+
+```bash
+yarn add @concepta/nestjs-typeorm-ext @concepta/nestjs-common --save
+```
+
+All dependencies listed in the installation section are required and must be installed explicitly.
 
 ---
 
@@ -410,6 +479,7 @@ The Rockets SDK uses a hierarchical configuration system with the following stru
 ```typescript
 interface RocketsServerOptionsInterface {
   settings?: RocketsServerSettingsInterface;
+  swagger?: SwaggerUiOptionsInterface;
   authentication?: AuthenticationOptionsInterface;
   jwt?: JwtOptions;
   authJwt?: AuthJwtOptionsInterface;
@@ -440,17 +510,19 @@ interface RocketsServerOptionsInterface {
 
 ### settings
 
-**What it does**: Global settings that affect multiple modules, including email
-configuration and OTP settings.
+**What it does**: Global settings that configure the custom OTP and email 
+services provided by RocketsServer. These settings are used by the custom OTP 
+controller and notification services, not by the core authentication modules.
 
-**Core modules it connects to**: EmailModule, OtpModule, AuthRecoveryModule,
-AuthVerifyModule
+**Core services it connects to**: RocketsServerOtpService, 
+RocketsServerNotificationService
 
-**When to update**: Always required for production. The defaults use placeholder
-values that won't work in real applications.
+**When to update**: Required when using the custom OTP endpoints 
+(`POST /otp`, `PATCH /otp`). The defaults use placeholder values that won't 
+work in real applications.
 
-**Real-world example**: Setting up email configuration for a SaaS application
-with custom branding:
+**Real-world example**: Setting up email configuration for the custom OTP 
+system:
 
 ```typescript
 settings: {
@@ -480,26 +552,49 @@ settings: {
 ### authentication
 
 **What it does**: Core authentication module configuration that handles token
-verification and validation services.
+verification, validation services and the payload of the token. It provides
+three key services:
+
+- **verifyTokenService**: Handles two-step token verification - first
+  cryptographically verifying JWT tokens using JwtVerifyTokenService, then
+  optionally validating the decoded payload through a validateTokenService.
+  Used by authentication guards and protected routes.
+
+- **issueTokenService**: Generates and signs new JWT tokens for authenticated
+  users. Creates both access and refresh tokens with user payload data and
+  builds complete authentication responses. Used during login, signup, and
+  token refresh flows.
+
+- **validateTokenService**: Optional service for custom business logic
+  validation beyond basic JWT verification. Can check user existence, token
+  blacklists, account status, or any other custom validation rules.
 
 **Core modules it connects to**: AuthenticationModule (the base authentication
-system)
+  system)
 
-**When to update**: When you need to customize core authentication behavior or
-provide custom token services.
+**When to update**: When you need to customize core authentication behavior,
+provide custom token services or change how the token payload is structured.
+Common scenarios include:
+- Implementing custom token verification logic
+- Adding business-specific token validation rules
+- Modifying token generation and payload structure
+- Integrating with external authentication systems
 
-**Real-world example**: Integrating with an external authentication service:
+**Real-world example**: Custom authentication configuration:
 
 ```typescript
 authentication: {
   settings: {
-    enableGuards: true, // Enable automatic route protection
+    enableGuards: true, // Default: true
   },
-  verifyTokenService: new CustomTokenVerificationService(),
+  // Optional: Custom services (defaults are provided)
   issueTokenService: new CustomTokenIssuanceService(),
+  verifyTokenService: new CustomTokenVerificationService(),
   validateTokenService: new CustomTokenValidationService(),
 }
 ```
+
+**Note**: All token services have working defaults. Only customize if you need specific business logic.
 
 ---
 
@@ -510,43 +605,60 @@ and token services.
 
 **Core modules it connects to**: JwtModule, AuthJwtModule, AuthRefreshModule
 
-**When to update**: Always required for production. You must provide secure
-secrets and appropriate expiration times.
+**When to update**: Only needed if loading JWT settings from a source other than 
+environment variables (e.g. config files, external services, etc).
 
-**Real-world example**: Production JWT configuration with environment-based
-secrets:
+**Environment Variables**: The JWT module automatically uses these environment variables with sensible defaults:
+
+- `JWT_MODULE_DEFAULT_EXPIRES_IN` (default: `'1h'`)
+- `JWT_MODULE_ACCESS_EXPIRES_IN` (default: `'1h'`)
+- `JWT_MODULE_REFRESH_EXPIRES_IN` (default:  `'99y'`)
+- `JWT_MODULE_ACCESS_SECRET` (required in production, auto-generated in development, if not provided)
+- `JWT_MODULE_REFRESH_SECRET` (defaults to access secret if not provided)
+
+**Default Behavior**:
+- **Development**: JWT secrets are auto-generated if not provided
+- **Production**: `JWT_MODULE_ACCESS_SECRET` is required (with NODE_ENV=production)
+- **Token Services**: Default `JwtIssueTokenService` and `JwtVerifyTokenService` are provided
+- **Multiple Token Types**: Separate access and refresh token handling
+
+**Security Notes**:
+- Production requires explicit JWT secrets for security
+- Development auto-generates secrets for convenience
+- Refresh tokens have longer expiration by default
+- All token operations are handled automatically
+
+**Real-world example**: Custom JWT configuration (optional - defaults work for most cases):
 
 ```typescript
 jwt: {
   settings: {
     default: {
-      secret: process.env.JWT_DEFAULT_SECRET, // Fallback secret
       signOptions: {
-        expiresIn: '1h',
         issuer: 'mycompany.com',
         audience: 'mycompany-api',
       },
     },
     access: {
-      secret: process.env.JWT_ACCESS_SECRET, // Short-lived tokens
       signOptions: {
-        expiresIn: '15m',
         issuer: 'mycompany.com',
         audience: 'mycompany-api',
       },
     },
     refresh: {
-      secret: process.env.JWT_REFRESH_SECRET, // Long-lived tokens
       signOptions: {
-        expiresIn: '30d', // Longer for mobile apps
         issuer: 'mycompany.com',
         audience: 'mycompany-refresh',
       },
     },
   },
+  // Optional: Custom services (defaults are provided)
   jwtIssueTokenService: new CustomJwtIssueService(),
   jwtVerifyTokenService: new CustomJwtVerifyService(),
 }
+```
+```
+**Note**: Environment variables are automatically used for secrets and expiration times. Only customize `jwt.settings` if you need specific JWT options like issuer/audience, you can also use the environment variables to configure the JWT module.
 ```
 
 ---
@@ -577,10 +689,15 @@ authJwt: {
       },
     ]),
   },
-  appGuard: true, // Apply JWT guard globally
+  // Optional settings (defaults are sensible)
+  appGuard: true, // Default: true - set true to apply JWT guard globally
+  // Optional services (defaults are provided)
   verifyTokenService: new CustomJwtVerifyService(),
   userModelService: new CustomUserLookupService(),
 }
+```
+```
+**Note**: Default token extraction uses standard Bearer token from Authorization header. Only customize if you need alternative token sources.
 ```
 
 ---
@@ -596,19 +713,27 @@ credential validation
 **When to update**: When you need custom password validation, user lookup logic,
 or want to integrate with external authentication systems.
 
-**Real-world example**: Integration with LDAP for enterprise authentication:
+**Real-world example**: Custom local authentication with email login:
 
 ```typescript
 authLocal: {
   settings: {
-    usernameField: 'email', // Use email instead of username
-    passwordField: 'password',
+    usernameField: 'email', // Default: 'username'
+    passwordField: 'password', // Default: 'password'
   },
-  validateUserService: new LdapUserValidationService(),
-  passwordValidationService: new CustomPasswordValidationService(),
+  // Optional services (defaults work with TypeORM entities)
+  validateUserService: new CustomUserValidationService(),
+  userModelService: new CustomUserModelService(),
   issueTokenService: new CustomTokenIssuanceService(),
-  userModelService: new LdapUserModelService(),
 }
+```
+
+```
+**Environment Variables**:
+- `AUTH_LOCAL_USERNAME_FIELD` - defaults to `'username'`
+- `AUTH_LOCAL_PASSWORD_FIELD` - defaults to `'password'`
+
+**Note**: The default services work automatically with your TypeORM User entity. Only customize if you need specific validation logic.
 ```
 
 ---
@@ -748,18 +873,21 @@ integrate with external password validation services.
 ```typescript
 password: {
   settings: {
-    minPasswordStrength: PasswordStrengthEnum.Strong, // Require strong passwords
-    maxPasswordAttempts: 5, // Lock account after 5 failed attempts
-    requireCurrentToUpdate: true, // Require current password to change
+    minPasswordStrength: 3, // 0-4 scale (default: 2)
+    maxPasswordAttempts: 5, // Default: 3
+    requireCurrentToUpdate: true, // Default: false
     passwordHistory: 12, // Remember last 12 passwords
-    minPasswordLength: 12,
-    requireUppercase: true,
-    requireLowercase: true,
-    requireNumbers: true,
-    requireSpecialChars: true,
-    passwordExpirationDays: 90, // Force password change every 90 days
   },
 }
+```
+
+**Environment Variables**:
+- `PASSWORD_MIN_PASSWORD_STRENGTH` - defaults to `4` if production, `0` if development (0-4 scale)
+- `PASSWORD_MAX_PASSWORD_ATTEMPTS` - defaults to `3`
+- `PASSWORD_REQUIRE_CURRENT_TO_UPDATE` - defaults to `false`
+
+```
+**Note**: Password strength is automatically calculated using zxcvbn. History tracking is optional and requires additional configuration.
 ```
 
 ---
@@ -774,8 +902,25 @@ validation
 **When to update**: When you need custom OTP behavior, different OTP types, or
 want to integrate with external OTP services.
 
-**Real-world example**: High-security OTP configuration for financial
-applications:
+**Interface**: `OtpSettingsInterface` from `@concepta/nestjs-otp`
+
+```typescript
+interface OtpSettingsInterface {
+  types: Record<string, OtpTypeServiceInterface>;
+  clearOnCreate: boolean;
+  keepHistoryDays?: number;
+  rateSeconds?: number;
+  rateThreshold?: number;
+}
+```
+
+**Environment Variables**:
+- `OTP_CLEAR_ON_CREATE` - defaults to `false`
+- `OTP_KEEP_HISTORY_DAYS` - no default (optional)
+- `OTP_RATE_SECONDS` - no default (optional)  
+- `OTP_RATE_THRESHOLD` - no default (optional)
+
+**Real-world example**: High-security OTP configuration with rate limiting:
 
 ```typescript
 otp: {
@@ -785,13 +930,16 @@ otp: {
     }),
   ],
   settings: {
-    assignment: 'userOtp',
-    category: 'financial-transaction',
-    type: 'numeric', // 6-digit numeric codes
-    expiresIn: '5m', // Short expiry for security
-    length: 8, // 8-digit codes for higher security
-    maxAttempts: 3, // Maximum validation attempts
-    cooldownPeriod: '1m', // Cooldown between OTP requests
+    types: {
+      uuid: {
+        generator: () => require('uuid').v4(),
+        validator: (value: string, expected: string) => value === expected,
+      },
+    },
+    clearOnCreate: true, // Clear old OTPs when creating new ones
+    keepHistoryDays: 30, // Keep OTP history for 30 days
+    rateSeconds: 60, // Minimum 60 seconds between OTP requests
+    rateThreshold: 5, // Maximum 5 attempts within rate window
   },
 }
 ```
@@ -809,24 +957,14 @@ AuthVerifyModule
 **When to update**: When you need to use a different email service provider or
 customize email sending behavior.
 
-**Real-world example**: Integration with SendGrid for transactional emails:
+**Interface**: `EmailServiceInterface` from `@concepta/nestjs-email`
+
+**Configuration example**:
 
 ```typescript
 email: {
-  mailerService: new SendGridMailerService({
-    apiKey: process.env.SENDGRID_API_KEY,
-    defaultFrom: 'noreply@mycompany.com',
-    templates: {
-      welcome: 'd-1234567890abcdef',
-      passwordReset: 'd-abcdef1234567890',
-      verification: 'd-567890abcdef1234',
-    },
-  }),
-  settings: {
-    retryAttempts: 3,
-    retryDelay: 1000,
-    timeout: 10000,
-  },
+  service: new YourCustomEmailService(), // Must implement EmailServiceInterface
+  settings: {}, // Settings object is empty
 }
 ```
 
@@ -848,114 +986,13 @@ AuthLocalModule, AuthRecoveryModule
 **When to update**: When you need to integrate with external user systems or
 implement custom user lookup logic.
 
-**Real-world example**: Integration with Active Directory:
+**Interface**: `UserModelServiceInterface` from `@concepta/nestjs-user`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  userModelService: new ActiveDirectoryUserModelService({
-    ldapUrl: 'ldap://company.local',
-    baseDN: 'DC=company,DC=local',
-    bindDN: process.env.AD_BIND_DN,
-    bindPassword: process.env.AD_BIND_PASSWORD,
-    userSearchBase: 'OU=Users,DC=company,DC=local',
-    userSearchFilter: '(sAMAccountName={{username}})',
-  }),
-}
-```
-
-**Real-world example 2**: Multi-tenant SaaS with complex relationships:
-
-```typescript
-// services/multi-tenant-user-model.service.ts
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { 
-  ReferenceIdInterface, 
-  ReferenceSubject,
-  UserEntityInterface 
-} from '@concepta/nestjs-common';
-import { RocketsServerUserModelServiceInterface } from '@concepta/rockets-sdk';
-import { UserEntity } from '../entities/user.entity';
-
-@Injectable()
-export class MultiTenantUserModelService implements RocketsServerUserModelServiceInterface {
-  constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
-  ) {}
-
-  /**
-   * Find user by subject with all relationships for authorization context
-   */
-  async bySubject(subject: ReferenceSubject): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ subject });
-  }
-
-  async byEmail(email: string): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ email });
-  }
-
-  async byUsername(username: string): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ username });
-  }
-
-  async byId(id: string): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ id });
-  }
-
-  async create(user: Partial<UserEntityInterface>): Promise<ReferenceIdInterface> {
-    const newUser = this.userRepository.create(user);
-    const savedUser = await this.userRepository.save(newUser);
-    return this.byId(savedUser.id);
-  }
-
-  async update(user: Partial<UserEntityInterface>): Promise<ReferenceIdInterface> {
-    await this.userRepository.update(user.id, user);
-    return this.byId(user.id);
-  }
-
-  async replace(user: UserEntityInterface): Promise<ReferenceIdInterface> {
-    await this.userRepository.save(user);
-    return this.byId(user.id);
-  }
-
-  async remove(user: UserEntityInterface): Promise<ReferenceIdInterface> {
-    const result = await this.userRepository.remove(user);
-    return result;
-  }
-
-  private async loadUserWithRelations(criteria: any): Promise<ReferenceIdInterface> {
-    const user = await this.userRepository.findOne({
-      where: criteria,
-      relations: ['tenant', 'roles', 'teams', 'projects', 'profile'],
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        active: true,
-        tenant: { id: true, name: true, subscriptionTier: true },
-        roles: { id: true, name: true },
-        teams: { id: true, name: true },
-        projects: { id: true, name: true },
-        profile: { firstName: true, lastName: true }
-      }
-    });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Add computed properties for authorization
-    return {
-      ...user,
-      // Flatten for easy access in guards/decorators
-      tenantId: user.tenant?.id,
-      subscriptionTier: user.tenant?.subscriptionTier,
-      roleNames: user.roles?.map(r => r.name) || [],
-      accessibleProjectIds: user.projects?.map(p => p.id) || [],
-    };
-  }
+  userModelService: new YourCustomUserModelService(), // Must implement UserModelServiceInterface
 }
 ```
 
@@ -969,20 +1006,13 @@ processes.
 **When to update**: When you need custom notification channels (SMS, push
 notifications) or integration with external notification services.
 
-**Real-world example**: Multi-channel notification service:
+**Interface**: `NotificationServiceInterface` from `@concepta/nestjs-authentication`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  notificationService: new MultiChannelNotificationService({
-    email: new SendGridEmailService(),
-    sms: new TwilioSmsService(),
-    push: new FirebasePushService(),
-    channels: {
-      passwordRecovery: ['email', 'sms'],
-      accountVerification: ['email'],
-      securityAlert: ['email', 'sms', 'push'],
-    },
-  }),
+  notificationService: new YourCustomNotificationService(), // Must implement NotificationServiceInterface
 }
 ```
 
@@ -995,17 +1025,13 @@ services: {
 **When to update**: When you need custom token verification logic or integration
 with external token validation services.
 
-**Real-world example**: Integration with OAuth2 provider:
+**Interface**: `VerifyTokenServiceInterface` from `@concepta/nestjs-authentication`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  verifyTokenService: new OAuth2TokenVerifyService({
-    introspectionEndpoint: 'https://auth.provider.com/oauth2/introspect',
-    clientId: process.env.OAUTH2_CLIENT_ID,
-    clientSecret: process.env.OAUTH2_CLIENT_SECRET,
-    cacheTokens: true,
-    cacheTtl: 300, // 5 minutes
-  }),
+  verifyTokenService: new YourCustomVerifyTokenService(), // Must implement VerifyTokenServiceInterface
 }
 ```
 
@@ -1019,21 +1045,13 @@ AuthRefreshModule
 **When to update**: When you need custom token issuance logic or want to include
 additional claims.
 
-**Real-world example**: Custom token with user roles and permissions:
+**Interface**: `IssueTokenServiceInterface` from `@concepta/nestjs-authentication`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  issueTokenService: new CustomTokenIssueService({
-    includeUserRoles: true,
-    includePermissions: true,
-    customClaims: {
-      tenantId: (user) => user.tenantId,
-      department: (user) => user.department,
-      lastLogin: (user) => user.lastLoginAt,
-    },
-    tokenAudience: 'mycompany-api',
-    tokenIssuer: 'mycompany-auth',
-  }),
+  issueTokenService: new YourCustomIssueTokenService(), // Must implement IssueTokenServiceInterface
 }
 ```
 
@@ -1046,19 +1064,13 @@ services: {
 **When to update**: When you need custom token validation rules or security
 checks.
 
-**Real-world example**: Enhanced security validation:
+**Interface**: `ValidateTokenServiceInterface` from `@concepta/nestjs-authentication`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  validateTokenService: new SecurityEnhancedTokenValidateService({
-    checkTokenBlacklist: true,
-    validateIpAddress: true,
-    checkUserAgent: true,
-    requireSecureClaims: ['tenantId', 'roles'],
-    maxTokenAge: '24h',
-    allowedIssuers: ['mycompany-auth'],
-    allowedAudiences: ['mycompany-api'],
-  }),
+  validateTokenService: new YourCustomValidateTokenService(), // Must implement ValidateTokenServiceInterface
 }
 ```
 
@@ -1071,18 +1083,13 @@ services: {
 **When to update**: When you need custom credential validation or integration
 with external authentication systems.
 
-**Real-world example**: Multi-factor authentication validation:
+**Interface**: `ValidateUserServiceInterface` from `@concepta/nestjs-authentication`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  validateUserService: new MfaValidateUserService({
-    requireMfa: true,
-    mfaProviders: ['totp', 'sms', 'email'],
-    fallbackToPassword: false,
-    maxLoginAttempts: 3,
-    lockoutDuration: '15m',
-    auditFailedAttempts: true,
-  }),
+  validateUserService: new YourCustomValidateUserService(), // Must implement ValidateUserServiceInterface
 }
 ```
 
@@ -1095,20 +1102,13 @@ services: {
 **When to update**: When you need custom password hashing algorithms or password
 policy enforcement.
 
-**Real-world example**: Enterprise-grade password service:
+**Interface**: `UserPasswordServiceInterface` from `@concepta/nestjs-user`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  userPasswordService: new EnterprisePasswordService({
-    hashingAlgorithm: 'argon2id',
-    saltRounds: 12,
-    memoryLimit: 65536, // 64MB
-    timeCost: 3,
-    parallelism: 4,
-    enforcePasswordPolicy: true,
-    checkBreachedPasswords: true,
-    breachCheckService: new HaveIBeenPwnedService(),
-  }),
+  userPasswordService: new YourCustomUserPasswordService(), // Must implement UserPasswordServiceInterface
 }
 ```
 
@@ -1121,18 +1121,13 @@ services: {
 **When to update**: When you need to enforce password history policies or custom
 password tracking.
 
-**Real-world example**: Compliance-focused password history:
+**Interface**: `UserPasswordHistoryServiceInterface` from `@concepta/nestjs-user`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  userPasswordHistoryService: new CompliancePasswordHistoryService({
-    historyLength: 24, // Remember last 24 passwords
-    enforceHistory: true,
-    auditPasswordChanges: true,
-    encryptStoredHashes: true,
-    complianceReporting: true,
-    retentionPeriod: '7y', // Keep history for 7 years
-  }),
+  userPasswordHistoryService: new YourCustomPasswordHistoryService(), // Must implement UserPasswordHistoryServiceInterface
 }
 ```
 
@@ -1145,22 +1140,13 @@ services: {
 **When to update**: When you need custom access control logic or integration
 with external authorization systems.
 
-**Real-world example**: Role-based access control with hierarchical permissions:
+**Interface**: `CanAccess` from `@concepta/nestjs-common`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  userAccessQueryService: new HierarchicalAccessControlService({
-    roleHierarchy: {
-      'super-admin': ['admin', 'manager', 'user'],
-      'admin': ['manager', 'user'],
-      'manager': ['user'],
-      'user': [],
-    },
-    permissionInheritance: true,
-    cachePermissions: true,
-    cacheTtl: 300, // 5 minutes
-    auditAccessChecks: true,
-  }),
+  userAccessQueryService: new YourCustomAccessQueryService(), // Must implement CanAccess
 }
 ```
 
@@ -1174,144 +1160,16 @@ AuthVerifyModule, OTP system
 **When to update**: Always required. You must provide a working email service
 for production.
 
-**Real-world example**: Production email service with multiple providers and
-failover:
+**Interface**: `EmailServiceInterface` from `@concepta/nestjs-email`
+
+**Configuration example**:
 
 ```typescript
 services: {
-  mailerService: new FailoverMailerService({
-    primary: new SendGridMailerService({
-      apiKey: process.env.SENDGRID_API_KEY,
-      defaultFrom: 'noreply@mycompany.com',
-    }),
-    fallback: new SesMailerService({
-      region: 'us-east-1',
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      defaultFrom: 'backup@mycompany.com',
-    }),
-    retryAttempts: 3,
-    retryDelay: 2000,
-    healthCheck: true,
-    healthCheckInterval: 60000, // 1 minute
-  }),
+  mailerService: new YourCustomMailerService(), // Must implement EmailServiceInterface
 }
 ```
 
-### Usage in Module Configuration
-
-These services are used in your module configuration like this:
-
-```typescript
-// app.module.ts
-RocketsServerModule.forRoot({
-  // ... other configuration
-  services: {
-    userModelService: new CustomUserModelService(userRepository),
-    notificationService: new CustomNotificationService(emailService),
-    verifyTokenService: new CustomVerifyTokenService(jwtService),
-    issueTokenService: new CustomIssueTokenService(jwtService),
-    validateTokenService: new CustomValidateTokenService(),
-    validateUserService: new CustomValidateUserService(userRepository, passwordService),
-    userPasswordService: new CustomUserPasswordService(userRepository, passwordService),
-    userPasswordHistoryService: new CustomUserPasswordHistoryService(historyRepository),
-    userAccessQueryService: new CustomUserAccessQueryService(userRepository, userRoleRepository),
-    mailerService: new CustomMailerService(), // Required
-  },
-}),
-```
-
-### Implementation Notes
-
-1. **Required Services**: Only `mailerService` is required. All other services
-   have default implementations.
-
-2. **Interface Compliance**: Each service must implement its respective
-   interface exactly as defined.
-
-3. **Dependency Injection**: Services can be injected with dependencies using
-   NestJS's dependency injection system.
-
-4. **Error Handling**: Implement proper error handling and logging in
-   production services.
-
-5. **Testing**: Each service should be thoroughly tested with unit tests and
-   integration tests.
-
-6. **Configuration**: Use environment variables and configuration services for
-   production deployments.
-
-These implementations serve as the foundation for the custom service examples
-used throughout the How-to Guides section.
-
----
-
-### Environment-based Configuration
-
-For production applications, use environment variables and configuration services:
-
-```typescript
-// config/rockets.config.ts
-import { registerAs } from '@nestjs/config';
-
-export default registerAs('rockets', () => ({
-  jwt: {
-    access: {
-      secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m',
-    },
-    refresh: {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d',
-    },
-    default: {
-      secret: process.env.JWT_DEFAULT_SECRET,
-      expiresIn: process.env.JWT_DEFAULT_EXPIRES || '1h',
-    },
-  },
-  email: {
-    from: process.env.EMAIL_FROM || 'noreply@example.com',
-    baseUrl: process.env.BASE_URL || 'http://localhost:3000',
-  },
-  otp: {
-    expiresIn: process.env.OTP_EXPIRES_IN || '10m',
-    type: process.env.OTP_TYPE || 'numeric',
-  },
-  password: {
-    minStrength: parseInt(process.env.PASSWORD_MIN_STRENGTH) || 2,
-    maxAttempts: parseInt(process.env.PASSWORD_MAX_ATTEMPTS) || 5,
-  },
-}));
-
-// app.module.ts
-RocketsServerModule.forRootAsync({
-  imports: [ConfigModule.forFeature(rocketsConfig)],
-  inject: [ConfigService],
-  useFactory: (configService: ConfigService) => ({
-    jwt: {
-      settings: configService.get('rockets.jwt'),
-    },
-    settings: {
-      email: configService.get('rockets.email'),
-      otp: {
-        assignment: 'userOtp',
-        category: 'auth-login',
-        ...configService.get('rockets.otp'),
-      },
-    },
-    password: {
-      settings: configService.get('rockets.password'),
-    },
-    services: {
-      mailerService: new ProductionMailerService(),
-    },
-    // ... other configuration
-  }),
-}),
-```
-
-This comprehensive configuration system allows you to customize every aspect of
-the Rockets SDK while maintaining sensible defaults for rapid development.
 
 ---
 
@@ -1322,31 +1180,38 @@ the Rockets SDK while maintaining sensible defaults for rapid development.
 The Rockets SDK follows a modular, layered architecture designed for
 enterprise applications:
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                    Application Layer                        │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐ │
-│  │ Controllers │ │    DTOs     │ │    Swagger Docs         │ │
-│  └─────────────┘ └─────────────┘ └─────────────────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│                     Service Layer                           │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐ │
-│  │    Auth     │ │    User     │ │         OTP             │ │
-│  │  Services   │ │  Services   │ │       Services          │ │
-│  └─────────────┘ └─────────────┘ └─────────────────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│                   Integration Layer                         │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐ │
-│  │    JWT      │ │   Email     │ │      Password           │ │
-│  │   Module    │ │   Module    │ │       Module            │ │
-│  └─────────────┘ └─────────────┘ └─────────────────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│                    Data Layer                               │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐ │
-│  │  TypeORM    │ │   SQLite    │ │      Adapters           │ │
-│  │ Integration │ │   Entities  │ │     (Custom DBs)        │ │
-│  └─────────────┘ └─────────────┘ └─────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph AL["Application Layer"]
+        direction BT
+        A[Controllers]
+        B[DTOs]
+        C[Swagger Docs]
+    end
+    
+    subgraph SL["Service Layer"]
+        direction BT
+        D[Auth Services]
+        E[User Services]
+        F[OTP Services]
+    end
+    
+    subgraph IL["Integration Layer"]
+        direction BT
+        G[JWT Module]
+        H[Email Module]
+        I[Password Module]
+    end
+    
+    subgraph DL["Data Layer"]
+        direction BT      
+        J[TypeORM Integration]
+        L[Custom Adapters]
+    end
+    
+    AL --> SL
+    SL --> IL
+    IL --> DL
 ```
 
 #### Core Components
@@ -1414,48 +1279,7 @@ const userModule = new UserModule(userConfig);
 - Facilitates testing with mock repositories
 - Provides flexibility for future data layer changes
 
-**Implementation**:
-
-```typescript
-import { PlainLiteralObject } from '@nestjs/common';
-
-import { DeepPartial } from '../../utils/deep-partial';
-
-import { RepositoryInternals } from './repository-internals';
-
-export interface RepositoryInterface<Entity extends PlainLiteralObject> {
-  entityName(): string;
-
-  find(
-    options?: RepositoryInternals.FindManyOptions<Entity>,
-  ): Promise<Entity[]>;
-
-  findOne(
-    options: RepositoryInternals.FindOneOptions<Entity>,
-  ): Promise<Entity | null>;
-
-  create(entityLike: DeepPartial<Entity>): Entity;
-
-  merge(mergeIntoEntity: Entity, ...entityLikes: DeepPartial<Entity>[]): Entity;
-
-  save<T extends DeepPartial<Entity>>(
-    entities: T[],
-    options?: RepositoryInternals.SaveOptions,
-  ): Promise<(T & Entity)[]>;
-  save<T extends DeepPartial<Entity>>(
-    entity: T,
-    options?: RepositoryInternals.SaveOptions,
-  ): Promise<T & Entity>;
-
-  remove(entities: Entity[]): Promise<Entity[]>;
-  remove(entity: Entity): Promise<Entity>;
-
-  gt<T>(value: T): any;
-  gte<T>(value: T): any;
-  lt<T>(value: T): any;
-  lte<T>(value: T): any;
-}
-```
+**Implementation**: Uses the adapter pattern with a standardized repository interface to support multiple database types and ORMs.
 
 #### 4. Service Injection Pattern
 
@@ -1495,284 +1319,283 @@ services: {
 
 The Rockets SDK implements a comprehensive authentication flow:
 
-```┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Client    │    │   Server    │    │  Database   │
-└─────────────┘    └─────────────┘    └─────────────┘
-       │                  │                  │
-       │ POST /signup     │                  │
-       ├─────────────────►│                  │
-       │                  │ Create User      │
-       │                  ├─────────────────►│
-       │                  │                  │
-       │                  │ Hash Password    │
-       │                  │ Store User       │
-       │                  │◄─────────────────┤
-       │ User Created     │                  │
-       │◄─────────────────┤                  │
-       │                  │                  │
-       │ POST /token/password                │
-       ├─────────────────►│                  │
-       │                  │ Validate User    │
-       │                  ├─────────────────►│
-       │                  │ User Found       │
-       │                  │◄─────────────────┤
-       │                  │                  │
-       │                  │ Verify Password  │
-       │                  │ Generate Tokens  │
-       │ JWT Tokens       │                  │
-       │◄─────────────────┤                  │
-       │                  │                  │
-       │ GET /user        │                  │
-       │ (with JWT)       │                  │
-       ├─────────────────►│                  │
-       │                  │ Verify JWT       │
-       │                  │ Get User Data    │
-       │                  ├─────────────────►│
-       │                  │ User Data        │
-       │                  │◄─────────────────┤
-       │ User Profile     │                  │
-       │◄─────────────────┤                  │
+
+#### 1a. User Registration Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant CT as AuthSignupController
+    participant PS as PasswordStorageService
+    participant US as UserModelService
+    participant D as Database
+    
+    C->>CT: POST /signup (email, username, password)
+    CT->>PS: hashPassword(plainPassword)
+    PS-->>CT: hashedPassword
+    CT->>US: createUser(userData)
+    US->>D: Save User Entity
+    D-->>US: User Created
+    US-->>CT: User Profile
+    CT-->>C: 201 Created (User Profile)
 ```
+
+**Services to customize for registration:**
+- `PasswordStorageService` - Custom password hashing algorithms
+- `UserModelService` - Custom user creation logic, validation, external systems integration
+
+#### 1b. User Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant G as AuthLocalGuard
+    participant ST as AuthLocalStrategy
+    participant VS as AuthLocalValidateUserService
+    participant US as UserModelService
+    participant PV as PasswordValidationService
+    participant D as Database
+    
+    C->>G: POST /token/password (username, password)
+    G->>ST: Redirect to Strategy
+    ST->>ST: Validate DTO Fields
+    ST->>VS: validateUser(username, password)
+    VS->>US: byUsername(username)
+    US->>D: Find User by Username
+    D-->>US: User Entity
+    US-->>VS: User Found
+    VS->>VS: isActive(user)
+    VS->>PV: validate(user, password)
+    PV-->>VS: Password Valid
+    VS-->>ST: Validated User
+    ST-->>G: Return User
+    G-->>C: User Added to Request (@AuthUser)
+```
+
+**Services to customize for authentication:**
+- `AuthLocalValidateUserService` - Custom credential validation logic
+- `UserModelService` - Custom user lookup by username, email, or other fields
+- `PasswordValidationService` - Custom password verification algorithms
+
+#### 1c. Token Generation Flow
+
+```mermaid
+sequenceDiagram
+    participant G as AuthLocalGuard
+    participant CT as AuthPasswordController
+    participant ITS as IssueTokenService
+    participant JS as JwtService
+    participant C as Client
+    
+    G->>CT: Request with Validated User (@AuthUser)
+    CT->>ITS: responsePayload(user.id)
+    ITS->>JS: signAsync(payload) - Access Token
+    JS-->>ITS: Access Token
+    ITS->>JS: signAsync(payload, {expiresIn: '7d'}) - Refresh Token
+    JS-->>ITS: Refresh Token
+    ITS-->>CT: {accessToken, refreshToken}
+    CT-->>C: 200 OK (JWT Tokens)
+```
+
+**Services to customize for token generation:**
+- `IssueTokenService` - Custom JWT payload, token expiration, additional claims
+- `JwtService` - Custom signing algorithms, token structure
+
+#### 1d. Protected Route Access Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant G as AuthJwtGuard
+    participant ST as AuthJwtStrategy
+    participant VTS as VerifyTokenService
+    participant US as UserModelService
+    participant D as Database
+    participant CT as Controller
+    
+    C->>G: GET /user (Authorization: Bearer token)
+    G->>ST: Redirect to JWT Strategy
+    ST->>VTS: verifyToken(accessToken)
+    VTS-->>ST: Token Valid & Payload
+    ST->>US: bySubject(payload.sub)
+    US->>D: Find User by Subject/ID
+    D-->>US: User Entity
+    US-->>ST: User Found
+    ST-->>G: Return User
+    G->>CT: Add User to Request (@AuthUser)
+    CT->>D: Get Additional User Data (if needed)
+    D-->>CT: User Data
+    CT-->>C: 200 OK (Protected Resource)
+```
+
+**Services to customize for protected routes:**
+- `VerifyTokenService` - Custom token verification logic, blacklist checking
+- `UserModelService` - Custom user lookup by subject/ID, user status validation
 
 #### 2. OTP Verification Flow
 
-```text
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Client    │    │   Server    │    │    Email    │
-└─────────────┘    └─────────────┘    └─────────────┘
-       │                  │                  │
-       │ POST /otp        │                  │
-       ├─────────────────►│                  │
-       │                  │ Generate OTP     │
-       │                  │ Store in DB      │
-       │                  │                  │
-       │                  │ Send Email       │
-       │                  ├─────────────────►│
-       │ OTP Sent (201)   │                  │
-       │◄─────────────────┤                  │
-       │                  │                  │
-       │ PATCH /otp       │                  │
-       │ (with code)      │                  │
-       ├─────────────────►│                  │
-       │                  │ Validate OTP     │
-       │                  │ Check Expiry     │
-       │                  │ Mark as Used     │
-       │ Tokens (200)     │                  │
-       │◄─────────────────┤                  │
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    participant OS as OTP Service
+    participant D as Database
+    participant E as Email Service
+    
+    Note over C,E: OTP Generation Flow
+    C->>S: POST /otp (email)
+    S->>OS: Generate OTP (RocketsServerOtpService)
+    OS->>D: Store OTP with Expiry
+    OS->>E: Send Email (NotificationService)
+    E-->>OS: Email Sent
+    S-->>C: 201 Created (OTP Sent)
+    
+    Note over C,E: OTP Verification Flow
+    C->>S: PATCH /otp (email + passcode)
+    S->>OS: Validate OTP Code
+    OS->>D: Check OTP & Mark Used
+    OS->>S: OTP Valid
+    S->>S: Generate JWT Tokens (AuthLocalIssueTokenService)
+    S-->>C: 200 OK (JWT Tokens)
 ```
 
 #### 3. Token Refresh Flow
 
-```text
-┌─────────────┐    ┌─────────────┐
-│   Client    │    │   Server    │
-└─────────────┘    └─────────────┘
-       │                  │
-       │ API Request      │
-       │ (expired token)  │
-       ├─────────────────►│
-       │ 401 Unauthorized │
-       │◄─────────────────┤
-       │                  │
-       │ POST /token/refresh
-       │ (refresh token)  │
-       ├─────────────────►│
-       │                  │ Verify Refresh Token
-       │                  │ Generate New Tokens
-       │ New JWT Tokens   │
-       │◄─────────────────┤
-       │                  │
-       │ Retry API Request│
-       │ (new token)      │
-       ├─────────────────►│
-       │ Success Response │
-       │◄─────────────────┤
-```
-
-### Integration Patterns
-
-#### 1. Microservices Integration
-
-For microservices architectures, use local registration:
-
-```typescript
-// auth-service/app.module.ts
-@Module({
-  imports: [
-    RocketsServerModule.forRoot({
-      global: false, // Local registration
-      // Only authentication-related configuration
-      jwt: { /* ... */ },
-      authLocal: { /* ... */ },
-      authRefresh: { /* ... */ },
-    }),
-  ],
-})
-export class AuthServiceModule {}
-
-// user-service/app.module.ts
-@Module({
-  imports: [
-    RocketsServerModule.forRoot({
-      global: false,
-      // Only user-related configuration
-      user: { /* ... */ },
-      password: { /* ... */ },
-    }),
-  ],
-})
-export class UserServiceModule {}
-```
-
-#### 2. Legacy System Integration
-
-Integrate with existing user systems:
-
-```typescript
-// services/legacy-user.service.ts
-@Injectable()
-export class LegacyUserService implements RocketsServerUserModelServiceInterface {
-  constructor(private legacyApiClient: LegacyApiClient) {}
-  
-  async bySubject(subject: ReferenceSubject): Promise<ReferenceIdInterface> {
-    // Call legacy API
-    const legacyUser = await this.legacyApiClient.getUser(subject);
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant G as AuthRefreshGuard
+    participant ST as AuthRefreshStrategy
+    participant VTS as VerifyTokenService
+    participant US as UserModelService
+    participant D as Database
+    participant CT as RefreshController
+    participant ITS as IssueTokenService
     
-    // Transform to Rockets format
-    return {
-      id: legacyUser.userId,
-      email: legacyUser.emailAddress,
-      username: legacyUser.loginName,
-      // ... other mappings
-    };
-  }
-}
-
-// Module configuration
-services: {
-  userModelService: new LegacyUserService(legacyApiClient),
-}
+    Note over C,D: Token Refresh Request
+    C->>G: POST /token/refresh (refreshToken in body)
+    G->>ST: Redirect to Refresh Strategy
+    ST->>VTS: verifyRefreshToken(refreshToken)
+    VTS-->>ST: Token Valid & Payload
+    ST->>US: bySubject(payload.sub)
+    US->>D: Find User by Subject/ID
+    D-->>US: User Entity
+    US-->>ST: User Found & Active
+    ST-->>G: Return User
+    G->>CT: Add User to Request (@AuthUser)
+    CT->>ITS: responsePayload(user.id)
+    ITS-->>CT: New {accessToken, refreshToken}
+    CT-->>C: 200 OK (New JWT Tokens)
 ```
 
-#### 3. Multi-Tenant Integration
+**Services to customize for token refresh:**
+- `VerifyTokenService` - Custom refresh token verification, token rotation logic
+- `UserModelService` - Custom user validation, account status checking
+- `IssueTokenService` - Custom new token generation, token rotation policies
 
-Support multiple tenants:
+#### 4. Password Recovery Flow
 
-```typescript
-// services/multi-tenant-user.service.ts
-@Injectable()
-export class MultiTenantUserModelService implements RocketsServerUserModelServiceInterface {
-  constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
-  ) {}
+#### 4a. Recovery Request Flow
 
-  /**
-   * Find user by subject with all relationships for authorization context
-   */
-  async bySubject(subject: ReferenceSubject): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ subject });
-  }
-
-  async byEmail(email: string): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ email });
-  }
-
-  async byUsername(username: string): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ username });
-  }
-
-  async byId(id: string): Promise<ReferenceIdInterface> {
-    return this.loadUserWithRelations({ id });
-  }
-
-  async create(user: Partial<UserEntityInterface>): Promise<ReferenceIdInterface> {
-    const newUser = this.userRepository.create(user);
-    const savedUser = await this.userRepository.save(newUser);
-    return this.byId(savedUser.id);
-  }
-
-  async update(user: Partial<UserEntityInterface>): Promise<ReferenceIdInterface> {
-    await this.userRepository.update(user.id, user);
-    return this.byId(user.id);
-  }
-
-  async replace(user: UserEntityInterface): Promise<ReferenceIdInterface> {
-    await this.userRepository.save(user);
-    return this.byId(user.id);
-  }
-
-  async remove(user: UserEntityInterface): Promise<ReferenceIdInterface> {
-    const result = await this.userRepository.remove(user);
-    return result;
-  }
-
-  private async loadUserWithRelations(criteria: any): Promise<ReferenceIdInterface> {
-    const user = await this.userRepository.findOne({
-      where: criteria,
-      relations: ['tenant', 'roles', 'teams', 'projects', 'profile'],
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        active: true,
-        tenant: { id: true, name: true, subscriptionTier: true },
-        roles: { id: true, name: true },
-        teams: { id: true, name: true },
-        projects: { id: true, name: true },
-        profile: { firstName: true, lastName: true }
-      }
-    });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Add computed properties for authorization
-    return {
-      ...user,
-      // Flatten for easy access in guards/decorators
-      tenantId: user.tenant?.id,
-      subscriptionTier: user.tenant?.subscriptionTier,
-      roleNames: user.roles?.map(r => r.name) || [],
-      accessibleProjectIds: user.projects?.map(p => p.id) || [],
-    };
-  }
-}
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant CT as RecoveryController
+    participant RS as AuthRecoveryService
+    participant US as UserModelService
+    participant OS as OtpService
+    participant NS as NotificationService
+    participant ES as EmailService
+    participant D as Database
+    
+    C->>CT: POST /recovery/password (email)
+    CT->>RS: recoverPassword(email)
+    RS->>US: byEmail(email)
+    US->>D: Find User by Email
+    D-->>US: User Found (or null)
+    US-->>RS: User Entity
+    RS->>OS: create(otpConfig)
+    OS->>D: Store OTP with Expiry
+    D-->>OS: OTP Created
+    OS-->>RS: OTP with Passcode
+    RS->>NS: sendRecoverPasswordEmail(email, passcode, expiry)
+    NS->>ES: sendMail(emailOptions)
+    ES-->>NS: Email Sent
+    RS-->>CT: Recovery Complete
+    CT-->>C: 200 OK (Always success for security)
 ```
 
-#### 4. Event-Driven Integration
+**Services to customize for recovery request:**
+- `UserModelService` - Custom user lookup by email
+- `OtpService` - Custom OTP generation, expiry logic
+- `NotificationService` - Custom email templates, delivery methods
+- `EmailService` - Custom email providers, formatting
 
-Integrate with event systems:
+#### 4b. Passcode Validation Flow
 
-```typescript
-// services/event-driven-notification.service.ts
-@Injectable()
-export class EventDrivenNotificationService 
-  implements RocketsServerNotificationServiceInterface {
-  
-  constructor(private eventBus: EventBus) {}
-  
-  async sendNotification(type: string, recipient: string, data: any): Promise<void> {
-    // Emit event instead of sending directly
-    this.eventBus.emit('notification.requested', {
-      type,
-      recipient,
-      data,
-      timestamp: new Date(),
-    });
-  }
-}
-
-// Event handler
-@EventHandler('notification.requested')
-export class NotificationHandler {
-  async handle(event: NotificationRequestedEvent): Promise<void> {
-    // Process notification asynchronously
-    await this.processNotification(event);
-  }
-}
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant CT as RecoveryController
+    participant RS as AuthRecoveryService
+    participant OS as OtpService
+    participant D as Database
+    
+    C->>CT: GET /recovery/passcode/:passcode
+    CT->>RS: validatePasscode(passcode)
+    RS->>OS: validate(assignment, {category, passcode})
+    OS->>D: Find & Validate OTP
+    D-->>OS: OTP Valid & User ID
+    OS-->>RS: Assignee Relation (or null)
+    RS-->>CT: OTP Valid (or null)
+    CT-->>C: 200 OK (Valid) / 404 (Invalid)
 ```
+
+**Services to customize for passcode validation:**
+- `OtpService` - Custom OTP validation, rate limiting
+
+#### 4c. Password Update Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant CT as RecoveryController
+    participant RS as AuthRecoveryService
+    participant OS as OtpService
+    participant US as UserModelService
+    participant PS as UserPasswordService
+    participant NS as NotificationService
+    participant D as Database
+    
+    C->>CT: PATCH /recovery/password (passcode, newPassword)
+    CT->>RS: updatePassword(passcode, newPassword)
+    RS->>OS: validate(passcode, false)
+    OS->>D: Validate OTP
+    D-->>OS: OTP Valid & User ID
+    OS-->>RS: Assignee Relation
+    RS->>US: byId(assigneeId)
+    US->>D: Find User by ID
+    D-->>US: User Entity
+    US-->>RS: User Found
+    RS->>PS: setPassword(newPassword, userId)
+    PS->>D: Update User Password
+    D-->>PS: Password Updated
+    RS->>NS: sendPasswordUpdatedSuccessfullyEmail(email)
+    RS->>OS: clear(assignment, {category, assigneeId})
+    OS->>D: Revoke All User Recovery OTPs
+    RS-->>CT: User Entity (or null)
+    CT-->>C: 200 OK (Success) / 400 (Invalid OTP)
+```
+
+**Services to customize for password update:**
+- `OtpService` - Custom OTP validation and cleanup
+- `UserModelService` - Custom user lookup validation
+- `UserPasswordService` - Custom password hashing, policies
+- `NotificationService` - Custom success notifications
+
+---
+
 
 This comprehensive documentation provides developers with everything they need
 to understand, implement, and extend the Rockets SDK in their applications.

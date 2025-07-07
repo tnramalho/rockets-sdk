@@ -43,13 +43,10 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/swagger": "^7.4.0",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "passport-strategy": "^1.0.0",
-    "rxjs": "^7.1.0"
+    "passport-strategy": "^1.0.0"
   },
   "devDependencies": {
     "@concepta/nestjs-typeorm-ext": "^7.0.0-alpha.4",
@@ -69,7 +66,8 @@
     "typeorm": "^0.3.0"
   },
   "peerDependencies": {
-    "@concepta/nestjs-typeorm-ext": "^7.0.0-alpha.4",
-    "typeorm": "^0.3.0"
+    "class-transformer": "*",
+    "class-validator": "*",
+    "rxjs": "^7.1.0"
   }
 }
