@@ -1,11 +1,12 @@
-
-
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { AuthJwtModule, AuthJwtUserModelServiceInterface } from '@concepta/nestjs-auth-jwt';
+import {
+  AuthJwtModule,
+  AuthJwtUserModelServiceInterface,
+} from '@concepta/nestjs-auth-jwt';
 import {
   AuthenticationModule,
-  VerifyTokenServiceInterface
+  VerifyTokenServiceInterface,
 } from '@concepta/nestjs-authentication';
 import { JwtModule } from '@concepta/nestjs-jwt';
 import { Injectable } from '@nestjs/common';
@@ -14,7 +15,7 @@ import {
   ReferenceIdInterface,
   ReferenceSubject,
 } from '@concepta/nestjs-common';
-
+import { JwtVerifyOptions } from '@nestjs/jwt';
 
 @Injectable()
 export class UserModelServiceFixture
@@ -30,42 +31,37 @@ export class VerifyTokenServiceFixture implements VerifyTokenServiceInterface {
 
   async accessToken(
     _token: string,
-    _options?: any,
+    _options?: JwtVerifyOptions,
   ): Promise<object> {
     throw new Error('Method not implemented.');
   }
 
   async refreshToken(
     _token: string,
-    _options?: any,
+    _options?: JwtVerifyOptions,
   ): Promise<object> {
     throw new Error('Method not implemented.');
   }
 }
 describe(AuthJwtModule, () => {
-  
   let testModule: TestingModule;
 
   describe(AuthJwtModule.forRoot, () => {
     beforeEach(async () => {
-      testModule = await Test.createTestingModule(
-        {
-          imports: [
-            AuthenticationModule.forRoot({}),
-            JwtModule.forRoot({}),
-            AuthJwtModule.forRoot({
-              verifyTokenService: new VerifyTokenServiceFixture(),
-              userModelService: new UserModelServiceFixture(),
-            }),
-          ],
-        }
-      ).compile();
+      testModule = await Test.createTestingModule({
+        imports: [
+          AuthenticationModule.forRoot({}),
+          JwtModule.forRoot({}),
+          AuthJwtModule.forRoot({
+            verifyTokenService: new VerifyTokenServiceFixture(),
+            userModelService: new UserModelServiceFixture(),
+          }),
+        ],
+      }).compile();
     });
 
-    it.only('module should be loaded', async () => {
-     
+    it('module should be loaded', async () => {
+      expect(testModule).toBeDefined();
     });
   });
- 
 });
- 

@@ -34,8 +34,8 @@ npm install @concepta/rockets-server @concepta/nestjs-typeorm-ext typeorm
 
 ### Basic Setup
 
-This is the minimum required setup to get started with Rockets Server. You'll need to create your entities and configure the module as follows:
-
+This is the minimum required setup to get started with Rockets Server.
+You'll need to create your entities and configure the module as follows:
 
 ```typescript
 // app.module.ts

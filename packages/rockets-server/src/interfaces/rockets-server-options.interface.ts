@@ -33,7 +33,7 @@ import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui/dist/inte
  */
 export interface RocketsServerOptionsInterface {
   settings?: RocketsServerSettingsInterface;
-  
+
   swagger?: SwaggerUiOptionsInterface;
   /**
    * Core Authentication module options

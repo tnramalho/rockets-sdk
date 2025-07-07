@@ -454,22 +454,20 @@ __metadata:
     "@types/passport-jwt": "npm:^3.0.13"
     "@types/passport-strategy": "npm:^0.2.38"
     "@types/supertest": "npm:^6.0.2"
-    class-transformer: "npm:^0.5.1"
-    class-validator: "npm:^0.14.2"
     express-serve-static-core: "npm:^0.1.1"
     jest-mock-extended: "npm:^2.0.9"
     jsonwebtoken: "npm:^9.0.2"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
     passport-strategy: "npm:^1.0.0"
-    rxjs: "npm:^7.1.0"
     sqlite3: "npm:^5.1.4"
     supertest: "npm:^6.3.4"
     ts-node: "npm:^10.9.2"
     typeorm: "npm:^0.3.0"
   peerDependencies:
-    "@concepta/nestjs-typeorm-ext": ^7.0.0-alpha.4
-    typeorm: ^0.3.0
+    class-transformer: "*"
+    class-validator: "*"
+    rxjs: ^7.1.0
   bin:
     rockets-swagger: ./bin/generate-swagger.js
   languageName: unknown
@@ -5357,7 +5355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"class-validator@npm:^0.14.1, class-validator@npm:^0.14.2":
+"class-validator@npm:^0.14.1":
   version: 0.14.2
   resolution: "class-validator@npm:0.14.2"
   dependencies:
@@ -14075,7 +14073,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.1.0, rxjs@npm:^7.5.5, rxjs@npm:^7.8.1":
+"rxjs@npm:^7.5.5, rxjs@npm:^7.8.1":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:

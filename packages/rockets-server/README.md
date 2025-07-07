@@ -72,9 +72,13 @@ maintaining flexibility for customization and extension.
 ### Installation
 
 **⚠️ CRITICAL: Alpha Version Issue**:
-> **The current alpha version (7.0.0-alpha.4) has a dependency injection issue with AuthJwtGuard that prevents the minimal setup from working. This is a known issue being investigated.**
+
+> **The current alpha version (7.0.0-alpha.4) has a dependency injection
+> issue with AuthJwtGuard that prevents the minimal setup from working. This
+> is a known issue being investigated.**
 
 **Version Requirements**:
+
 - NestJS: `^10.0.0`
 - Node.js: `>=18.0.0`
 - TypeScript: `>=4.8.0`
@@ -85,11 +89,12 @@ Let's create a new NestJS project:
 npx @nestjs/cli@10 new my-app-with-rockets --package-manager yarn --language TypeScript --strict
 ```
 
-
 Install the Rockets SDK and all required dependencies:
 
 ```bash
-yarn add @bitwild/rockets-server @concepta/nestjs-typeorm-ext @concepta/nestjs-common typeorm @nestjs/typeorm @nestjs/config @nestjs/swagger
+yarn add @bitwild/rockets-server @concepta/nestjs-typeorm-ext \
+  @concepta/nestjs-common typeorm @nestjs/typeorm @nestjs/config \
+  @nestjs/swagger
 ```
 
 **Database Support**: Choose your database driver:
@@ -104,7 +109,6 @@ yarn add pg
 # MySQL
 yarn add mysql2
 ```
-
 
 ---
 
@@ -374,7 +378,8 @@ Expected response (200 OK):
 **Note**: The login endpoint returns a 200 OK status (not 201 Created) as it's retrieving
 tokens, not creating a new resource.
 
-**Defaults Working**: All authentication endpoints work out-of-the-box with sensible defaults.
+**Defaults Working**: All authentication endpoints work out-of-the-box with
+sensible defaults.
 
 #### 4. Access Protected Endpoint
 
@@ -438,30 +443,37 @@ you restart the application. This is perfect for testing and development!
 
 #### Common Issues
 
-**AuthJwtGuard Dependency Error**
+#### AuthJwtGuard Dependency Error
 
 If you encounter this error:
-```
-Nest can't resolve dependencies of the AuthJwtGuard (AUTHENTICATION_MODULE_SETTINGS_TOKEN, ?). Please make sure that the argument Reflector at index [1] is available in the AuthJwtModule context.
+
+```text
+Nest can't resolve dependencies of the AuthJwtGuard
+(AUTHENTICATION_MODULE_SETTINGS_TOKEN, ?). Please make sure that the
+argument Reflector at index [1] is available in the AuthJwtModule context.
 ```
 
-****Solution: Version Compatibility Issues**
+#### Module Resolution Errors
 
 If you're getting dependency resolution errors:
 
 1. **NestJS Version**: Ensure you're using NestJS `^10.0.0`
-2. **Alpha Packages**: All `@concepta/*` packages should use the same alpha version (e.g., `^7.0.0-alpha.4`)
-3. **Clean Installation**: Try deleting `node_modules` and `package-lock.json`, then run `yarn install`
+2. **Alpha Packages**: All `@concepta/*` packages should use the same alpha
+   version (e.g., `^7.0.0-alpha.4`)
+3. **Clean Installation**: Try deleting `node_modules` and `package-lock.json`,
+   then run `yarn install`
 
-**Module Resolution Errors**
+#### Module Resolution Errors (TypeScript)
 
 If TypeScript can't find modules like `@concepta/nestjs-typeorm-ext`:
 
 ```bash
-yarn add @concepta/nestjs-typeorm-ext @concepta/nestjs-common --save
+yarn add @concepta/nestjs-typeorm-ext @concepta/nestjs-common \
+  --save
 ```
 
-All dependencies listed in the installation section are required and must be installed explicitly.
+All dependencies listed in the installation section are required and must be
+installed explicitly.
 
 ---
 
@@ -510,18 +522,18 @@ interface RocketsServerOptionsInterface {
 
 ### settings
 
-**What it does**: Global settings that configure the custom OTP and email 
-services provided by RocketsServer. These settings are used by the custom OTP 
+**What it does**: Global settings that configure the custom OTP and email
+services provided by RocketsServer. These settings are used by the custom OTP
 controller and notification services, not by the core authentication modules.
 
-**Core services it connects to**: RocketsServerOtpService, 
+**Core services it connects to**: RocketsServerOtpService,
 RocketsServerNotificationService
 
-**When to update**: Required when using the custom OTP endpoints 
-(`POST /otp`, `PATCH /otp`). The defaults use placeholder values that won't 
+**When to update**: Required when using the custom OTP endpoints
+(`POST /otp`, `PATCH /otp`). The defaults use placeholder values that won't
 work in real applications.
 
-**Real-world example**: Setting up email configuration for the custom OTP 
+**Real-world example**: Setting up email configuration for the custom OTP
 system:
 
 ```typescript
@@ -529,7 +541,7 @@ settings: {
   email: {
     from: 'noreply@mycompany.com',
     baseUrl: 'https://app.mycompany.com',
-    tokenUrlFormatter: (baseUrl, token) => 
+    tokenUrlFormatter: (baseUrl, token) =>
       `${baseUrl}/auth/verify?token=${token}&utm_source=email`,
     templates: {
       sendOtp: {
@@ -575,6 +587,7 @@ three key services:
 **When to update**: When you need to customize core authentication behavior,
 provide custom token services or change how the token payload is structured.
 Common scenarios include:
+
 - Implementing custom token verification logic
 - Adding business-specific token validation rules
 - Modifying token generation and payload structure
@@ -594,7 +607,8 @@ authentication: {
 }
 ```
 
-**Note**: All token services have working defaults. Only customize if you need specific business logic.
+**Note**: All token services have working defaults. Only customize if you need
+specific business logic.
 
 ---
 
@@ -605,30 +619,37 @@ and token services.
 
 **Core modules it connects to**: JwtModule, AuthJwtModule, AuthRefreshModule
 
-**When to update**: Only needed if loading JWT settings from a source other than 
+**When to update**: Only needed if loading JWT settings from a source other than
 environment variables (e.g. config files, external services, etc).
 
-**Environment Variables**: The JWT module automatically uses these environment variables with sensible defaults:
+**Environment Variables**: The JWT module automatically uses these environment
+variables with sensible defaults:
 
 - `JWT_MODULE_DEFAULT_EXPIRES_IN` (default: `'1h'`)
 - `JWT_MODULE_ACCESS_EXPIRES_IN` (default: `'1h'`)
-- `JWT_MODULE_REFRESH_EXPIRES_IN` (default:  `'99y'`)
-- `JWT_MODULE_ACCESS_SECRET` (required in production, auto-generated in development, if not provided)
+- `JWT_MODULE_REFRESH_EXPIRES_IN` (default: `'99y'`)
+- `JWT_MODULE_ACCESS_SECRET` (required in production, auto-generated in
+  development, if not provided)
 - `JWT_MODULE_REFRESH_SECRET` (defaults to access secret if not provided)
 
 **Default Behavior**:
+
 - **Development**: JWT secrets are auto-generated if not provided
-- **Production**: `JWT_MODULE_ACCESS_SECRET` is required (with NODE_ENV=production)
-- **Token Services**: Default `JwtIssueTokenService` and `JwtVerifyTokenService` are provided
+- **Production**: `JWT_MODULE_ACCESS_SECRET` is required (with
+  NODE_ENV=production)
+- **Token Services**: Default `JwtIssueTokenService` and
+  `JwtVerifyTokenService` are provided
 - **Multiple Token Types**: Separate access and refresh token handling
 
 **Security Notes**:
+
 - Production requires explicit JWT secrets for security
 - Development auto-generates secrets for convenience
 - Refresh tokens have longer expiration by default
 - All token operations are handled automatically
 
-**Real-world example**: Custom JWT configuration (optional - defaults work for most cases):
+**Real-world example**: Custom JWT configuration (optional - defaults work
+for most cases):
 
 ```typescript
 jwt: {
@@ -657,9 +678,11 @@ jwt: {
   jwtVerifyTokenService: new CustomJwtVerifyService(),
 }
 ```
-```
-**Note**: Environment variables are automatically used for secrets and expiration times. Only customize `jwt.settings` if you need specific JWT options like issuer/audience, you can also use the environment variables to configure the JWT module.
-```
+
+**Note**: Environment variables are automatically used for secrets and
+expiration times. Only customize `jwt.settings` if you need specific JWT
+options like issuer/audience, you can also use the environment variables to
+configure the JWT module.
 
 ---
 
@@ -696,9 +719,9 @@ authJwt: {
   userModelService: new CustomUserLookupService(),
 }
 ```
-```
-**Note**: Default token extraction uses standard Bearer token from Authorization header. Only customize if you need alternative token sources.
-```
+
+**Note**: Default token extraction uses standard Bearer token from
+Authorization header. Only customize if you need alternative token sources.
 
 ---
 
@@ -728,13 +751,13 @@ authLocal: {
 }
 ```
 
-```
 **Environment Variables**:
+
 - `AUTH_LOCAL_USERNAME_FIELD` - defaults to `'username'`
 - `AUTH_LOCAL_PASSWORD_FIELD` - defaults to `'password'`
 
-**Note**: The default services work automatically with your TypeORM User entity. Only customize if you need specific validation logic.
-```
+**Note**: The default services work automatically with your TypeORM User entity.
+Only customize if you need specific validation logic.
 
 ---
 
@@ -882,13 +905,14 @@ password: {
 ```
 
 **Environment Variables**:
-- `PASSWORD_MIN_PASSWORD_STRENGTH` - defaults to `4` if production, `0` if development (0-4 scale)
+
+- `PASSWORD_MIN_PASSWORD_STRENGTH` - defaults to `4` if production, `0` if
+  development (0-4 scale)
 - `PASSWORD_MAX_PASSWORD_ATTEMPTS` - defaults to `3`
 - `PASSWORD_REQUIRE_CURRENT_TO_UPDATE` - defaults to `false`
 
-```
-**Note**: Password strength is automatically calculated using zxcvbn. History tracking is optional and requires additional configuration.
-```
+**Note**: Password strength is automatically calculated using zxcvbn. History
+tracking is optional and requires additional configuration.
 
 ---
 
@@ -915,6 +939,7 @@ interface OtpSettingsInterface {
 ```
 
 **Environment Variables**:
+
 - `OTP_CLEAR_ON_CREATE` - defaults to `false`
 - `OTP_KEEP_HISTORY_DAYS` - no default (optional)
 - `OTP_RATE_SECONDS` - no default (optional)  
@@ -1170,7 +1195,6 @@ services: {
 }
 ```
 
-
 ---
 
 ## Explanation
@@ -1279,7 +1303,8 @@ const userModule = new UserModule(userConfig);
 - Facilitates testing with mock repositories
 - Provides flexibility for future data layer changes
 
-**Implementation**: Uses the adapter pattern with a standardized repository interface to support multiple database types and ORMs.
+**Implementation**: Uses the adapter pattern with a standardized repository
+interface to support multiple database types and ORMs.
 
 #### 4. Service Injection Pattern
 
@@ -1319,7 +1344,6 @@ services: {
 
 The Rockets SDK implements a comprehensive authentication flow:
 
-
 #### 1a. User Registration Flow
 
 ```mermaid
@@ -1341,6 +1365,7 @@ sequenceDiagram
 ```
 
 **Services to customize for registration:**
+
 - `PasswordStorageService` - Custom password hashing algorithms
 - `UserModelService` - Custom user creation logic, validation, external systems integration
 
@@ -1373,6 +1398,7 @@ sequenceDiagram
 ```
 
 **Services to customize for authentication:**
+
 - `AuthLocalValidateUserService` - Custom credential validation logic
 - `UserModelService` - Custom user lookup by username, email, or other fields
 - `PasswordValidationService` - Custom password verification algorithms
@@ -1398,6 +1424,7 @@ sequenceDiagram
 ```
 
 **Services to customize for token generation:**
+
 - `IssueTokenService` - Custom JWT payload, token expiration, additional claims
 - `JwtService` - Custom signing algorithms, token structure
 
@@ -1429,11 +1456,11 @@ sequenceDiagram
 ```
 
 **Services to customize for protected routes:**
+
 - `VerifyTokenService` - Custom token verification logic, blacklist checking
 - `UserModelService` - Custom user lookup by subject/ID, user status validation
 
 #### 2. OTP Verification Flow
-
 
 ```mermaid
 sequenceDiagram
@@ -1490,6 +1517,7 @@ sequenceDiagram
 ```
 
 **Services to customize for token refresh:**
+
 - `VerifyTokenService` - Custom refresh token verification, token rotation logic
 - `UserModelService` - Custom user validation, account status checking
 - `IssueTokenService` - Custom new token generation, token rotation policies
@@ -1527,6 +1555,7 @@ sequenceDiagram
 ```
 
 **Services to customize for recovery request:**
+
 - `UserModelService` - Custom user lookup by email
 - `OtpService` - Custom OTP generation, expiry logic
 - `NotificationService` - Custom email templates, delivery methods
@@ -1553,6 +1582,7 @@ sequenceDiagram
 ```
 
 **Services to customize for passcode validation:**
+
 - `OtpService` - Custom OTP validation, rate limiting
 
 #### 4c. Password Update Flow
@@ -1589,13 +1619,13 @@ sequenceDiagram
 ```
 
 **Services to customize for password update:**
+
 - `OtpService` - Custom OTP validation and cleanup
 - `UserModelService` - Custom user lookup validation
 - `UserPasswordService` - Custom password hashing, policies
 - `NotificationService` - Custom success notifications
 
 ---
-
 
 This comprehensive documentation provides developers with everything they need
 to understand, implement, and extend the Rockets SDK in their applications.
