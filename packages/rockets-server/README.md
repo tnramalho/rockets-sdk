@@ -94,20 +94,7 @@ Install the Rockets SDK and all required dependencies:
 ```bash
 yarn add @bitwild/rockets-server @concepta/nestjs-typeorm-ext \
   @concepta/nestjs-common typeorm @nestjs/typeorm @nestjs/config \
-  @nestjs/swagger
-```
-
-**Database Support**: Choose your database driver:
-
-```bash
-# SQLite (development)
-yarn add sqlite3
-
-# PostgreSQL (recommended for production)
-yarn add pg
-
-# MySQL
-yarn add mysql2
+  @nestjs/swagger class-transformer class-validator sqlite3
 ```
 
 ---
@@ -163,6 +150,7 @@ For production, create a `.env` file with JWT secrets:
 JWT_MODULE_ACCESS_SECRET=your-super-secret-jwt-access-key-here
 # Optional - defaults to access secret if not provided
 JWT_MODULE_REFRESH_SECRET=your-super-secret-jwt-refresh-key-here
+NODE_ENV=development
 ```
 
 **Note**: In development, JWT secrets are auto-generated if not provided.
@@ -182,7 +170,6 @@ import { UserOtpEntity } from './entities/user-otp.entity';
 
 @Module({
   imports: [
-    // REQUIRED: Configuration module for environment variables
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -200,10 +187,7 @@ import { UserOtpEntity } from './entities/user-otp.entity';
     
     // Rockets SDK configuration - minimal setup
     RocketsServerModule.forRootAsync({
-      // REQUIRED: Import ConfigModule for dependency injection
       imports: [ConfigModule],
-      inject: [ConfigService],
-      
       // REQUIRED: User entity imports
       user: {
         imports: [
@@ -221,7 +205,7 @@ import { UserOtpEntity } from './entities/user-otp.entity';
           }),
         ],
       },
-      
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         // Required services
         services: {
@@ -270,6 +254,8 @@ export class AppModule {}
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ExceptionsFilter } from '@concepta/nestjs-common';
+import { SwaggerUiService } from '@concepta/nestjs-swagger-ui';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -277,21 +263,18 @@ async function bootstrap() {
   
   // Enable validation
   app.useGlobalPipes(new ValidationPipe());
-  
-  // Setup Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('Rockets API')
-    .setDescription('API built with Rockets SDK')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  
+  // get the swagger ui service, and set it up
+  const swaggerUiService = app.get(SwaggerUiService);
+  swaggerUiService.builder().addBearerAuth();
+  swaggerUiService.setup(app);
+
+  const exceptionsFilter = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new ExceptionsFilter(exceptionsFilter));
+
   await app.listen(3000);
-  console.log('🚀 Application is running on: http://localhost:3000');
-  console.log('📚 API Documentation: http://localhost:3000/api');
-  console.log('💾 Using SQLite in-memory database (data resets on restart)');
+  console.log('Application is running on: http://localhost:3000');
+  console.log('API Documentation: http://localhost:3000/api');
+  console.log('Using SQLite in-memory database (data resets on restart)');
 }
 bootstrap();
 ```
