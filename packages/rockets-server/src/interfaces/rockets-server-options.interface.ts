@@ -32,8 +32,16 @@ import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui/dist/inte
  * Combined options interface for the AuthenticationCombinedModule
  */
 export interface RocketsServerOptionsInterface {
+  /**
+   * Global settings for the Rockets Server module
+   * Used to configure default behaviors and settings
+   */
   settings?: RocketsServerSettingsInterface;
 
+  /**
+   * Swagger UI configuration options
+   * Used to customize the Swagger/OpenAPI documentation interface
+   */
   swagger?: SwaggerUiOptionsInterface;
   /**
    * Core Authentication module options
