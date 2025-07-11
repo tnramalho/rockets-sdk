@@ -46,7 +46,7 @@ export class AuthPasswordController {
       standard: {
         value: {
           username: 'user@example.com',
-          password: 'YourPassword123!',
+          password: 'StrongP@ssw0rd',
         },
         summary: 'Standard login request',
       },

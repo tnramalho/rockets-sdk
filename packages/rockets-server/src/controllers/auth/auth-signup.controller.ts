@@ -44,7 +44,7 @@ export class AuthSignupController {
       standard: {
         value: {
           email: 'user@example.com',
-          username: 'johndoe',
+          username: 'user@example.com',
           password: 'StrongP@ssw0rd',
           active: true,
         },
