@@ -59,6 +59,7 @@ import {
 } from './rockets-server.constants';
 import { RocketsServerNotificationService } from './services/rockets-server-notification.service';
 import { RocketsServerOtpService } from './services/rockets-server-otp.service';
+import { SwaggerUiModule } from '@concepta/nestjs-swagger-ui';
 
 const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
 
@@ -159,6 +160,15 @@ export function createRocketsServerImports(options: {
   return [
     ...(options.imports || []),
     ConfigModule.forFeature(authenticationOptionsDefaultConfig),
+    SwaggerUiModule.registerAsync({
+      inject: [RAW_OPTIONS_TOKEN],
+      useFactory: (options: RocketsServerOptionsInterface) => {
+        return {
+          documentBuilder: options.swagger?.documentBuilder,
+          settings: options.swagger?.settings,
+        };
+      },
+    }),
     AuthenticationModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerOptionsInterface) => {
@@ -445,6 +455,7 @@ export function createRocketsServerExports(options: {
     OAuthModule,
     AuthRefreshModule,
     FederatedModule,
+    SwaggerUiModule,
   ];
 }
 
