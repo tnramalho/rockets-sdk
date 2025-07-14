@@ -26,9 +26,8 @@ import {
 import { FederatedOptionsInterface } from '@concepta/nestjs-federated/dist/interfaces/federated-options.interface';
 import { JwtOptionsInterface } from '@concepta/nestjs-jwt';
 import {
-  OAuthOptionsExtrasInterface,
-  OAuthOptionsInterface,
-} from '@concepta/nestjs-oauth';
+  AuthGuardRouterOptionsInterface,
+} from '@concepta/nestjs-auth-guard-router';
 import { OtpOptionsInterface } from '@concepta/nestjs-otp';
 import { PasswordOptionsInterface } from '@concepta/nestjs-password';
 import { UserPasswordServiceInterface } from '@concepta/nestjs-user';
@@ -79,11 +78,11 @@ export interface RocketsServerOptionsInterface {
   authJwt?: AuthJwtOptionsInterface;
 
   /**
-   * OAuth module options
-   * Used in: OAuthModule.forRootAsync
-   * Configures the OAuth guard router with provider-specific guards
+   * Auth Guard Router module options
+   * Used in: AuthGuardRouterModule.forRootAsync
+   * Configures the Auth Guard Router with provider-specific guards
    */
-  oauth?: OAuthOptionsInterface & OAuthOptionsExtrasInterface;
+  authGuardRouter?: AuthGuardRouterOptionsInterface;
 
   /**
    * Auth Apple module options

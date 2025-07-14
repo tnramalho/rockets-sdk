@@ -25,7 +25,7 @@ import { FederatedModule } from '@concepta/nestjs-federated';
 import { FederatedOptionsInterface } from '@concepta/nestjs-federated/dist/interfaces/federated-options.interface';
 import { JwtModule } from '@concepta/nestjs-jwt';
 import { JwtOptionsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-options.interface';
-import { OAuthModule, OAuthOptions } from '@concepta/nestjs-oauth';
+import { AuthGuardRouterGuardConfigInterface, AuthGuardRouterModule, AuthGuardRouterOptions } from '@concepta/nestjs-auth-guard-router';
 import { AuthAppleGuard } from '@concepta/nestjs-auth-apple';
 import { AuthGithubGuard } from '@concepta/nestjs-auth-github';
 import { AuthGoogleGuard } from '@concepta/nestjs-auth-google';
@@ -150,8 +150,8 @@ export function createRocketsServerImports(options: {
   imports: DynamicModule['imports'];
   extras: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['imports'] {
-  // Default OAuth guards configuration if not provided
-  const defaultOAuthGuards = [
+  // Default Auth Guard Router guards configuration if not provided
+  const defaultAuthGuardRouterGuards: AuthGuardRouterGuardConfigInterface[] = [
     { name: 'google', guard: AuthGoogleGuard },
     { name: 'github', guard: AuthGithubGuard },
     { name: 'apple', guard: AuthAppleGuard },
@@ -250,6 +250,8 @@ export function createRocketsServerImports(options: {
         return {
           jwtService: options.authApple?.jwtService || options.jwt?.jwtService,
           authAppleService: options.authApple?.authAppleService,
+          issueTokenService: options.authApple?.issueTokenService || options.services?.issueTokenService,
+          
           settings: options.authApple?.settings,
         };
       },
@@ -260,6 +262,7 @@ export function createRocketsServerImports(options: {
         options: RocketsServerOptionsInterface,
       ): AuthGithubOptionsInterface => {
         return {
+          issueTokenService: options.authGithub?.issueTokenService || options.services?.issueTokenService,
           settings: options.authGithub?.settings,
         };
       },
@@ -270,17 +273,18 @@ export function createRocketsServerImports(options: {
         options: RocketsServerOptionsInterface,
       ): AuthGoogleOptionsInterface => {
         return {
+          issueTokenService: options.authGoogle?.issueTokenService || options.services?.issueTokenService,
           settings: options.authGoogle?.settings,
+          
         };
       },
     }),
-    OAuthModule.forRootAsync({
+    AuthGuardRouterModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
-      imports: [...(options.extras?.oauth?.imports || [])],
-      oAuthGuards: options.extras?.oauth?.oAuthGuards || defaultOAuthGuards,
-      useFactory: (options: RocketsServerOptionsInterface): OAuthOptions => {
+      guards: options.extras?.authGuardRouter?.guards || defaultAuthGuardRouterGuards,
+      useFactory: (options: RocketsServerOptionsInterface): AuthGuardRouterOptions => {
         return {
-          settings: options.oauth?.settings,
+          settings: options.authGuardRouter?.settings,
         };
       },
     }),
@@ -452,7 +456,7 @@ export function createRocketsServerExports(options: {
     AuthAppleModule,
     AuthGithubModule,
     AuthGoogleModule,
-    OAuthModule,
+    AuthGuardRouterModule,
     AuthRefreshModule,
     FederatedModule,
     SwaggerUiModule,
