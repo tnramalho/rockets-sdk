@@ -25,7 +25,11 @@ import { FederatedModule } from '@concepta/nestjs-federated';
 import { FederatedOptionsInterface } from '@concepta/nestjs-federated/dist/interfaces/federated-options.interface';
 import { JwtModule } from '@concepta/nestjs-jwt';
 import { JwtOptionsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-options.interface';
-import { AuthGuardRouterGuardConfigInterface, AuthGuardRouterModule, AuthGuardRouterOptions } from '@concepta/nestjs-auth-guard-router';
+import {
+  AuthRouterGuardConfigInterface,
+  AuthRouterModule,
+  AuthRouterOptionsInterface,
+} from '@concepta/nestjs-auth-router';
 import { AuthAppleGuard } from '@concepta/nestjs-auth-apple';
 import { AuthGithubGuard } from '@concepta/nestjs-auth-github';
 import { AuthGoogleGuard } from '@concepta/nestjs-auth-google';
@@ -151,7 +155,7 @@ export function createRocketsServerImports(options: {
   extras: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['imports'] {
   // Default Auth Guard Router guards configuration if not provided
-  const defaultAuthGuardRouterGuards: AuthGuardRouterGuardConfigInterface[] = [
+  const defaultAuthRouterGuards: AuthRouterGuardConfigInterface[] = [
     { name: 'google', guard: AuthGoogleGuard },
     { name: 'github', guard: AuthGithubGuard },
     { name: 'apple', guard: AuthAppleGuard },
@@ -250,8 +254,10 @@ export function createRocketsServerImports(options: {
         return {
           jwtService: options.authApple?.jwtService || options.jwt?.jwtService,
           authAppleService: options.authApple?.authAppleService,
-          issueTokenService: options.authApple?.issueTokenService || options.services?.issueTokenService,
-          
+          issueTokenService:
+            options.authApple?.issueTokenService ||
+            options.services?.issueTokenService,
+          settingsTransform: options.authApple?.settingsTransform,
           settings: options.authApple?.settings,
         };
       },
@@ -262,7 +268,10 @@ export function createRocketsServerImports(options: {
         options: RocketsServerOptionsInterface,
       ): AuthGithubOptionsInterface => {
         return {
-          issueTokenService: options.authGithub?.issueTokenService || options.services?.issueTokenService,
+          issueTokenService:
+            options.authGithub?.issueTokenService ||
+            options.services?.issueTokenService,
+          settingsTransform: options.authGithub?.settingsTransform,
           settings: options.authGithub?.settings,
         };
       },
@@ -273,18 +282,22 @@ export function createRocketsServerImports(options: {
         options: RocketsServerOptionsInterface,
       ): AuthGoogleOptionsInterface => {
         return {
-          issueTokenService: options.authGoogle?.issueTokenService || options.services?.issueTokenService,
+          issueTokenService:
+            options.authGoogle?.issueTokenService ||
+            options.services?.issueTokenService,
+          settingsTransform: options.authGoogle?.settingsTransform,
           settings: options.authGoogle?.settings,
-          
         };
       },
     }),
-    AuthGuardRouterModule.forRootAsync({
+    AuthRouterModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
-      guards: options.extras?.authGuardRouter?.guards || defaultAuthGuardRouterGuards,
-      useFactory: (options: RocketsServerOptionsInterface): AuthGuardRouterOptions => {
+      guards: options.extras?.authRouter?.guards || defaultAuthRouterGuards,
+      useFactory: (
+        options: RocketsServerOptionsInterface,
+      ): AuthRouterOptionsInterface => {
         return {
-          settings: options.authGuardRouter?.settings,
+          settings: options.authRouter?.settings,
         };
       },
     }),
@@ -456,7 +469,7 @@ export function createRocketsServerExports(options: {
     AuthAppleModule,
     AuthGithubModule,
     AuthGoogleModule,
-    AuthGuardRouterModule,
+    AuthRouterModule,
     AuthRefreshModule,
     FederatedModule,
     SwaggerUiModule,
@@ -467,7 +480,6 @@ export function createRocketsServerExports(options: {
  * Create providers for the combined module
  */
 export function createRocketsServerProviders(options: {
-  overrides?: RocketsServerOptions;
   providers?: Provider[];
 }): Provider[] {
   return [

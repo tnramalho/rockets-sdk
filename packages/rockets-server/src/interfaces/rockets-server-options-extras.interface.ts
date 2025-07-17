@@ -1,4 +1,4 @@
-import { AuthGuardRouterOptionsExtrasInterface } from '@concepta/nestjs-auth-guard-router';
+import { AuthRouterOptionsExtrasInterface } from '@concepta/nestjs-auth-router';
 import { DynamicModule } from '@nestjs/common';
 
 export interface RocketsServerOptionsExtrasInterface
@@ -6,5 +6,5 @@ export interface RocketsServerOptionsExtrasInterface
   user?: { imports: DynamicModule['imports'] };
   otp?: { imports: DynamicModule['imports'] };
   federated?: { imports: DynamicModule['imports'] };
-  authGuardRouter?: AuthGuardRouterOptionsExtrasInterface;
+  authRouter?: AuthRouterOptionsExtrasInterface;
 }

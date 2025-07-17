@@ -28,6 +28,7 @@
   - [authRecovery](#authrecovery)
   - [refresh](#refresh)
   - [authVerify](#authverify)
+  - [authRouter](#authrouter)
   - [user](#user)
   - [password](#password)
   - [otp](#otp)
@@ -57,6 +58,8 @@ maintaining flexibility for customization and extension.
 
 - **🔐 Complete Authentication System**: JWT tokens, local authentication,
   refresh tokens, and password recovery
+- **🔗 OAuth Integration**: Support for Google, GitHub, and Apple OAuth
+  providers by default, with custom providers support
 - **👥 User Management**: Full CRUD operations, profile management, and
   password history
 - **📱 OTP Support**: One-time password generation and validation for secure
@@ -66,7 +69,8 @@ maintaining flexibility for customization and extension.
 - **🔧 Highly Configurable**: Extensive configuration options for all modules
 - **🏗️ Modular Architecture**: Use only what you need, extend what you want
 - **🛡️ Type Safety**: Full TypeScript support with comprehensive interfaces
-- **🧪 Testing Support**: Complete testing utilities and fixtures
+- **🧪 Testing Support**: Complete testing utilities and fixtures including
+  e2e tests
 - **🔌 Adapter Pattern**: Support for multiple database adapters
 
 ### Installation
@@ -119,11 +123,15 @@ provided by the SDK:
 import { Entity, OneToMany } from 'typeorm';
 import { UserSqliteEntity } from '@concepta/nestjs-typeorm-ext';
 import { UserOtpEntity } from './user-otp.entity';
+import { FederatedEntity } from './federated.entity';
 
 @Entity()
 export class UserEntity extends UserSqliteEntity {
   @OneToMany(() => UserOtpEntity, (userOtp) => userOtp.assignee)
   userOtps?: UserOtpEntity[];
+  
+  @OneToMany(() => FederatedEntity, (federated) => federated.assignee)
+  federatedAccounts?: FederatedEntity[];
 }
 ```
 
@@ -137,6 +145,20 @@ import { UserEntity } from './user.entity';
 @Entity()
 export class UserOtpEntity extends OtpSqliteEntity {
   @ManyToOne(() => UserEntity, (user) => user.userOtps)
+  assignee!: ReferenceIdInterface;
+}
+```
+
+```typescript
+// entities/federated.entity.ts
+import { Entity, ManyToOne } from 'typeorm';
+import { ReferenceIdInterface } from '@concepta/nestjs-common';
+import { FederatedSqliteEntity } from '@concepta/nestjs-typeorm-ext';
+import { UserEntity } from './user.entity';
+
+@Entity()
+export class FederatedEntity extends FederatedSqliteEntity {
+  @ManyToOne(() => UserEntity, (user) => user.federatedAccounts)
   assignee!: ReferenceIdInterface;
 }
 ```
@@ -167,6 +189,7 @@ import { RocketsServerModule } from '@bitwild/rockets-server';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import { UserEntity } from './entities/user.entity';
 import { UserOtpEntity } from './entities/user-otp.entity';
+import { FederatedEntity } from './entities/federated.entity';
 
 @Module({
   imports: [
@@ -182,7 +205,7 @@ import { UserOtpEntity } from './entities/user-otp.entity';
       synchronize: true,    // Auto-create tables (dev only)
       autoLoadEntities: true,
       logging: false,       // Set to true to see SQL queries
-      entities: [UserEntity, UserOtpEntity],
+      entities: [UserEntity, UserOtpEntity, FederatedEntity],
     }),
     
     // Rockets SDK configuration - minimal setup
@@ -202,6 +225,15 @@ import { UserOtpEntity } from './entities/user-otp.entity';
         imports: [
           TypeOrmExtModule.forFeature({
             userOtp: { entity: UserOtpEntity },
+          }),
+        ],
+      },
+      
+      // OPTIONAL: Federated entity imports (required for OAuth)
+      federated: {
+        imports: [
+          TypeOrmExtModule.forFeature({
+            federated: { entity: FederatedEntity },
           }),
         ],
       },
@@ -293,6 +325,12 @@ With the basic setup complete, your application now provides these endpoints:
 - `PATCH /recovery/password` - Reset password with passcode
 - `GET /recovery/passcode/:passcode` - Validate recovery passcode
 
+#### OAuth Endpoints
+
+- `GET /oauth/authorize` - Redirect to OAuth provider (Google, GitHub, Apple)
+- `GET /oauth/callback` - Handle OAuth callback and return tokens
+- `POST /oauth/callback` - Handle OAuth callback via POST method
+
 #### User Management Endpoints
 
 - `GET /user` - Get current user profile
@@ -358,8 +396,8 @@ Expected response (200 OK):
 }
 ```
 
-**Note**: The login endpoint returns a 200 OK status (not 201 Created) as it's retrieving
-tokens, not creating a new resource.
+**Note**: The login endpoint returns a 200 OK status (not 201 Created) as it's
+retrieving tokens, not creating a new resource.
 
 **Defaults Working**: All authentication endpoints work out-of-the-box with
 sensible defaults.
@@ -416,8 +454,34 @@ Expected OTP confirm response (200 OK):
 }
 ```
 
+#### 6. Test OAuth Functionality
+
+```bash
+# Redirect to Google OAuth (returns 200 OK)
+curl -X GET "http://localhost:3000/oauth/authorize?provider=google&scopes=email,profile"
+
+# Redirect to GitHub OAuth (returns 200 OK)
+curl -X GET "http://localhost:3000/oauth/authorize?provider=github&scopes=user,email"
+
+# Redirect to Apple OAuth (returns 200 OK)
+curl -X GET "http://localhost:3000/oauth/authorize?provider=apple&scopes=email,name"
+
+# Handle OAuth callback (returns 200 OK with tokens)
+curl -X GET "http://localhost:3000/oauth/callback?provider=google"
+```
+
+Expected OAuth callback response (200 OK):
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
 🎉 **Congratulations!** You now have a fully functional authentication system
-with user management, JWT tokens, and API documentation running with minimal configuration.
+with user management, JWT tokens, OAuth integration, and API documentation
+running with minimal configuration.
 
 **💡 Pro Tip**: Since we're using an in-memory database, all data is lost when
 you restart the application. This is perfect for testing and development!
@@ -482,6 +546,7 @@ interface RocketsServerOptionsInterface {
   authRecovery?: AuthRecoveryOptionsInterface;
   refresh?: AuthRefreshOptions;
   authVerify?: AuthVerifyOptionsInterface;
+  authRouter?: AuthRouterOptionsInterface;
   user?: UserOptionsInterface;
   password?: PasswordOptionsInterface;
   otp?: OtpOptionsInterface;
@@ -826,6 +891,51 @@ authVerify: {
   notificationService: new MultiStepVerificationService(), // Email + SMS
 }
 ```
+
+---
+
+### authRouter
+
+**What it does**: OAuth router configuration that handles routing to different
+OAuth providers (Google, GitHub, Apple) based on the provider parameter in
+the request.
+
+**Core modules it connects to**: AuthRouterModule, provides OAuth routing and
+guards
+
+**When to update**: When you need to add or remove OAuth providers, customize
+OAuth guard behavior, or modify OAuth routing logic.
+
+**Real-world example**: Custom OAuth configuration with multiple providers:
+
+```typescript
+authRouter: {
+  guards: [
+    { name: 'google', guard: AuthGoogleGuard },
+    { name: 'github', guard: AuthGithubGuard },
+    { name: 'apple', guard: AuthAppleGuard },
+    // Add custom OAuth providers
+    { name: 'custom', guard: CustomOAuthGuard },
+  ],
+  settings: {
+    // Custom OAuth router settings
+    defaultProvider: 'google',
+    enableProviderValidation: true,
+  },
+}
+```
+
+**Default Configuration**: The SDK automatically configures Google, GitHub, and
+Apple OAuth providers with sensible defaults.
+
+**OAuth Flow**:
+
+1. Client calls `/oauth/authorize?provider=google&scopes=email profile`
+2. AuthRouterGuard routes to the appropriate OAuth guard based on provider
+3. OAuth guard redirects to the provider's authorization URL
+4. User authenticates with the OAuth provider
+5. Provider redirects back to `/oauth/callback?provider=google`
+6. AuthRouterGuard processes the callback and returns JWT tokens
 
 ---
 
@@ -1323,7 +1433,99 @@ services: {
 
 ### Core Concepts
 
-#### 1. Authentication Flow
+#### 1. Testing Support
+
+The Rockets SDK provides comprehensive testing support including:
+
+**Unit Tests**: Individual module and service testing with mock dependencies
+**Integration Tests**: End-to-end testing of complete authentication flows
+**E2E Tests**: Full application testing with real HTTP requests
+
+**Example E2E Test Structure**:
+
+```typescript
+// auth-oauth.controller.e2e-spec.ts
+describe('AuthOAuthController (e2e)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [
+        TypeOrmExtModule.forRootAsync({
+          useFactory: () => ormConfig,
+        }),
+        RocketsServerModule.forRoot({
+          user: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                user: { entity: UserFixture },
+              }),
+            ],
+          },
+          otp: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                userOtp: { entity: UserOtpEntityFixture },
+              }),
+            ],
+          },
+          federated: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                federated: { entity: FederatedEntityFixture },
+              }),
+            ],
+          },
+          services: {
+            mailerService: mockEmailService,
+          },
+        }),
+      ],
+      controllers: [AuthOAuthController],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('GET /oauth/authorize', () => {
+    it('should handle authorize with google provider', async () => {
+      await request(app.getHttpServer())
+        .get('/oauth/authorize?provider=google&scopes=email profile')
+        .expect(200);
+    });
+  });
+
+  describe('GET /oauth/callback', () => {
+    it('should handle callback with google provider and return tokens', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/oauth/callback?provider=google')
+        .expect(200);
+
+      expect(mockIssueTokenService.responsePayload).toHaveBeenCalledWith('test-user-id');
+      expect(response.body).toEqual({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+      });
+    });
+  });
+});
+```
+
+**Key Testing Features**:
+
+- **Fixture Support**: Pre-built test entities and services
+- **Mock Services**: Easy mocking of email, OTP, and authentication services
+- **Database Testing**: In-memory database support for isolated tests
+- **Guard Testing**: Comprehensive testing of authentication guards
+- **Error Scenarios**: Testing of error conditions and edge cases
+
+#### 2. Authentication Flow
 
 The Rockets SDK implements a comprehensive authentication flow:
 
@@ -1607,6 +1809,38 @@ sequenceDiagram
 - `UserModelService` - Custom user lookup validation
 - `UserPasswordService` - Custom password hashing, policies
 - `NotificationService` - Custom success notifications
+
+#### 5. OAuth Flow
+
+The Rockets SDK implements a comprehensive OAuth flow for third-party authentication:
+
+#### 5a. OAuth Authorization Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant AR as AuthRouterGuard
+    participant AG as AuthGoogleGuard
+    participant G as Google OAuth
+    participant C as Client
+    
+    C->>AR: GET /oauth/authorize?provider=google&scopes=email profile
+    AR->>AR: Route to AuthGoogleGuard
+    AR->>AG: canActivate(context)
+    AG->>G: Redirect to Google OAuth URL
+    G-->>C: Google Login Page
+    C->>G: User Authenticates
+    G->>C: Redirect to /oauth/callback?code=xyz
+```
+
+**Services to customize for OAuth:**
+
+- `AuthRouterGuard` - Custom OAuth routing logic, provider validation
+- `AuthGoogleGuard` / `AuthGithubGuard` / `AuthAppleGuard` - Custom OAuth
+provider integration
+- `FederatedModule` - Custom user creation/lookup from OAuth data
+- `UserModelService` - Custom user creation and lookup logic
+- `IssueTokenService` - Custom token generation for OAuth users
 
 ---
 

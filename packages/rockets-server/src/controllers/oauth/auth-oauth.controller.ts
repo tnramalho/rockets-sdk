@@ -11,7 +11,7 @@ import {
   AuthPublic,
   IssueTokenService,
 } from '@concepta/nestjs-authentication';
-import { AuthGuardRouterGuard } from '@concepta/nestjs-auth-guard-router';
+import { AuthRouterGuard } from '@concepta/nestjs-auth-router';
 
 /**
  * OAuth controller following the OpenAPI specification
@@ -32,7 +32,7 @@ import { AuthGuardRouterGuard } from '@concepta/nestjs-auth-guard-router';
  * Supported providers: google, apple, github (configurable)
  */
 @Controller('oauth')
-@UseGuards(AuthGuardRouterGuard)
+@UseGuards(AuthRouterGuard)
 @AuthPublic()
 @ApiTags('oauth')
 export class AuthOAuthController {
@@ -77,7 +77,7 @@ export class AuthOAuthController {
     required: true,
     description:
       'Space separated list of OAuth scopes to pass on to the provider. Common scopes: email, profile, openid',
-    example: 'email profile',
+    example: 'email,profile',
     schema: {
       type: 'string',
       pattern: '[^ ]+( +[^ ]+)*',
