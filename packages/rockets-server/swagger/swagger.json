@@ -19,7 +19,7 @@
                 "standard": {
                   "value": {
                     "email": "user@example.com",
-                    "username": "johndoe",
+                    "username": "user@example.com",
                     "password": "StrongP@ssw0rd",
                     "active": true
                   },
@@ -160,7 +160,7 @@
                 "standard": {
                   "value": {
                     "username": "user@example.com",
-                    "password": "YourPassword123!"
+                    "password": "StrongP@ssw0rd"
                   },
                   "summary": "Standard login request"
                 }

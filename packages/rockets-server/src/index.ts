@@ -12,3 +12,6 @@ export { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 
 // Export Swagger generator
 export { generateSwaggerJson } from './generate-swagger';
+// Export DTOs
+export { RocketsServerJwtResponseDto } from './dto/auth/rockets-server-jwt-response.dto';
+export { RocketsServerLoginDto } from './dto/auth/rockets-server-login.dto';
