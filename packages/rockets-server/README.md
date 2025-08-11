@@ -1293,24 +1293,31 @@ services: {
 
 ### crud
 
-Add a new CRUD endpoint for any entity using `@concepta/nestjs-crud` with minimal boilerplate. This section provides step-by-step instructions for AI agents to implement CRUD operations following the v7.0.0-alpha.6 patterns.
+Add a new CRUD endpoint for any entity using `@concepta/nestjs-crud` with
+minimal boilerplate. This section provides step-by-step instructions for AI
+agents to implement CRUD operations following the v7.0.0-alpha.6 patterns.
 
-**IMPORTANT FOR AI AGENTS**: Follow this exact pattern when implementing CRUD functionality. The pattern uses `ConfigurableCrudBuilder` plus a `TypeOrmCrudAdapter` and requires specific imports and structure.
+**IMPORTANT FOR AI AGENTS**: Follow this exact pattern when implementing
+CRUD functionality. The pattern uses `ConfigurableCrudBuilder` plus a
+`TypeOrmCrudAdapter` and requires specific imports and structure.
 
 #### Required Imports for CRUD Implementation
 
 **Always import these modules for CRUD:**
+
 ```typescript
 import { CrudModule } from '@concepta/nestjs-crud'; // For CrudModule.forRoot()
 import { TypeOrmModule } from '@nestjs/typeorm'; // For TypeOrmModule.forFeature()
 import { TypeOrmCrudAdapter } from '@concepta/nestjs-crud'; // For the adapter pattern
 ```
 
-**DO NOT use TypeOrmExtModule for CRUD** - this is only for model services. Use standard TypeOrmModule instead.
+**DO NOT use TypeOrmExtModule for CRUD** - this is only for model services.
+Use standard TypeOrmModule instead.
 
 #### Module Import Requirements
 
 **Required in your module:**
+
 ```typescript
 @Module({
   imports: [
@@ -1479,7 +1486,7 @@ export class ProjectCrudBuilder extends ConfigurableCrudBuilder<
 
 #### 5) Use build() Method to Get ConfigurableClasses
 
-**AI AGENTS: This is the critical pattern - you must call .build() and extract the classes:**
+**AI AGENTS: You must call .build() and extract the classes:**
 
 ```typescript
 // crud/project-crud.builder.ts (continued)
@@ -1551,18 +1558,23 @@ export class AppModule {}
 
 #### Key Patterns for AI Agents
 
-**1. Adapter Pattern**: Always create a `EntityTypeOrmCrudAdapter` that extends `TypeOrmCrudAdapter<Entity>` (or any other adapter you may need) and injects `Repository<Entity>`.
+**1. Adapter Pattern**: Always create a `EntityTypeOrmCrudAdapter` that extends
+`TypeOrmCrudAdapter<Entity>` (or any other adapter you may need) and injects
+`Repository<Entity>`.
 
-**2. Builder Pattern**: Use `ConfigurableCrudBuilder` and call `.build()` to get `ConfigurableServiceClass` and `ConfigurableControllerClass`.
+**2. Builder Pattern**: Use `ConfigurableCrudBuilder` and call `.build()` to
+get `ConfigurableServiceClass` and `ConfigurableControllerClass`.
 
 **3. Module Imports**: Always use:
-   - `CrudModule.forRoot({})` - for CRUD functionality
-   - `TypeOrmModule.forFeature([Entity])` - for repository injection
-   - **NOT** `TypeOrmExtModule` - that's only for model services
+
+- `CrudModule.forRoot({})` - for CRUD functionality
+- `TypeOrmModule.forFeature([Entity])` - for repository injection
+- **NOT** `TypeOrmExtModule` - that's only for model services
 
 **4. Service Token**: Create a unique `Symbol` for each CRUD service token.
 
-**5. DTOs**: Always create separate DTOs for Create, Update, Response, and Paginated types.
+**5. DTOs**: Always create separate DTOs for Create, Update, Response, and
+Paginated types.
 
 #### Generated Endpoints
 
@@ -1578,6 +1590,7 @@ The CRUD builder automatically generates these RESTful endpoints:
 #### Swagger Documentation
 
 All endpoints are automatically documented in Swagger with:
+
 - Request/response schemas based on your DTOs
 - API tags specified in `extraDecorators`
 - Validation rules from class-validator decorators
@@ -1586,13 +1599,15 @@ All endpoints are automatically documented in Swagger with:
 #### Error Handling
 
 The CRUD system automatically handles:
+
 - Validation errors (400 Bad Request)
 - Not found errors (404 Not Found)
 - Database constraint errors (409 Conflict)
 - Server errors (500 Internal Server Error)
 
-This pattern provides a complete, production-ready CRUD API with minimal boilerplate code while maintaining full type safety and comprehensive documentation.
-
+This pattern provides a complete, production-ready CRUD API with minimal
+boilerplate code while maintaining full type safety and comprehensive
+documentation.
 
 ## Explanation
 
