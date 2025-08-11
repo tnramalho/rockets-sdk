@@ -81,8 +81,5 @@
     "changelog:major": "standard-version --release-as major",
     "generate-swagger": "cd packages/rockets-server && yarn generate-swagger"
   },
-  "packageManager": "yarn@4.4.0",
-  "dependencies": {
-    "@concepta/nestjs-crud": "^7.0.0-alpha.4"
-  }
+  "packageManager": "yarn@4.4.0"
 }

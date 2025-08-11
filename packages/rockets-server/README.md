@@ -34,6 +34,7 @@
   - [otp](#otp)
   - [email](#email)
   - [services](#services)
+  - [crud](#crud)
 - [Explanation](#explanation)
   - [Architecture Overview](#architecture-overview)
   - [Design Decisions](#design-decisions)
@@ -77,7 +78,7 @@ maintaining flexibility for customization and extension.
 
 **⚠️ CRITICAL: Alpha Version Issue**:
 
-> **The current alpha version (7.0.0-alpha.4) has a dependency injection
+> **The current alpha version (7.0.0-alpha.6) has a dependency injection
 > issue with AuthJwtGuard that prevents the minimal setup from working. This
 > is a known issue being investigated.**
 
@@ -506,7 +507,7 @@ If you're getting dependency resolution errors:
 
 1. **NestJS Version**: Ensure you're using NestJS `^10.0.0`
 2. **Alpha Packages**: All `@concepta/*` packages should use the same alpha
-   version (e.g., `^7.0.0-alpha.4`)
+   version (e.g., `^7.0.0-alpha.6`)
 3. **Clean Installation**: Try deleting `node_modules` and `package-lock.json`,
    then run `yarn install`
 
@@ -1289,6 +1290,309 @@ services: {
 ```
 
 ---
+
+### crud
+
+Add a new CRUD endpoint for any entity using `@concepta/nestjs-crud` with minimal boilerplate. This section provides step-by-step instructions for AI agents to implement CRUD operations following the v7.0.0-alpha.6 patterns.
+
+**IMPORTANT FOR AI AGENTS**: Follow this exact pattern when implementing CRUD functionality. The pattern uses `ConfigurableCrudBuilder` plus a `TypeOrmCrudAdapter` and requires specific imports and structure.
+
+#### Required Imports for CRUD Implementation
+
+**Always import these modules for CRUD:**
+```typescript
+import { CrudModule } from '@concepta/nestjs-crud'; // For CrudModule.forRoot()
+import { TypeOrmModule } from '@nestjs/typeorm'; // For TypeOrmModule.forFeature()
+import { TypeOrmCrudAdapter } from '@concepta/nestjs-crud'; // For the adapter pattern
+```
+
+**DO NOT use TypeOrmExtModule for CRUD** - this is only for model services. Use standard TypeOrmModule instead.
+
+#### Module Import Requirements
+
+**Required in your module:**
+```typescript
+@Module({
+  imports: [
+    CrudModule.forRoot({}), // Required for CRUD functionality
+    TypeOrmModule.forFeature([ProjectEntity]), // Required for repository injection
+    // NOT TypeOrmExtModule - that's only for model services
+  ],
+  // ... rest of module
+})
+```
+
+#### Complete CRUD Implementation Pattern
+
+#### 1) Define your Entity
+
+```typescript
+// entities/project.entity.ts
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('project')
+export class ProjectEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column()
+  name!: string;
+
+  @Column({ nullable: true })
+  description?: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
+}
+```
+
+#### 2) Define your DTOs
+
+```typescript
+// dto/project/project.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+
+export class ProjectDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  name!: string;
+
+  @ApiProperty({ required: false })
+  description?: string;
+
+  @ApiProperty()
+  createdAt!: Date;
+
+  @ApiProperty()
+  updatedAt!: Date;
+}
+
+// dto/project/project-create.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export class ProjectCreateDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  description?: string;
+}
+
+// dto/project/project-update.dto.ts
+import { PartialType } from '@nestjs/swagger';
+import { ProjectCreateDto } from './project-create.dto';
+
+export class ProjectUpdateDto extends PartialType(ProjectCreateDto) {}
+
+// dto/project/project-paginated.dto.ts
+import { CrudResponsePaginatedDto } from '@concepta/nestjs-crud';
+import { ProjectDto } from './project.dto';
+
+export class ProjectPaginatedDto extends CrudResponsePaginatedDto(ProjectDto) {}
+```
+
+#### 3) Create a TypeOrmCrudAdapter (REQUIRED PATTERN)
+
+**AI AGENTS: This is the correct adapter pattern for v7.0.0-alpha.6:**
+
+```typescript
+// adapters/project-typeorm-crud.adapter.ts
+import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TypeOrmCrudAdapter } from '@concepta/nestjs-crud';
+import { ProjectEntity } from '../entities/project.entity';
+
+/**
+ * Project CRUD Adapter using TypeORM
+ * 
+ * PATTERN NOTE: This follows the standard pattern where:
+ * - Extends TypeOrmCrudAdapter<EntityType>
+ * - Injects Repository<EntityType> via @InjectRepository
+ * - Calls super(repo) to initialize the adapter
+ */
+@Injectable()
+export class ProjectTypeOrmCrudAdapter extends TypeOrmCrudAdapter<ProjectEntity> {
+  constructor(
+    @InjectRepository(ProjectEntity)
+    repo: Repository<ProjectEntity>,
+  ) {
+    super(repo);
+  }
+}
+```
+
+#### 4) Create a CRUD Builder with build() Method
+
+```typescript
+// crud/project-crud.builder.ts
+import { ApiTags } from '@nestjs/swagger';
+import { ConfigurableCrudBuilder } from '@concepta/nestjs-crud';
+import { ProjectEntity } from '../entities/project.entity';
+import { ProjectDto } from '../dto/project/project.dto';
+import { ProjectCreateDto } from '../dto/project/project-create.dto';
+import { ProjectUpdateDto } from '../dto/project/project-update.dto';
+import { ProjectPaginatedDto } from '../dto/project/project-paginated.dto';
+import { ProjectTypeOrmCrudAdapter } from '../dto/project/project-type-orm-crud.adapter';
+
+export const PROJECT_CRUD_SERVICE_TOKEN = Symbol('PROJECT_CRUD_SERVICE_TOKEN');
+
+export class ProjectCrudBuilder extends ConfigurableCrudBuilder<
+  ProjectEntity,
+  ProjectCreateDto,
+  ProjectUpdateDto
+> {
+  constructor() {
+    super({
+      service: {
+        injectionToken: PROJECT_CRUD_SERVICE_TOKEN,
+        adapter: ProjectTypeOrmCrudAdapter,
+      },
+      controller: {
+        path: 'projects',
+        model: {
+          type: ProjectDto,
+          paginatedType: ProjectPaginatedDto,
+        },
+        extraDecorators: [ApiTags('projects')],
+      },
+      getMany: {},
+      getOne: {},
+      createOne: { dto: ProjectCreateDto },
+      updateOne: { dto: ProjectUpdateDto },
+      replaceOne: { dto: ProjectUpdateDto },
+      deleteOne: {},
+    });
+  }
+}
+```
+
+#### 5) Use build() Method to Get ConfigurableClasses
+
+**AI AGENTS: This is the critical pattern - you must call .build() and extract the classes:**
+
+```typescript
+// crud/project-crud.builder.ts (continued)
+
+// Call build() to get the configurable classes
+const {
+  ConfigurableServiceClass,
+  ConfigurableControllerClass,
+} = new ProjectCrudBuilder().build();
+
+// Export the classes that extend the configurable classes
+export class ProjectCrudService extends ConfigurableServiceClass {
+  // Inherits all CRUD operations: getMany, getOne, createOne, updateOne, replaceOne, deleteOne
+}
+
+export class ProjectController extends ConfigurableControllerClass {
+  // Inherits all CRUD endpoints:
+  // GET /projects (getMany)
+  // GET /projects/:id (getOne) 
+  // POST /projects (createOne)
+  // PATCH /projects/:id (updateOne)
+  // PUT /projects/:id (replaceOne)
+  // DELETE /projects/:id (deleteOne)
+}
+
+```
+
+#### 6) Register in a Module (COMPLETE PATTERN)
+
+**AI AGENTS: This is the exact module pattern you must follow:**
+
+```typescript
+// modules/project.module.ts
+import { Module } from '@nestjs/common';
+import { CrudModule } from '@concepta/nestjs-crud'; // REQUIRED
+import { TypeOrmModule } from '@nestjs/typeorm'; // REQUIRED (NOT TypeOrmExtModule)
+import { ProjectEntity } from '../entities/project.entity';
+import { ProjectTypeOrmCrudAdapter } from '../adapters/project-typeorm-crud.adapter';
+import { ProjectController, ProjectServiceProvider } from '../crud/project-crud.builder';
+
+@Module({
+  imports: [
+    CrudModule.forRoot({}), // REQUIRED for CRUD functionality
+    TypeOrmModule.forFeature([ProjectEntity]), // REQUIRED for repository injection
+  ],
+  providers: [
+    ProjectTypeOrmCrudAdapter, // The adapter with @Injectable
+    ProjectServiceProvider, // From the builder.build() result
+  ],
+  controllers: [
+    ProjectController, // From the builder.build() result
+  ],
+})
+export class ProjectModule {}
+```
+
+#### 7) Wire up in Main App Module
+
+```typescript
+// app.module.ts (add to imports)
+@Module({
+  imports: [
+    // ... other imports
+    ProjectModule, // Your new CRUD module
+  ],
+})
+export class AppModule {}
+```
+
+#### Key Patterns for AI Agents
+
+**1. Adapter Pattern**: Always create a `EntityTypeOrmCrudAdapter` that extends `TypeOrmCrudAdapter<Entity>` (or any other adapter you may need) and injects `Repository<Entity>`.
+
+**2. Builder Pattern**: Use `ConfigurableCrudBuilder` and call `.build()` to get `ConfigurableServiceClass` and `ConfigurableControllerClass`.
+
+**3. Module Imports**: Always use:
+   - `CrudModule.forRoot({})` - for CRUD functionality
+   - `TypeOrmModule.forFeature([Entity])` - for repository injection
+   - **NOT** `TypeOrmExtModule` - that's only for model services
+
+**4. Service Token**: Create a unique `Symbol` for each CRUD service token.
+
+**5. DTOs**: Always create separate DTOs for Create, Update, Response, and Paginated types.
+
+#### Generated Endpoints
+
+The CRUD builder automatically generates these RESTful endpoints:
+
+- `GET /projects` - List projects with pagination and filtering
+- `GET /projects/:id` - Get a single project by ID
+- `POST /projects` - Create a new project
+- `PATCH /projects/:id` - Partially update a project
+- `PUT /projects/:id` - Replace a project completely
+- `DELETE /projects/:id` - Delete a project
+
+#### Swagger Documentation
+
+All endpoints are automatically documented in Swagger with:
+- Request/response schemas based on your DTOs
+- API tags specified in `extraDecorators`
+- Validation rules from class-validator decorators
+- Pagination parameters for list endpoints
+
+#### Error Handling
+
+The CRUD system automatically handles:
+- Validation errors (400 Bad Request)
+- Not found errors (404 Not Found)
+- Database constraint errors (409 Conflict)
+- Server errors (500 Internal Server Error)
+
+This pattern provides a complete, production-ready CRUD API with minimal boilerplate code while maintaining full type safety and comprehensive documentation.
+
 
 ## Explanation
 
