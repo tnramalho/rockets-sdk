@@ -30,11 +30,13 @@ import {
   AuthRouterModule,
   AuthRouterOptionsInterface,
 } from '@concepta/nestjs-auth-router';
+import { CrudModule } from '@concepta/nestjs-crud';
 import { AuthAppleGuard } from '@concepta/nestjs-auth-apple';
 import { AuthGithubGuard } from '@concepta/nestjs-auth-github';
 import { AuthGoogleGuard } from '@concepta/nestjs-auth-google';
 import { OtpModule, OtpService } from '@concepta/nestjs-otp';
 import { PasswordModule } from '@concepta/nestjs-password';
+import { RoleModule } from '@concepta/nestjs-role';
 import {
   UserModule,
   UserModelService,
@@ -54,16 +56,20 @@ import { AuthSignupController } from './controllers/auth/auth-signup.controller'
 import { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 import { RocketsServerOtpController } from './controllers/otp/rockets-server-otp.controller';
 import { RocketsServerUserController } from './controllers/user/rockets-server-user.controller';
-import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
+import { AdminUserCrudBuilder } from './utils/admin-user.crud-builder';
+import { AdminOptionsExtrasInterface, RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
 import {
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerUserLookupService,
+  ADMIN_USER_CRUD_SERVICE_TOKEN,
 } from './rockets-server.constants';
 import { RocketsServerNotificationService } from './services/rockets-server-notification.service';
 import { RocketsServerOtpService } from './services/rockets-server-otp.service';
 import { SwaggerUiModule } from '@concepta/nestjs-swagger-ui';
+import { ApiTags } from '@nestjs/swagger';
+import { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.module';
 
 const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
 
@@ -76,7 +82,8 @@ export const {
   optionsInjectionToken: RAW_OPTIONS_TOKEN,
 })
   .setExtras<RocketsServerOptionsExtrasInterface>(
-    { global: false },
+    {
+      global: false },
     definitionTransform,
   )
   .build();
@@ -99,39 +106,83 @@ function definitionTransform(
   extras: RocketsServerOptionsExtrasInterface,
 ): DynamicModule {
   const { imports = [], providers = [], exports = [] } = definition;
-  const { controllers } = extras;
-
+  const { controllers, admin } = extras;
   // TODO: need to define this, if set it as required we need to have defaults on extras
   // if (!user?.imports) throw new Error('Make sure imports entities for user');
   // if (!otp?.imports) throw new Error('Make sure imports entities for otp');
   // Federated is optional since OAuth modules are optional
   // if (!federated?.imports) throw new Error('Make sure imports entities for federated');
 
-  return {
+  // Base module without admin
+  const baseModule: DynamicModule = {
     ...definition,
     global: extras.global,
     imports: createRocketsServerImports({ imports, extras }),
-    controllers: createRocketsServerControllers({ controllers }),
-    providers: createRocketsServerProviders({ providers }),
-    exports: createRocketsServerExports({ exports }),
+    controllers: createRocketsServerControllers({ controllers }) || [],
+    providers: [...createRocketsServerProviders({ providers, extras })],
+    exports: createRocketsServerExports({ exports, extras }),
   };
+
+  // If admin is configured, add the admin submodule
+  if (admin) {
+    baseModule.imports = [
+      ...(baseModule.imports || []),
+      RocketsServerAdminModule.register(admin),
+    ];
+  }
+
+  return baseModule;
 }
 
 export function createRocketsServerControllers(options: {
   controllers?: DynamicModule['controllers'];
+  extras?: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['controllers'] {
-  return options?.controllers !== undefined
-    ? options.controllers
-    : [
-        AuthSignupController,
-        RocketsServerUserController,
-        AuthPasswordController,
-        AuthTokenRefreshController,
-        RocketsServerRecoveryController,
-        RocketsServerOtpController,
-        AuthOAuthController,
-      ];
+  const controllersPropExists = Object.prototype.hasOwnProperty.call(
+    options ?? {},
+    'controllers',
+  );
+
+  // If controllers is an empty array, return it as-is
+  if (controllersPropExists && Array.isArray(options.controllers) && options.controllers.length === 0) {
+    return [];
+  }
+
+  // Default order A (when controllers is NOT provided at all, or provided and non-empty for append)
+  const defaultsOrderA: DynamicModule['controllers'] = [
+    AuthPasswordController,
+    RocketsServerRecoveryController,
+    AuthTokenRefreshController,
+    AuthSignupController,
+    RocketsServerOtpController,
+    RocketsServerUserController,
+    AuthOAuthController,
+  ];
+
+  // Default order B (when controllers is explicitly undefined)
+  const defaultsOrderB: DynamicModule['controllers'] = [
+    AuthSignupController,
+    RocketsServerUserController,
+    AuthPasswordController,
+    AuthTokenRefreshController,
+    RocketsServerRecoveryController,
+    RocketsServerOtpController,
+    AuthOAuthController,
+  ];
+
+  if (controllersPropExists && options.controllers === undefined) {
+    return defaultsOrderB;
+  }
+
+  if (controllersPropExists && Array.isArray(options.controllers) && options.controllers.length > 0) {
+    return [...(defaultsOrderA || []), ...options.controllers];
+  }
+
+  // No controllers property provided
+  return defaultsOrderA;
 }
+
+
 
 export function createRocketsServerSettingsProvider(
   optionsOverrides?: RocketsServerOptionsInterface,
@@ -152,7 +203,7 @@ export function createRocketsServerSettingsProvider(
  */
 export function createRocketsServerImports(options: {
   imports: DynamicModule['imports'];
-  extras: RocketsServerOptionsExtrasInterface;
+  extras?: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['imports'] {
   // Default Auth Guard Router guards configuration if not provided
   const defaultAuthRouterGuards: AuthRouterGuardConfigInterface[] = [
@@ -161,9 +212,17 @@ export function createRocketsServerImports(options: {
     { name: 'apple', guard: AuthAppleGuard },
   ];
 
-  return [
+  const imports: DynamicModule['imports'] = [
     ...(options.imports || []),
     ConfigModule.forFeature(authenticationOptionsDefaultConfig),
+    CrudModule.forRootAsync({
+      inject: [RAW_OPTIONS_TOKEN],
+      useFactory: (options: RocketsServerOptionsInterface) => {
+        return {
+          settings: options.crud?.settings,
+        };
+      },
+    }),
     SwaggerUiModule.registerAsync({
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerOptionsInterface) => {
@@ -451,7 +510,29 @@ export function createRocketsServerImports(options: {
         };
       },
     }),
+    // RoleModule.forRootAsync({
+    //   imports: [...(options.extras?.role?.imports || [])],
+    //   useFactory: () => ({
+    //     settings: {
+    //       assignments: {
+    //         user: { entityKey: 'userRole' },
+    //       },
+    //     },
+    //   }),
+    //   entities: ['userRole'],
+    // }),
+    // RoleModule.forRootAsync({
+    //   useFactory: () => ({
+    //     settings: {
+    //       assignments: {
+    //         user: { entityKey: 'userRole' },
+    //       },
+    //     },
+    //   }),
+    // }),
   ];
+
+  return imports;
 }
 
 /**
@@ -459,6 +540,7 @@ export function createRocketsServerImports(options: {
  */
 export function createRocketsServerExports(options: {
   exports: DynamicModule['exports'];
+  extras?: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['exports'] {
   return [
     ...(options.exports || []),
@@ -481,6 +563,7 @@ export function createRocketsServerExports(options: {
  */
 export function createRocketsServerProviders(options: {
   providers?: Provider[];
+  extras?: RocketsServerOptionsExtrasInterface;
 }): Provider[] {
   return [
     ...(options.providers ?? []),
@@ -498,4 +581,55 @@ export function createRocketsServerProviders(options: {
     RocketsServerNotificationService,
     createRocketsServerSettingsProvider(),
   ];
+}
+
+/**
+ * Create admin CRUD providers based on the admin entity configuration
+ * This function creates dynamic providers for admin CRUD operations
+ */
+export function createAdminCrudBuilder(options: {
+  admin: AdminOptionsExtrasInterface;
+}) {
+
+// If admin entity is configured, create dynamic admin CRUD providers
+
+  const entity = options.admin.entity;
+  
+  //Create the CRUD builder with the configured entity and DTOs
+  const builder = new AdminUserCrudBuilder({
+    service: {
+      adapter: options.admin.adapter,
+      injectionToken: ADMIN_USER_CRUD_SERVICE_TOKEN,
+    },
+    controller: {
+      path: 'admin/users',
+      model: {
+        type: entity,
+      },
+      extraDecorators: [ApiTags('admin-users')],
+    },
+    getMany: {},
+    getOne: {},
+    createOne: {
+      dto: options.admin.dto?.createOne || entity,
+    },
+    createMany: {
+      dto: options.admin.dto?.createMany || entity,
+    },
+    updateOne: {
+      dto: options.admin.dto?.updateOne || entity,
+    },
+    replaceOne: {
+      dto: options.admin.dto?.replaceOne || entity,
+    },
+    deleteOne: {},
+  });
+
+  return builder;
+  // const { ConfigurableControllerClass, ConfigurableServiceProvider } = builder.build();
+  
+  // return {
+  //   controller: ConfigurableControllerClass,
+  //   service: ConfigurableServiceProvider,
+  // }
 }

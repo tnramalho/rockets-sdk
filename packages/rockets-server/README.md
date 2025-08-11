@@ -1844,7 +1844,116 @@ provider integration
 
 ---
 
-This comprehensive documentation provides developers with everything they need
-to understand, implement, and extend the Rockets SDK in their applications.
-The modular design and extensive configuration options make it suitable for
-projects ranging from simple prototypes to complex enterprise systems.
+### Admin CRUD Functionality
+
+The Rockets SDK includes admin CRUD functionality for user management using the `AdminUserCrudBuilder` pattern. This approach allows you to configure and register admin functionality with your own entities and DTOs.
+
+#### Using AdminUserCrudBuilder
+
+The `AdminUserCrudBuilder` follows the same pattern as other CRUD builders in the Concepta ecosystem. You can configure it with custom entities, DTOs, and adapters:
+
+```typescript
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { CrudModule } from '@concepta/nestjs-crud';
+import { EventModule } from '@concepta/nestjs-event';
+import { 
+  AdminUserCrudBuilder, 
+  AdminUserTypeOrmCrudAdapter 
+} from '@bitwild/rockets-server';
+import { UserEntity } from './entities/user.entity';
+import { Repository } from 'typeorm';
+
+// Define your extras for custom DTOs
+type AdminUserExtras = {
+  model: {
+    type: typeof YourUserDto;
+  };
+  createOne: {
+    dto: typeof YourUserCreateDto;
+  };
+  updateOne: {
+    dto: typeof YourUserUpdateDto;
+  };
+};
+
+const extras: AdminUserExtras = {
+  model: {
+    type: YourUserDto,
+  },
+  createOne: {
+    dto: YourUserCreateDto,
+  },
+  updateOne: {
+    dto: YourUserUpdateDto,
+  },
+};
+
+// Configure the options transformer
+const optionsTransform = (options, extras) => {
+  if (!extras) return options;
+  
+  options.controller.model.type = extras.model.type;
+  options.service.adapter = AdminUserTypeOrmCrudAdapter;
+  if (options.createOne) options.createOne.dto = extras.createOne.dto;
+  if (options.updateOne) options.updateOne.dto = extras.updateOne.dto;
+  return options;
+};
+
+// Create the CRUD builder
+const adminUserCrudBuilder = new AdminUserCrudBuilder<
+  UserEntity,
+  YourUserCreateDto,
+  YourUserUpdateDto,
+  YourUserCreateDto,
+  AdminUserExtras
+>();
+adminUserCrudBuilder.setExtras(extras, optionsTransform);
+
+const { ConfigurableControllerClass, ConfigurableServiceProvider } =
+  adminUserCrudBuilder.build();
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'sqlite',
+      database: ':memory:',
+      synchronize: true,
+      autoLoadEntities: true,
+      entities: [UserEntity],
+    }),
+    TypeOrmModule.forFeature([UserEntity]),
+    CrudModule.forRoot({}),
+    EventModule.forRoot({}),
+  ],
+  providers: [
+    AdminUserTypeOrmCrudAdapter,
+    ConfigurableServiceProvider,
+    {
+      provide: 'ADMIN_USER_REPOSITORY_TOKEN',
+      inject: [getRepositoryToken(UserEntity)],
+      useFactory: (userRepository: Repository<UserEntity>) => userRepository,
+    },
+  ],
+  controllers: [ConfigurableControllerClass],
+})
+export class AppModule {}
+```
+
+#### Admin Endpoints
+
+When configured, the following endpoints become available:
+
+- `GET /admin/users` - List all users (with pagination, filtering, sorting)
+- `GET /admin/users/:id` - Get a specific user
+- `POST /admin/users` - Create a new user
+- `PATCH /admin/users/:id` - Update a user
+- `PUT /admin/users/:id` - Replace a user
+- `DELETE /admin/users/:id` - Delete a user
+
+#### Example Fixture
+
+See `AppModuleAdminUserFixture` for a complete working example of how to set up admin CRUD functionality.
+
+### Advanced Configuration

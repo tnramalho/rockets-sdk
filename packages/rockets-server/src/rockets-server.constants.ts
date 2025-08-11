@@ -23,3 +23,6 @@ export const RocketsServerEmailService = Symbol(
 export const RocketsServerUserLookupService = Symbol(
   '__ROCKETS_SERVER_USER_LOOKUP_TOKEN__',
 );
+
+// Admin CRUD Service Token
+export const ADMIN_USER_CRUD_SERVICE_TOKEN = Symbol('__ADMIN_USER_CRUD_SERVICE_TOKEN__');

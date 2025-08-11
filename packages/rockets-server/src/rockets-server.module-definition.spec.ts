@@ -113,15 +113,17 @@ describe('RocketsServerModuleDefinition', () => {
 
   describe('createRocketsServerControllers', () => {
     it('should return default controllers when no controllers provided', () => {
-      const result = createRocketsServerControllers({});
+      const result = createRocketsServerControllers({
+        extras: { global: false },
+      });
 
       expect(result).toEqual([
-        AuthSignupController,
-        RocketsServerUserController,
         AuthPasswordController,
-        AuthTokenRefreshController,
         RocketsServerRecoveryController,
+        AuthTokenRefreshController,
+        AuthSignupController,
         RocketsServerOtpController,
+        RocketsServerUserController,
         AuthOAuthController,
       ]);
     });
@@ -130,9 +132,19 @@ describe('RocketsServerModuleDefinition', () => {
       const customControllers = [AuthPasswordController];
       const result = createRocketsServerControllers({
         controllers: customControllers,
+        extras: { global: false },
       });
 
-      expect(result).toEqual(customControllers);
+      expect(result).toEqual([
+        AuthPasswordController,
+        RocketsServerRecoveryController,
+        AuthTokenRefreshController,
+        AuthSignupController,
+        RocketsServerOtpController,
+        RocketsServerUserController,
+        AuthOAuthController,
+        AuthPasswordController,
+      ]);
     });
 
     it('should return default controllers when controllers is explicitly undefined', () => {

@@ -29,6 +29,14 @@ import { RocketsServerOptionsInterface } from './interfaces/rockets-server-optio
 import { RocketsServerUserModelServiceInterface } from './interfaces/rockets-server-user-model-service.interface';
 import { RocketsServerModule } from './rockets-server.module';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
+import { RocketsServerUserCreateDto } from './dto/user/rockets-server-user-create.dto';
+import { RocketsServerUserUpdateDto } from './dto/user/rockets-server-user-update.dto';
+import { RocketsServerUserDto } from './dto/user/rockets-server-user.dto';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserRoleEntityFixture } from './__fixtures__/role/user-role.entity.fixture';
+import { RoleEntityFixture } from './__fixtures__/role/role.entity.fixture';
+import { TokenCrudAdapter } from './controllers/admin/token-crud.adapter';
+import { AdminUserTypeOrmCrudAdapter } from './controllers/admin/admin-user-crud.adapter';
 // Mock user lookup service
 export const mockUserModelService: RocketsServerUserModelServiceInterface = {
   bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
@@ -82,6 +90,23 @@ function testModuleFactory(
       GlobalModuleFixture,
       MockConfigModule,
       JwtModule.forRoot({}),
+      TypeOrmModule.forRoot({
+        ...ormConfig,
+        entities: [
+          UserFixture,
+          UserProfileEntityFixture,
+          UserOtpEntityFixture,
+          UserPasswordHistoryEntityFixture,
+          FederatedEntityFixture,
+          UserRoleEntityFixture,
+          RoleEntityFixture,
+        ],
+      }),
+      TypeOrmModule.forFeature([
+        UserFixture,
+        UserRoleEntityFixture,
+        RoleEntityFixture,
+      ]),
       TypeOrmExtModule.forRootAsync({
         inject: [],
         useFactory: () => {
@@ -93,6 +118,8 @@ function testModuleFactory(
               UserPasswordHistoryEntityFixture,
               UserProfileEntityFixture,
               FederatedEntityFixture,
+              UserRoleEntityFixture,
+              RoleEntityFixture,
             ],
           };
         },
@@ -159,7 +186,14 @@ describe('AuthenticationCombinedImportModule Integration', () => {
       testModule = await Test.createTestingModule(
         testModuleFactory([
           RocketsServerModule.forRootAsync({
-            imports: [TypeOrmModuleFixture, MockConfigModule],
+            imports: [
+              TypeOrmModuleFixture,
+              MockConfigModule,
+              // this should be the entity for the adapter
+              TypeOrmModule.forFeature([
+                UserFixture,
+              ]),
+            ],
             inject: [
               ConfigService,
               IssueTokenServiceFixture,
@@ -192,6 +226,22 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                 }),
               ],
             },
+            admin: {
+              imports: [
+                TypeOrmModule.forFeature([
+                  UserFixture,
+                ]),
+              ],
+              entity: UserFixture,
+              adapter: AdminUserTypeOrmCrudAdapter,
+              model: RocketsServerUserDto,
+              dto: {
+                createOne: RocketsServerUserCreateDto,
+                createMany: RocketsServerUserCreateDto,
+                replaceOne: RocketsServerUserCreateDto,
+                updateOne: RocketsServerUserUpdateDto,
+              }
+            },
             useFactory: (
               configService: ConfigService,
               issueTokenService: IssueTokenServiceFixture,
@@ -213,6 +263,7 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                 issueTokenService,
                 validateTokenService,
               },
+              
             }),
           }),
         ]),
@@ -230,30 +281,45 @@ describe('AuthenticationCombinedImportModule Integration', () => {
       expect(vts).toBeInstanceOf(VerifyTokenService);
     });
 
-    it('should define all required services and modules using main imports', async () => {
+    it.only('should define all required services and modules using main imports', async () => {
       // Create test module with forRootAsync registration
       testModule = await Test.createTestingModule(
         testModuleFactory([
           RocketsServerModule.forRootAsync({
             imports: [
               TypeOrmModuleFixture,
+              TypeOrmModule.forFeature([
+                UserFixture,
+              ]),
               TypeOrmExtModule.forFeature({
                 user: {
                   entity: UserFixture,
                 },
-              }),
-              TypeOrmExtModule.forFeature({
                 userOtp: {
                   entity: UserOtpEntityFixture,
                 },
-              }),
-              TypeOrmExtModule.forFeature({
                 federated: {
                   entity: FederatedEntityFixture,
                 },
               }),
             ],
             inject: [ConfigService],
+            admin: {
+              imports: [
+                TypeOrmModule.forFeature([
+                  UserFixture,
+                ]),
+              ],
+              entity: UserFixture,
+              adapter: AdminUserTypeOrmCrudAdapter,
+              model: RocketsServerUserDto,
+              dto: {
+                createOne: RocketsServerUserCreateDto,
+                createMany: RocketsServerUserCreateDto,
+                replaceOne: RocketsServerUserCreateDto,
+                updateOne: RocketsServerUserUpdateDto,
+              }
+            },
             useFactory: (
               configService: ConfigService,
             ): RocketsServerOptionsInterface => ({
@@ -294,6 +360,22 @@ describe('AuthenticationCombinedImportModule Integration', () => {
         testModuleFactory([
           TypeOrmModuleFixture,
           RocketsServerModule.forRoot({
+            admin: {
+              imports: [
+                TypeOrmModule.forFeature([
+                  UserFixture,
+                ]),
+              ],
+              entity: UserFixture,
+              adapter: AdminUserTypeOrmCrudAdapter,
+              model: RocketsServerUserDto,
+              dto: {
+                createOne: RocketsServerUserCreateDto,
+                createMany: RocketsServerUserCreateDto,
+                replaceOne: RocketsServerUserCreateDto,
+                updateOne: RocketsServerUserUpdateDto,
+              }
+            },
             user: {
               imports: [
                 TypeOrmExtModule.forFeature({
@@ -348,6 +430,22 @@ describe('AuthenticationCombinedImportModule Integration', () => {
         testModuleFactory([
           TypeOrmModuleFixture,
           RocketsServerModule.forRoot({
+            admin: {
+              imports: [
+                TypeOrmModule.forFeature([
+                  UserFixture,
+                ]),
+              ],
+              entity: UserFixture,
+              adapter: AdminUserTypeOrmCrudAdapter,
+              model: RocketsServerUserDto,
+              dto: {
+                createOne: RocketsServerUserCreateDto,
+                createMany: RocketsServerUserCreateDto,
+                replaceOne: RocketsServerUserCreateDto,
+                updateOne: RocketsServerUserUpdateDto,
+              }
+            },
             user: {
               imports: [
                 TypeOrmExtModule.forFeature({
