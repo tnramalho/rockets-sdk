@@ -21,6 +21,7 @@ import request from 'supertest';
 import { ormConfig } from './__fixtures__/ormconfig.fixture';
 import { UserOtpEntityFixture } from './__fixtures__/user/user-otp-entity.fixture';
 import { UserFixture } from './__fixtures__/user/user.entity.fixture';
+import { FederatedEntityFixture } from './__fixtures__/federated/federated.entity.fixture';
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { AuthSignupController } from './controllers/auth/auth-signup.controller';
 import { RocketsServerModule } from './rockets-server.module';
@@ -98,6 +99,15 @@ describe('RocketsServer (e2e)', () => {
               TypeOrmExtModule.forFeature({
                 userOtp: {
                   entity: UserOtpEntityFixture,
+                },
+              }),
+            ],
+          },
+          federated: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                federated: {
+                  entity: FederatedEntityFixture,
                 },
               }),
             ],
