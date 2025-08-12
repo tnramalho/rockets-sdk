@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "0.1.0-dev.5",
+  "version": "0.1.0-dev.6",
   "license": "BSD-3-Clause",
   "private": true,
   "workspaces": {
@@ -81,8 +81,5 @@
     "changelog:major": "standard-version --release-as major",
     "generate-swagger": "cd packages/rockets-server && yarn generate-swagger"
   },
-  "packageManager": "yarn@4.4.0",
-  "dependencies": {
-    "@concepta/nestjs-crud": "^7.0.0-alpha.4"
-  }
+  "packageManager": "yarn@4.4.0"
 }
