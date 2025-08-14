@@ -1,21 +1,33 @@
+import { AuthAppleGuard, AuthAppleModule } from '@concepta/nestjs-auth-apple';
+import { AuthAppleOptionsInterface } from '@concepta/nestjs-auth-apple/dist/interfaces/auth-apple-options.interface';
+import {
+  AuthGithubGuard,
+  AuthGithubModule,
+} from '@concepta/nestjs-auth-github';
+import { AuthGithubOptionsInterface } from '@concepta/nestjs-auth-github/dist/interfaces/auth-github-options.interface';
+import {
+  AuthGoogleGuard,
+  AuthGoogleModule,
+} from '@concepta/nestjs-auth-google';
+import { AuthGoogleOptionsInterface } from '@concepta/nestjs-auth-google/dist/interfaces/auth-google-options.interface';
 import { AuthJwtModule } from '@concepta/nestjs-auth-jwt';
 import { AuthJwtOptionsInterface } from '@concepta/nestjs-auth-jwt/dist/interfaces/auth-jwt-options.interface';
-import { AuthAppleModule } from '@concepta/nestjs-auth-apple';
-import { AuthAppleOptionsInterface } from '@concepta/nestjs-auth-apple/dist/interfaces/auth-apple-options.interface';
-import { AuthGithubModule } from '@concepta/nestjs-auth-github';
-import { AuthGithubOptionsInterface } from '@concepta/nestjs-auth-github/dist/interfaces/auth-github-options.interface';
-import { AuthGoogleModule } from '@concepta/nestjs-auth-google';
-import { AuthGoogleOptionsInterface } from '@concepta/nestjs-auth-google/dist/interfaces/auth-google-options.interface';
 import { AuthLocalModule } from '@concepta/nestjs-auth-local';
 import { AuthLocalOptionsInterface } from '@concepta/nestjs-auth-local/dist/interfaces/auth-local-options.interface';
 import { AuthRecoveryModule } from '@concepta/nestjs-auth-recovery';
 import { AuthRecoveryOptionsInterface } from '@concepta/nestjs-auth-recovery/dist/interfaces/auth-recovery-options.interface';
 import { AuthRefreshModule } from '@concepta/nestjs-auth-refresh';
 import { AuthRefreshOptionsInterface } from '@concepta/nestjs-auth-refresh/dist/interfaces/auth-refresh-options.interface';
+import {
+  AuthRouterGuardConfigInterface,
+  AuthRouterModule,
+  AuthRouterOptionsInterface,
+} from '@concepta/nestjs-auth-router';
 import { AuthVerifyModule } from '@concepta/nestjs-auth-verify';
 import { AuthVerifyOptionsInterface } from '@concepta/nestjs-auth-verify/dist/interfaces/auth-verify-options.interface';
 import { AuthenticationModule } from '@concepta/nestjs-authentication';
 import { createSettingsProvider } from '@concepta/nestjs-common';
+import { CrudModule } from '@concepta/nestjs-crud';
 import {
   EmailModule,
   EmailService,
@@ -25,21 +37,12 @@ import { FederatedModule } from '@concepta/nestjs-federated';
 import { FederatedOptionsInterface } from '@concepta/nestjs-federated/dist/interfaces/federated-options.interface';
 import { JwtModule } from '@concepta/nestjs-jwt';
 import { JwtOptionsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-options.interface';
-import {
-  AuthRouterGuardConfigInterface,
-  AuthRouterModule,
-  AuthRouterOptionsInterface,
-} from '@concepta/nestjs-auth-router';
-import { CrudModule } from '@concepta/nestjs-crud';
-import { AuthAppleGuard } from '@concepta/nestjs-auth-apple';
-import { AuthGithubGuard } from '@concepta/nestjs-auth-github';
-import { AuthGoogleGuard } from '@concepta/nestjs-auth-google';
 import { OtpModule, OtpService } from '@concepta/nestjs-otp';
 import { PasswordModule } from '@concepta/nestjs-password';
-import { RoleModule } from '@concepta/nestjs-role';
+import { SwaggerUiModule } from '@concepta/nestjs-swagger-ui';
 import {
-  UserModule,
   UserModelService,
+  UserModule,
   UserPasswordService,
 } from '@concepta/nestjs-user';
 import {
@@ -48,7 +51,7 @@ import {
   Provider,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { authenticationOptionsDefaultConfig } from './config/rockets-server-options-default.config';
+import { rocketsServerOptionsDefaultConfig } from './config/rockets-server-options-default.config';
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { RocketsServerRecoveryController } from './controllers/auth/auth-recovery.controller';
 import { AuthTokenRefreshController } from './controllers/auth/auth-refresh.controller';
@@ -56,20 +59,18 @@ import { AuthSignupController } from './controllers/auth/auth-signup.controller'
 import { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 import { RocketsServerOtpController } from './controllers/otp/rockets-server-otp.controller';
 import { RocketsServerUserController } from './controllers/user/rockets-server-user.controller';
-import { AdminUserCrudBuilder } from './utils/admin-user.crud-builder';
-import { AdminOptionsExtrasInterface, RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
+import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
+import { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.module';
 import {
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
-  RocketsServerUserLookupService,
-  ADMIN_USER_CRUD_SERVICE_TOKEN,
+  RocketsServerUserModelService,
 } from './rockets-server.constants';
 import { RocketsServerNotificationService } from './services/rockets-server-notification.service';
 import { RocketsServerOtpService } from './services/rockets-server-otp.service';
-import { SwaggerUiModule } from '@concepta/nestjs-swagger-ui';
-import { ApiTags } from '@nestjs/swagger';
-import { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.module';
+import { RoleModule } from '@concepta/nestjs-role';
+import { AdminGuard } from './guards/admin.guard';
 
 const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
 
@@ -83,7 +84,8 @@ export const {
 })
   .setExtras<RocketsServerOptionsExtrasInterface>(
     {
-      global: false },
+      global: false,
+    },
     definitionTransform,
   )
   .build();
@@ -138,51 +140,18 @@ export function createRocketsServerControllers(options: {
   controllers?: DynamicModule['controllers'];
   extras?: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['controllers'] {
-  const controllersPropExists = Object.prototype.hasOwnProperty.call(
-    options ?? {},
-    'controllers',
-  );
-
-  // If controllers is an empty array, return it as-is
-  if (controllersPropExists && Array.isArray(options.controllers) && options.controllers.length === 0) {
-    return [];
-  }
-
-  // Default order A (when controllers is NOT provided at all, or provided and non-empty for append)
-  const defaultsOrderA: DynamicModule['controllers'] = [
-    AuthPasswordController,
-    RocketsServerRecoveryController,
-    AuthTokenRefreshController,
-    AuthSignupController,
-    RocketsServerOtpController,
-    RocketsServerUserController,
-    AuthOAuthController,
-  ];
-
-  // Default order B (when controllers is explicitly undefined)
-  const defaultsOrderB: DynamicModule['controllers'] = [
-    AuthSignupController,
-    RocketsServerUserController,
-    AuthPasswordController,
-    AuthTokenRefreshController,
-    RocketsServerRecoveryController,
-    RocketsServerOtpController,
-    AuthOAuthController,
-  ];
-
-  if (controllersPropExists && options.controllers === undefined) {
-    return defaultsOrderB;
-  }
-
-  if (controllersPropExists && Array.isArray(options.controllers) && options.controllers.length > 0) {
-    return [...(defaultsOrderA || []), ...options.controllers];
-  }
-
-  // No controllers property provided
-  return defaultsOrderA;
+  return options?.controllers !== undefined
+    ? options.controllers
+    : [
+        AuthSignupController,
+        RocketsServerUserController,
+        AuthPasswordController,
+        AuthTokenRefreshController,
+        RocketsServerRecoveryController,
+        RocketsServerOtpController,
+        AuthOAuthController,
+      ];
 }
-
-
 
 export function createRocketsServerSettingsProvider(
   optionsOverrides?: RocketsServerOptionsInterface,
@@ -193,7 +162,7 @@ export function createRocketsServerSettingsProvider(
   >({
     settingsToken: ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
     optionsToken: RAW_OPTIONS_TOKEN,
-    settingsKey: authenticationOptionsDefaultConfig.KEY,
+    settingsKey: rocketsServerOptionsDefaultConfig.KEY,
     optionsOverrides,
   });
 }
@@ -214,7 +183,7 @@ export function createRocketsServerImports(options: {
 
   const imports: DynamicModule['imports'] = [
     ...(options.imports || []),
-    ConfigModule.forFeature(authenticationOptionsDefaultConfig),
+    ConfigModule.forFeature(rocketsServerOptionsDefaultConfig),
     CrudModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerOptionsInterface) => {
@@ -468,7 +437,6 @@ export function createRocketsServerImports(options: {
         };
       },
     }),
-
     UserModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
       imports: [...(options.extras?.user?.imports || [])],
@@ -504,32 +472,27 @@ export function createRocketsServerImports(options: {
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerOptionsInterface) => {
         return {
-          settings: options.otp?.settings,
+          settings: options.email?.settings,
           mailerService:
             options.email?.mailerService || options.services.mailerService,
         };
       },
     }),
-    // RoleModule.forRootAsync({
-    //   imports: [...(options.extras?.role?.imports || [])],
-    //   useFactory: () => ({
-    //     settings: {
-    //       assignments: {
-    //         user: { entityKey: 'userRole' },
-    //       },
-    //     },
-    //   }),
-    //   entities: ['userRole'],
-    // }),
-    // RoleModule.forRootAsync({
-    //   useFactory: () => ({
-    //     settings: {
-    //       assignments: {
-    //         user: { entityKey: 'userRole' },
-    //       },
-    //     },
-    //   }),
-    // }),
+    RoleModule.forRootAsync({
+      imports: [...(options.extras?.role?.imports || [])],
+      inject: [RAW_OPTIONS_TOKEN],
+      useFactory: (rocketsServerOptions: RocketsServerOptionsInterface) => ({
+        roleModelService: rocketsServerOptions.role?.roleModelService,
+        settings: {
+          ...rocketsServerOptions.role?.settings,
+          assignments: {
+            user: { entityKey: 'userRole' },
+            ...rocketsServerOptions.role?.settings?.assignments,
+          },
+        },
+      }),
+      entities: ['userRole', ...(options.extras?.role?.entities || [])],
+    }),
   ];
 
   return imports;
@@ -546,6 +509,7 @@ export function createRocketsServerExports(options: {
     ...(options.exports || []),
     ConfigModule,
     RAW_OPTIONS_TOKEN,
+    ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
     JwtModule,
     AuthJwtModule,
     AuthAppleModule,
@@ -555,6 +519,8 @@ export function createRocketsServerExports(options: {
     AuthRefreshModule,
     FederatedModule,
     SwaggerUiModule,
+    RoleModule,
+    AdminGuard,
   ];
 }
 
@@ -567,8 +533,9 @@ export function createRocketsServerProviders(options: {
 }): Provider[] {
   return [
     ...(options.providers ?? []),
+    createRocketsServerSettingsProvider(),
     {
-      provide: RocketsServerUserLookupService,
+      provide: RocketsServerUserModelService,
       inject: [RAW_OPTIONS_TOKEN, UserModelService],
       useFactory: async (
         options: RocketsServerOptionsInterface,
@@ -579,57 +546,6 @@ export function createRocketsServerProviders(options: {
     },
     RocketsServerOtpService,
     RocketsServerNotificationService,
-    createRocketsServerSettingsProvider(),
+    AdminGuard,
   ];
-}
-
-/**
- * Create admin CRUD providers based on the admin entity configuration
- * This function creates dynamic providers for admin CRUD operations
- */
-export function createAdminCrudBuilder(options: {
-  admin: AdminOptionsExtrasInterface;
-}) {
-
-// If admin entity is configured, create dynamic admin CRUD providers
-
-  const entity = options.admin.entity;
-  
-  //Create the CRUD builder with the configured entity and DTOs
-  const builder = new AdminUserCrudBuilder({
-    service: {
-      adapter: options.admin.adapter,
-      injectionToken: ADMIN_USER_CRUD_SERVICE_TOKEN,
-    },
-    controller: {
-      path: 'admin/users',
-      model: {
-        type: entity,
-      },
-      extraDecorators: [ApiTags('admin-users')],
-    },
-    getMany: {},
-    getOne: {},
-    createOne: {
-      dto: options.admin.dto?.createOne || entity,
-    },
-    createMany: {
-      dto: options.admin.dto?.createMany || entity,
-    },
-    updateOne: {
-      dto: options.admin.dto?.updateOne || entity,
-    },
-    replaceOne: {
-      dto: options.admin.dto?.replaceOne || entity,
-    },
-    deleteOne: {},
-  });
-
-  return builder;
-  // const { ConfigurableControllerClass, ConfigurableServiceProvider } = builder.build();
-  
-  // return {
-  //   controller: ConfigurableControllerClass,
-  //   service: ConfigurableServiceProvider,
-  // }
 }

@@ -36,8 +36,7 @@ import { RocketsServerSettingsInterface } from './rockets-server-settings.interf
 import { RocketsServerUserModelServiceInterface } from './rockets-server-user-model-service.interface';
 import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui/dist/interfaces/swagger-ui-options.interface';
 import { CrudModuleOptionsInterface } from '@concepta/nestjs-crud/dist/interfaces/crud-module-options.interface';
-import { Type } from '@nestjs/common';
-import { PlainLiteralObject } from '@nestjs/common';
+import { RoleOptionsInterface } from '@concepta/nestjs-role/dist/interfaces/role-options.interface';
 
 /**
  * Combined options interface for the AuthenticationCombinedModule
@@ -125,7 +124,7 @@ export interface RocketsServerOptionsInterface {
    * Auth Verify module options
    * Used in: AuthVerifyModule.forRootAsync
    */
-  //TODO: add partial
+  // TODO: add partial
   authVerify?: AuthVerifyOptionsInterface;
 
   /**
@@ -139,8 +138,10 @@ export interface RocketsServerOptionsInterface {
   otp?: OtpOptionsInterface;
 
   email?: Partial<EmailOptionsInterface>;
-  
+
   crud?: CrudModuleOptionsInterface;
+
+  role?: Partial<RoleOptionsInterface>;
 
   /**
    * Core services used across different modules

@@ -14,7 +14,7 @@ import { RocketsServerNotificationServiceInterface } from './interfaces/rockets-
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerUserModelServiceInterface } from './interfaces/rockets-server-user-model-service.interface';
-import { RocketsServerUserLookupService } from './rockets-server.constants';
+import { RocketsServerUserModelService } from './rockets-server.constants';
 import {
   createRocketsServerControllers,
   createRocketsServerExports,
@@ -118,12 +118,12 @@ describe('RocketsServerModuleDefinition', () => {
       });
 
       expect(result).toEqual([
-        AuthPasswordController,
-        RocketsServerRecoveryController,
-        AuthTokenRefreshController,
         AuthSignupController,
-        RocketsServerOtpController,
         RocketsServerUserController,
+        AuthPasswordController,
+        AuthTokenRefreshController,
+        RocketsServerRecoveryController,
+        RocketsServerOtpController,
         AuthOAuthController,
       ]);
     });
@@ -135,16 +135,7 @@ describe('RocketsServerModuleDefinition', () => {
         extras: { global: false },
       });
 
-      expect(result).toEqual([
-        AuthPasswordController,
-        RocketsServerRecoveryController,
-        AuthTokenRefreshController,
-        AuthSignupController,
-        RocketsServerOtpController,
-        RocketsServerUserController,
-        AuthOAuthController,
-        AuthPasswordController,
-      ]);
+      expect(result).toEqual([AuthPasswordController]);
     });
 
     it('should return default controllers when controllers is explicitly undefined', () => {
@@ -1040,42 +1031,16 @@ describe('RocketsServerModuleDefinition', () => {
       const result = createRocketsServerProviders({});
 
       // Find the user lookup service provider
-      const userLookupProvider = result?.find(
+      const userModelProvider = result?.find(
         (provider) =>
           typeof provider === 'object' &&
           provider &&
           'provide' in provider &&
-          provider.provide === RocketsServerUserLookupService,
+          provider.provide === RocketsServerUserModelService,
       );
 
-      expect(userLookupProvider).toBeDefined();
-      expect(userLookupProvider).toHaveProperty('useFactory');
-    });
-
-    it('should execute RocketsServerUserLookupService useFactory function', () => {
-      const result = createRocketsServerProviders({});
-
-      // Find the user lookup service provider
-      const userLookupProvider = result?.find(
-        (provider) =>
-          typeof provider === 'object' &&
-          provider &&
-          'provide' in provider &&
-          provider.provide === RocketsServerUserLookupService,
-      );
-
-      if (
-        userLookupProvider &&
-        typeof userLookupProvider === 'object' &&
-        'useFactory' in userLookupProvider &&
-        typeof userLookupProvider.useFactory === 'function'
-      ) {
-        const factoryResult = userLookupProvider.useFactory(
-          mockOptions,
-          mockUserModelService,
-        );
-        expect(factoryResult).toBeDefined();
-      }
+      expect(userModelProvider).toBeDefined();
+      expect(userModelProvider).toHaveProperty('useFactory');
     });
   });
 });

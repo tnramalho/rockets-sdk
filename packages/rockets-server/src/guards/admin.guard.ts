@@ -1,9 +1,21 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Inject } from '@nestjs/common';
-import { RoleService } from '@concepta/nestjs-role';
+import { RoleModelService, RoleService } from '@concepta/nestjs-role';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import { RocketsServerSettingsInterface } from '../interfaces/rockets-server-settings.interface';
+import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server.constants';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
+    @Inject(ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
+    private readonly settings: RocketsServerSettingsInterface,
+    @Inject(RoleModelService)
+    private readonly roleModelService: RoleModelService,
     @Inject(RoleService)
     private readonly roleService: RoleService,
   ) {}
@@ -12,35 +24,35 @@ export class AdminGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
+    const AdminRole = this.settings.role.adminRoleName;
+
     if (!user) {
       throw new ForbiddenException('User not authenticated');
     }
 
     try {
-      // Check if user has admin role using RoleService
-      // You can configure the admin role ID based on your setup
-      const adminRoleId = process.env.ADMIN_ROLE_ID || '69397801-8254-418d-8d2d-fbd9ece4c671';
-      
-      const isAdmin = await this.roleService.isAssignedRole({
-        assignment: 'user',
-        role: { id: adminRoleId },
-        assignee: { id: user.id },
+      const roles = await this.roleModelService.find({
+        where: {
+          name: AdminRole,
+        },
       });
 
-      if (!isAdmin) {
-        throw new ForbiddenException('Admin access required');
-      }
-
-      return true;
+      if (roles && roles.length > 0) {
+        const admin = roles[0];
+        const isAdmin = await this.roleService.isAssignedRole({
+          assignment: 'user',
+          assignee: { id: user.id },
+          role: { id: admin.id },
+        });
+        return isAdmin;
+      } else throw new ForbiddenException();
     } catch (error) {
       // If there's an error checking roles (e.g., role doesn't exist), deny access
       if (error instanceof ForbiddenException) {
         throw error;
       }
-      
-      // Log the error for debugging but don't expose it to the client
-      console.error('Error checking admin role:', error);
-      throw new ForbiddenException('Admin access required');
+
+      throw new ForbiddenException();
     }
   }
-} 
+}

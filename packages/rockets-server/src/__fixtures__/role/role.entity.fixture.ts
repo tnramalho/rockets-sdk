@@ -6,4 +6,4 @@ import { UserRoleEntityFixture } from './user-role.entity.fixture';
 export class RoleEntityFixture extends RoleSqliteEntity {
   @OneToMany(() => UserRoleEntityFixture, (userRole) => userRole.role)
   userRoles?: UserRoleEntityFixture[];
-} 
+}

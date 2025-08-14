@@ -12,7 +12,6 @@ import {
   TypeOrmExtModule,
 } from '@concepta/nestjs-typeorm-ext';
 import { UserModelService } from '@concepta/nestjs-user';
-import { UserFixture } from './__fixtures__/user/user.entity.fixture';
 import { RocketsServerUserCreateDto } from './dto/user/rockets-server-user-create.dto';
 import { RocketsServerUserUpdateDto } from './dto/user/rockets-server-user-update.dto';
 import { RocketsServerUserDto } from './dto/user/rockets-server-user.dto';
@@ -35,7 +34,6 @@ class FederatedEntity extends FederatedSqliteEntity {
   user: UserEntity;
 }
 
-
 class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<UserEntity> {
   constructor(
     @InjectRepository(UserEntity)
@@ -43,7 +41,7 @@ class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<UserEntity> {
   ) {
     super(repository);
   }
-} 
+}
 // Mock services for swagger generation
 class MockUserModelService implements Partial<UserModelService> {
   async byId(id: string) {
@@ -146,9 +144,7 @@ async function generateSwaggerJson() {
           autoLoadEntities: true,
           entities: [UserEntity, UserOtpEntity, FederatedEntity],
         }),
-        TypeOrmModule.forFeature([
-          UserEntity,
-        ]),
+        TypeOrmModule.forFeature([UserEntity]),
         TypeOrmExtModule.forRootAsync({
           inject: [],
           useFactory: () => {
@@ -164,9 +160,7 @@ async function generateSwaggerJson() {
         }),
         RocketsServerModule.forRootAsync({
           imports: [
-            TypeOrmModule.forFeature([
-              UserEntity,
-            ]),
+            TypeOrmModule.forFeature([UserEntity]),
             TypeOrmExtModule.forFeature({
               user: { entity: UserEntity },
               userOtp: { entity: UserOtpEntity },
@@ -174,12 +168,7 @@ async function generateSwaggerJson() {
             }),
           ],
           admin: {
-            imports: [
-              TypeOrmModule.forFeature([
-                UserEntity,
-              ]),
-            ],
-            entity: UserEntity,
+            imports: [TypeOrmModule.forFeature([UserEntity])],
             adapter: AdminUserTypeOrmCrudAdapter,
             model: RocketsServerUserDto,
             dto: {
@@ -187,7 +176,7 @@ async function generateSwaggerJson() {
               createMany: RocketsServerUserCreateDto,
               replaceOne: RocketsServerUserCreateDto,
               updateOne: RocketsServerUserUpdateDto,
-            }
+            },
           },
           useFactory: () => ({
             jwt: {
