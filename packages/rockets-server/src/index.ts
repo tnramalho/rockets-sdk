@@ -1,3 +1,4 @@
+
 // Export the main module
 export { RocketsServerModule } from './rockets-server.module';
 
@@ -12,16 +13,19 @@ export { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 
 // Export admin constants
 export { ADMIN_USER_CRUD_SERVICE_TOKEN } from './rockets-server.constants';
+export { UserProfileCrudService as USER_PROFILE_CRUD_SERVICE_TOKEN } from './rockets-server.constants';
 
 // Export admin guard
 export { AdminGuard } from './guards/admin.guard';
 
 // Export admin dynamic module
 export { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.module';
+export { RocketsServerUserProfileModule } from './modules/user-profile/rockets-server-user-profile.module';
 
 // Export admin configuration types
 export type { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 export type { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
+export type { AdminOptionsExtrasInterface } from './modules/admin/admin-options-extras.interface';
 
 // Export Swagger generator
 export { generateSwaggerJson } from './generate-swagger';

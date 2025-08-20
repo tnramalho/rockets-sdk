@@ -4,6 +4,11 @@
     "composite": true,
     "outDir": "./dist",
     "rootDir": "./src",
+    "baseUrl": "./src",
+    "paths": {
+      "@user-profile": ["modules/user-profile/index.ts"],
+      "@user-profile/*": ["modules/user-profile/*"]
+    },
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types",

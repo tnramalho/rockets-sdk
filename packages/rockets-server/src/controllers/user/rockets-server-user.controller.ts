@@ -23,6 +23,11 @@ import { RocketsServerUserDto } from '../../dto/user/rockets-server-user.dto';
 import { RocketsServerUserEntityInterface } from '../../interfaces/user/rockets-server-user-entity.interface';
 import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 
+import { RocketsServerUserProfileModelServiceInterface } from '@user-profile';
+import { plainToInstance } from 'class-transformer';
+import { RocketsServerUserProfileModelService } from '../../rockets-server.constants';
+
+
 /**
  * Controller for managing user profile operations
  */
@@ -34,6 +39,8 @@ export class RocketsServerUserController {
   constructor(
     @Inject(UserModelService)
     private readonly userModelService: UserModelService,
+    @Inject(RocketsServerUserProfileModelService)
+    private readonly userProfileModelService: RocketsServerUserProfileModelServiceInterface,
   ) {}
 
   @ApiOperation({
@@ -56,7 +63,10 @@ export class RocketsServerUserController {
   async findById(
     @AuthUser('id') id: string,
   ): Promise<RocketsServerUserEntityInterface | null> {
-    return this.userModelService.byId(id);
+    const user = await this.userModelService.byId(id);
+    if (!user) return null;
+    const profile =  await this.userProfileModelService.byUserId(id);
+    return { ...user, profile: profile || undefined } as RocketsServerUserEntityInterface;
   }
 
   @ApiOperation({
@@ -96,7 +106,36 @@ export class RocketsServerUserController {
   async update(
     @AuthUser('id') id: string,
     @Body() userUpdateDto: RocketsServerUserUpdateDto,
-  ): Promise<RocketsServerUserEntityInterface> {
-    return this.userModelService.update({ ...userUpdateDto, id });
+  ): Promise<RocketsServerUserDto> {
+    const { profile, id: _ignoredId, ...userFields } = userUpdateDto as any;
+    
+    // update user only if there are user fields to update
+    let updatedUser: RocketsServerUserEntityInterface;
+    if (userFields && Object.keys(userFields).length > 0) {
+      updatedUser = await this.userModelService.update({ ...userFields, id });
+    } else {
+      const existing = await this.userModelService.byId(id);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      updatedUser = existing! as RocketsServerUserEntityInterface;
+    }
+
+    // update or create profile
+    if (profile) {
+      const existingProfile = await this.userProfileModelService.byUserId(id);
+      if (existingProfile) {
+        await this.userProfileModelService.update({ ...existingProfile, ...profile });
+      } else {
+        await this.userProfileModelService.create({ ...profile, userId: id } as any);
+      }
+    }
+
+    const updatedProfile = await this.userProfileModelService.byUserId(id);
+
+    const response = {
+      ...updatedUser,
+      profile: updatedProfile || undefined
+    };
+
+    return  plainToInstance(RocketsServerUserDto, response);
   }
 }

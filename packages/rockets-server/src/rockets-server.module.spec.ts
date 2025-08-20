@@ -285,6 +285,7 @@ describe('AuthenticationCombinedImportModule Integration', () => {
     });
 
     it('should define all required services and modules using main imports', async () => {
+      
       // Create test module with forRootAsync registration
       testModule = await Test.createTestingModule(
         testModuleFactory([
@@ -293,21 +294,11 @@ describe('AuthenticationCombinedImportModule Integration', () => {
               TypeOrmModuleFixture,
               TypeOrmModule.forFeature([UserFixture]),
               TypeOrmExtModule.forFeature({
-                user: {
-                  entity: UserFixture,
-                },
-                role: {
-                  entity: RoleEntityFixture,
-                },
-                userRole: {
-                  entity: UserRoleEntityFixture,
-                },
-                userOtp: {
-                  entity: UserOtpEntityFixture,
-                },
-                federated: {
-                  entity: FederatedEntityFixture,
-                },
+                user: { entity: UserFixture },
+                role: { entity: RoleEntityFixture },
+                userRole: { entity: UserRoleEntityFixture },
+                userOtp: { entity: UserOtpEntityFixture },
+                federated: { entity: FederatedEntityFixture },
               }),
             ],
             inject: [ConfigService],

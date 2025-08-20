@@ -28,3 +28,18 @@ export const RocketsServerUserModelService = Symbol(
 export const ADMIN_USER_CRUD_SERVICE_TOKEN = Symbol(
   '__ADMIN_USER_CRUD_SERVICE_TOKEN__',
 );
+
+export const RocketsServerUserProfileModelService = Symbol(
+  'RocketsServerUserProfileModelService',
+);
+
+export const ROCKETS_SERVER_USER_PROFILE_MODULE_SETTINGS_TOKEN =
+  'ROCKETS_SERVER_USER_PROFILE_MODULE_SETTINGS_TOKEN';
+
+// String key for repository injection
+export const ROCKETS_SERVER_USER_PROFILE_REPOSITORY_KEY = 'userProfile';
+
+// User Profile CRUD Service Token
+export const UserProfileCrudService = Symbol(
+  '__USER_PROFILE_CRUD_SERVICE_TOKEN__',
+);

@@ -34,9 +34,11 @@ import { UserPasswordHistoryServiceInterface } from '@concepta/nestjs-user/dist/
 import { RocketsServerNotificationServiceInterface } from './rockets-server-notification.service.interface';
 import { RocketsServerSettingsInterface } from './rockets-server-settings.interface';
 import { RocketsServerUserModelServiceInterface } from './rockets-server-user-model-service.interface';
+import { RocketsServerUserProfileModelServiceInterface } from '@user-profile';
 import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui/dist/interfaces/swagger-ui-options.interface';
 import { CrudModuleOptionsInterface } from '@concepta/nestjs-crud/dist/interfaces/crud-module-options.interface';
 import { RoleOptionsInterface } from '@concepta/nestjs-role/dist/interfaces/role-options.interface';
+import { RocketsServerUserProfileOptionsInterface } from '@user-profile';
 
 /**
  * Combined options interface for the AuthenticationCombinedModule
@@ -132,6 +134,8 @@ export interface RocketsServerOptionsInterface {
    * Used in: UserModule.forRootAsync
    */
   user?: UserOptionsInterface;
+  
+  userProfile?: RocketsServerUserProfileOptionsInterface;
 
   password?: PasswordOptionsInterface;
 
@@ -178,6 +182,11 @@ export interface RocketsServerOptionsInterface {
     userPasswordService?: UserPasswordServiceInterface;
     userPasswordHistoryService?: UserPasswordHistoryServiceInterface;
     userAccessQueryService?: CanAccess;
+    /**
+     * User Profile model service used to fetch and update user profiles
+     * Required: false
+     */
+    userProfileModelService?: RocketsServerUserProfileModelServiceInterface;
     /**
      * Email service for notifications
      * Used in: AuthRecoveryModule

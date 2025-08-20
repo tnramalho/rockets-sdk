@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { ConfigModule, registerAs } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
@@ -17,10 +18,12 @@ import { RocketsServerUserCreateDto } from '../../dto/user/rockets-server-user-c
 import { RocketsServerUserUpdateDto } from '../../dto/user/rockets-server-user-update.dto';
 import { RocketsServerUserDto } from '../../dto/user/rockets-server-user.dto';
 import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
+import { userProfileDefaultConfig } from '@user-profile';
 
 @Global()
 @Module({
   imports: [
+    //ConfigModule.forFeature(registerAs(userProfileDefaultConfig.KEY, () => ({}) )),
     // TypeORM datasource
     TypeOrmModule.forRoot({
       ...ormConfig,
@@ -57,13 +60,13 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
       role: { entity: RoleEntityFixture },
       userRole: { entity: UserRoleEntityFixture },
       userOtp: { entity: UserOtpEntityFixture },
+      userProfile: { entity: UserProfileEntityFixture },
       federated: { entity: FederatedEntityFixture },
     }),
     TypeOrmModule.forFeature([UserFixture]),
     RocketsServerModule.forRootAsync({
       admin: {
         imports: [TypeOrmModule.forFeature([UserFixture])],
-        // entity: UserFixture,
         adapter: AdminUserTypeOrmCrudAdapter,
         model: RocketsServerUserDto,
         dto: {

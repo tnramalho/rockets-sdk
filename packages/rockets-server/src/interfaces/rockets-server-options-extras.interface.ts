@@ -1,21 +1,11 @@
 import { AuthRouterOptionsExtrasInterface } from '@concepta/nestjs-auth-router';
-import { CrudAdapter } from '@concepta/nestjs-crud';
 import { RoleOptionsExtrasInterface } from '@concepta/nestjs-role/dist/interfaces/role-options-extras.interface';
 import { DynamicModule, Type } from '@nestjs/common';
-import { RocketsServerUserEntityInterface } from './user/rockets-server-user-entity.interface';
-
-export interface AdminOptionsExtrasInterface {
-  imports?: DynamicModule['imports'];
-  path?: string;
-  model: Type;
-  adapter: Type<CrudAdapter<RocketsServerUserEntityInterface>>;
-  dto?: {
-    createOne?: Type;
-    createMany?: Type;
-    updateOne?: Type;
-    replaceOne?: Type;
-  };
-}
+import { CrudAdapter } from '@concepta/nestjs-crud';
+import { UserProfileEntityInterface } from '@concepta/nestjs-common';
+import { AdminOptionsExtrasInterface } from '../modules/admin/admin-options-extras.interface';
+import { RocketsServerUserProfileModelServiceInterface, RocketsServerUserProfileOptionsExtrasInterface } from '@user-profile';
+import { Type as NestType } from '@nestjs/common';
 
 export interface RocketsServerOptionsExtrasInterface
   extends Pick<DynamicModule, 'global' | 'controllers'> {
@@ -25,4 +15,5 @@ export interface RocketsServerOptionsExtrasInterface
   role?: RoleOptionsExtrasInterface & { imports: DynamicModule['imports'] };
   authRouter?: AuthRouterOptionsExtrasInterface;
   admin?: AdminOptionsExtrasInterface;
+  userProfile?: RocketsServerUserProfileOptionsExtrasInterface;
 }

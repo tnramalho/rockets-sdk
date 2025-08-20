@@ -43,6 +43,7 @@ export class TestController {
   }
 }
 
+
 // Mock email service
 const mockEmailService: EmailSendInterface = {
   sendMail: jest.fn().mockResolvedValue(undefined),
@@ -162,6 +163,123 @@ describe('RocketsServer (e2e)', () => {
       })
       .expect(201);
   };
+
+  const getAuthToken = async (username = 'testuser') => {
+    const loginData = {
+      username,
+      password: 'Password123!',
+    };
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/token/password')
+      .send(loginData)
+      .expect(200);
+
+    return loginResponse.body.accessToken;
+  };
+
+  describe('User Profile Functionality', () => {
+    describe('GET /user - Get user profile', () => {
+      it('should return user without profile when using default service', async () => {
+        // Create a test user
+        await createTestUser('profileuser1');
+
+        // Get auth token
+        const token = await getAuthToken('profileuser1');
+
+        // Get user profile - should use default service which returns null
+        const response = await request(app.getHttpServer())
+          .get('/user')
+          .set('Authorization', `Bearer ${token}`)
+          .expect(200);
+
+        expect(response.body).toBeDefined();
+        expect(response.body.username).toBe('profileuser1');
+        expect(response.body.email).toBe('profileuser1@example.com');
+        expect(response.body.profile).toBeNull(); // Default service returns null
+      });
+
+      it('should reject request without authentication', async () => {
+        await request(app.getHttpServer()).get('/user').expect(401);
+      });
+
+      it('should reject request with invalid token', async () => {
+        await request(app.getHttpServer())
+          .get('/user')
+          .set('Authorization', 'Bearer invalid-token')
+          .expect(401);
+      });
+    });
+
+    describe('PATCH /user - Update user profile', () => {
+      it('should update user without profile when using default service', async () => {
+        // Create a test user
+        await createTestUser('updateuser1');
+
+        // Get auth token
+        const token = await getAuthToken('updateuser1');
+
+        // Update user without profile data - should work with default service
+        const updateData = {
+          email: 'updated@example.com',
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch('/user')
+          .set('Authorization', `Bearer ${token}`)
+          .send(updateData)
+          .expect(200);
+
+        expect(response.body).toBeDefined();
+        expect(response.body.email).toBe('updated@example.com');
+        expect(response.body.profile).toBeNull(); // Default service returns null
+      });
+
+      it('should reject update request without authentication', async () => {
+        const updateData = {
+          email: 'test@example.com',
+        };
+
+        await request(app.getHttpServer())
+          .patch('/user')
+          .send(updateData)
+          .expect(401);
+      });
+
+      it('should reject update request with invalid token', async () => {
+        const updateData = {
+          email: 'test@example.com',
+        };
+
+        await request(app.getHttpServer())
+          .patch('/user')
+          .set('Authorization', 'Bearer invalid-token')
+          .send(updateData)
+          .expect(401);
+      });
+    });
+
+    describe('Profile Service Integration', () => {
+      it('should handle profile service errors gracefully', async () => {
+        // Create a test user
+        await createTestUser('erroruser');
+
+        // Get auth token
+        const token = await getAuthToken('erroruser');
+
+        // This should still work even if profile service fails
+        const response = await request(app.getHttpServer())
+          .get('/user')
+          .set('Authorization', `Bearer ${token}`)
+          .expect(200);
+
+        expect(response.body).toBeDefined();
+        expect(response.body.username).toBe('erroruser');
+        // Profile should be undefined when using default service
+        expect(response.body.profile).toBeNull();
+      });
+    });
+  });
 
   describe(AuthPasswordController.name, () => {
     it('should access protected route with valid token', async () => {

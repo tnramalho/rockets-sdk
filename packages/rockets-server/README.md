@@ -2234,8 +2234,7 @@ export class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<UserEntity> 
         path: 'admin/users',
         // Swagger model type for responses
         model: YourUserDto,
-        // The entity managed by this admin CRUD
-        entity: UserEntity,
+        
         // The CRUD adapter
         adapter: AdminUserTypeOrmCrudAdapter,
         // Optional DTOs for mutations

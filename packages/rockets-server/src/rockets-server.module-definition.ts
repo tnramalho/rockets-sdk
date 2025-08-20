@@ -50,7 +50,7 @@ import {
   DynamicModule,
   Provider,
 } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, registerAs } from '@nestjs/config';
 import { rocketsServerOptionsDefaultConfig } from './config/rockets-server-options-default.config';
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { RocketsServerRecoveryController } from './controllers/auth/auth-recovery.controller';
@@ -63,6 +63,7 @@ import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
 import { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.module';
+
 import {
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerUserModelService,
@@ -71,6 +72,8 @@ import { RocketsServerNotificationService } from './services/rockets-server-noti
 import { RocketsServerOtpService } from './services/rockets-server-otp.service';
 import { RoleModule } from '@concepta/nestjs-role';
 import { AdminGuard } from './guards/admin.guard';
+
+import { RocketsServerUserProfileModule, RocketsServerUserProfileOptionsInterface } from '@user-profile';
 
 const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
 
@@ -129,7 +132,7 @@ function definitionTransform(
   if (admin) {
     baseModule.imports = [
       ...(baseModule.imports || []),
-      RocketsServerAdminModule.register(admin),
+      RocketsServerAdminModule.forRoot(admin),
     ];
   }
 
@@ -493,6 +496,21 @@ export function createRocketsServerImports(options: {
       }),
       entities: ['userRole', ...(options.extras?.role?.entities || [])],
     }),
+    RocketsServerUserProfileModule.forRootAsync({
+      inject: [RAW_OPTIONS_TOKEN],
+      crud: options.extras?.userProfile?.crud,
+      useFactory: (
+        rocketsOptions: RocketsServerOptionsInterface,
+      ): RocketsServerUserProfileOptionsInterface => {
+        return {
+          settings: rocketsOptions.userProfile?.settings,
+          userProfileModelService:
+            rocketsOptions.userProfile?.userProfileModelService ||
+            rocketsOptions.services.userProfileModelService,
+        };
+      },
+    }),
+    // CRUD controller/service for user profiles is built inside the user-profile module definition
   ];
 
   return imports;
