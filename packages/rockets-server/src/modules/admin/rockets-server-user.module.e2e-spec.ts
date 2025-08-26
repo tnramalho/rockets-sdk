@@ -17,7 +17,6 @@ import { UserOtpEntityFixture } from '../../__fixtures__/user/user-otp-entity.fi
 import { UserPasswordHistoryEntityFixture } from '../../__fixtures__/user/user-password-history.entity.fixture';
 import { UserProfileEntityFixture } from '../../__fixtures__/user/user-profile.entity.fixture';
 import { UserFixture } from '../../__fixtures__/user/user.entity.fixture';
-import { RocketsServerUserDto } from '../../dto/user/rockets-server-user.dto';
 import { RocketsServerModule } from '../../rockets-server.module';
 import { RocketsServerUserDtoFixture } from '../../__fixtures__/user/dto/rockets-server-user.dto.fixture';
 

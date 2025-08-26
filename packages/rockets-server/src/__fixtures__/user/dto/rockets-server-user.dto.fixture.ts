@@ -1,6 +1,4 @@
-import {
-  ApiPropertyOptional
-} from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Allow, IsNumber, IsOptional, Min } from 'class-validator';
 import { RocketsServerUserDto } from '../../../dto/user/rockets-server-user.dto';
 import { RocketsServerUserInterface } from '../../../interfaces/user/rockets-server-user.interface';

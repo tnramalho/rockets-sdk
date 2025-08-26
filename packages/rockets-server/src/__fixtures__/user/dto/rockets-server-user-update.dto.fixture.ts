@@ -17,5 +17,4 @@ export class RocketsServerUserUpdateDtoFixture
     'active',
     'age',
   ] as const)
-  implements RocketsServerUserUpdatableInterface
-{ }
+  implements RocketsServerUserUpdatableInterface {}

@@ -1,8 +1,5 @@
 import { UserPasswordDto } from '@concepta/nestjs-user';
-import {
-  IntersectionType,
-  PickType
-} from '@nestjs/swagger';
+import { IntersectionType, PickType } from '@nestjs/swagger';
 import { RocketsServerUserCreatableInterface } from '../../../interfaces/user/rockets-server-user-creatable.interface';
 import { RocketsServerUserDtoFixture } from './rockets-server-user.dto.fixture';
 
@@ -14,10 +11,12 @@ import { RocketsServerUserDtoFixture } from './rockets-server-user.dto.fixture';
  */
 export class RocketsServerUserCreateDtoFixture
   extends IntersectionType(
-    PickType(RocketsServerUserDtoFixture, ['email', 'username', 'active', 'age'] as const),
+    PickType(RocketsServerUserDtoFixture, [
+      'email',
+      'username',
+      'active',
+      'age',
+    ] as const),
     UserPasswordDto,
   )
-  implements RocketsServerUserCreatableInterface
-{
-  
-}
+  implements RocketsServerUserCreatableInterface {}
