@@ -22,9 +22,20 @@ export { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.m
 // Export admin configuration types
 export type { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 export type { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
+// Export user interfaces
+export type { RocketsServerUserInterface } from './interfaces/user/rockets-server-user.interface';
+export type { RocketsServerUserCreatableInterface } from './interfaces/user/rockets-server-user-creatable.interface';
+export type { RocketsServerUserUpdatableInterface } from './interfaces/user/rockets-server-user-updatable.interface';
+export type { RocketsServerUserEntityInterface } from './interfaces/user/rockets-server-user-entity.interface';
 
 // Export Swagger generator
 export { generateSwaggerJson } from './generate-swagger';
 // Export DTOs
 export { RocketsServerJwtResponseDto } from './dto/auth/rockets-server-jwt-response.dto';
 export { RocketsServerLoginDto } from './dto/auth/rockets-server-login.dto';
+export { RocketsServerRefreshDto } from './dto/auth/rockets-server-refresh.dto';
+export { RocketsServerRecoverLoginDto } from './dto/auth/rockets-server-recover-login.dto';
+export { RocketsServerRecoverPasswordDto } from './dto/auth/rockets-server-recover-password.dto';
+export { RocketsServerUserCreateDto } from './dto/user/rockets-server-user-create.dto';
+export { RocketsServerUserUpdateDto } from './dto/user/rockets-server-user-update.dto';
+export { RocketsServerUserDto } from './dto/user/rockets-server-user.dto';

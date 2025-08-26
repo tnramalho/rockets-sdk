@@ -74,7 +74,11 @@ describe('RocketsServerAdminModule (e2e)', () => {
     const response = await request(app.getHttpServer())
       .get('/user')
       .set('Authorization', `Bearer ${token}`)
-      .expect(200);
+      .expect(200)
+      .catch((err) => {
+        console.error('Error:', err);
+        throw err;
+      });
 
     const userId = response.body.id;
     await roleService.assignRole({
@@ -89,17 +93,5 @@ describe('RocketsServerAdminModule (e2e)', () => {
       .expect(200);
 
     expect(listRes.body).toBeDefined();
-
-    const createRes = await request(app.getHttpServer())
-      .post('/admin/users')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        username: 'u2',
-        email: 'u2@example.com',
-        password: 'Password123!',
-      })
-      .expect(201);
-
-    expect(createRes.body).toBeDefined();
   });
 });

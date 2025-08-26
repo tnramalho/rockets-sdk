@@ -3,17 +3,17 @@ import { CrudAdapter } from '@concepta/nestjs-crud';
 import { RoleOptionsExtrasInterface } from '@concepta/nestjs-role/dist/interfaces/role-options-extras.interface';
 import { DynamicModule, Type } from '@nestjs/common';
 import { RocketsServerUserEntityInterface } from './user/rockets-server-user-entity.interface';
+import { RocketsServerUserCreatableInterface } from './user/rockets-server-user-creatable.interface';
+import { RocketsServerUserUpdatableInterface } from './user/rockets-server-user-updatable.interface';
 
-export interface AdminOptionsExtrasInterface {
+export interface UserCrudOptionsExtrasInterface {
   imports?: DynamicModule['imports'];
   path?: string;
   model: Type;
   adapter: Type<CrudAdapter<RocketsServerUserEntityInterface>>;
   dto?: {
-    createOne?: Type;
-    createMany?: Type;
-    updateOne?: Type;
-    replaceOne?: Type;
+    createOne?: Type<RocketsServerUserCreatableInterface>;
+    updateOne?: Type<RocketsServerUserUpdatableInterface>;
   };
 }
 
@@ -24,5 +24,5 @@ export interface RocketsServerOptionsExtrasInterface
   federated?: { imports: DynamicModule['imports'] };
   role?: RoleOptionsExtrasInterface & { imports: DynamicModule['imports'] };
   authRouter?: AuthRouterOptionsExtrasInterface;
-  admin?: AdminOptionsExtrasInterface;
+  userCrud?: UserCrudOptionsExtrasInterface;
 }

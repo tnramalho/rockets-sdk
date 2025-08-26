@@ -61,15 +61,13 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
     }),
     TypeOrmModule.forFeature([UserFixture]),
     RocketsServerModule.forRootAsync({
-      admin: {
+      userCrud: {
         imports: [TypeOrmModule.forFeature([UserFixture])],
         // entity: UserFixture,
         adapter: AdminUserTypeOrmCrudAdapter,
         model: RocketsServerUserDto,
         dto: {
           createOne: RocketsServerUserCreateDto,
-          createMany: RocketsServerUserCreateDto,
-          replaceOne: RocketsServerUserCreateDto,
           updateOne: RocketsServerUserUpdateDto,
         },
       },

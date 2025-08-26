@@ -6,10 +6,8 @@ import { UserOtpEntityFixture } from './__fixtures__/user/user-otp-entity.fixtur
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { RocketsServerRecoveryController } from './controllers/auth/auth-recovery.controller';
 import { AuthTokenRefreshController } from './controllers/auth/auth-refresh.controller';
-import { AuthSignupController } from './controllers/auth/auth-signup.controller';
 import { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 import { RocketsServerOtpController } from './controllers/otp/rockets-server-otp.controller';
-import { RocketsServerUserController } from './controllers/user/rockets-server-user.controller';
 import { RocketsServerNotificationServiceInterface } from './interfaces/rockets-server-notification.service.interface';
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
@@ -118,8 +116,6 @@ describe('RocketsServerModuleDefinition', () => {
       });
 
       expect(result).toEqual([
-        AuthSignupController,
-        RocketsServerUserController,
         AuthPasswordController,
         AuthTokenRefreshController,
         RocketsServerRecoveryController,
@@ -144,8 +140,6 @@ describe('RocketsServerModuleDefinition', () => {
       });
 
       expect(result).toEqual([
-        AuthSignupController,
-        RocketsServerUserController,
         AuthPasswordController,
         AuthTokenRefreshController,
         RocketsServerRecoveryController,

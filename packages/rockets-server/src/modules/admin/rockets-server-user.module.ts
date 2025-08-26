@@ -1,7 +1,11 @@
+import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
+import { AuthUser } from '@concepta/nestjs-authentication';
 import {
   ConfigurableCrudBuilder,
+  CrudReadOne,
+  CrudRequest,
   CrudRequestInterface,
-  CrudResponsePaginatedDto,
+  CrudUpdateOne,
 } from '@concepta/nestjs-crud';
 import {
   DynamicModule,
@@ -9,43 +13,20 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOkResponse,
-  ApiOperation,
-  ApiProperty,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { RocketsServerUserUpdateDto } from '../../dto/user/rockets-server-user-update.dto';
 import { RocketsServerUserDto } from '../../dto/user/rockets-server-user.dto';
-import { AdminGuard } from '../../guards/admin.guard';
 import { UserCrudOptionsExtrasInterface } from '../../interfaces/rockets-server-options-extras.interface';
 import { ADMIN_USER_CRUD_SERVICE_TOKEN } from '../../rockets-server.constants';
 
-import { Exclude, Expose, Type } from 'class-transformer';
+import { ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RocketsServerUserCreatableInterface } from '../../interfaces/user/rockets-server-user-creatable.interface';
 import { RocketsServerUserEntityInterface } from '../../interfaces/user/rockets-server-user-entity.interface';
 import { RocketsServerUserUpdatableInterface } from '../../interfaces/user/rockets-server-user-updatable.interface';
-import { RocketsServerUserInterface } from '../../interfaces/user/rockets-server-user.interface';
 @Module({})
-export class RocketsServerAdminModule {
+export class RocketsServerUserModule {
   static register(admin: UserCrudOptionsExtrasInterface): DynamicModule {
-    const ModelDto = admin.model || RocketsServerUserDto;
     const UpdateDto = admin.dto?.updateOne || RocketsServerUserUpdateDto;
-    @Exclude()
-    class PaginatedDto extends CrudResponsePaginatedDto<RocketsServerUserInterface> {
-      @Expose()
-      @ApiProperty({
-        type: ModelDto,
-        isArray: true,
-        description: 'Array of Orgs',
-      })
-      @Type(() => ModelDto)
-      data: RocketsServerUserInterface[] = [];
-    }
-
     const builder = new ConfigurableCrudBuilder<
       RocketsServerUserEntityInterface,
       RocketsServerUserCreatableInterface,
@@ -56,37 +37,72 @@ export class RocketsServerAdminModule {
         injectionToken: ADMIN_USER_CRUD_SERVICE_TOKEN,
       },
       controller: {
-        path: admin.path || 'admin/users',
+        path: admin.path || 'user',
         model: {
-          type: ModelDto,
-          paginatedType: PaginatedDto,
+          type: admin.model || RocketsServerUserDto,
         },
         extraDecorators: [
-          ApiTags('admin'),
-          UseGuards(AdminGuard),
+          ApiTags('user'),
+          UseGuards(AuthJwtGuard),
           ApiBearerAuth(),
         ],
       },
-      getMany: {},
       getOne: {},
       updateOne: {
         dto: UpdateDto,
       },
     });
 
-    const {
-      ConfigurableControllerClass,
-      ConfigurableServiceClass,
-      CrudUpdateOne,
-    } = builder.build();
+    const { ConfigurableControllerClass, ConfigurableServiceClass } =
+      builder.build();
 
-    class AdminUserCrudService extends ConfigurableServiceClass {}
+    class UserCrudService extends ConfigurableServiceClass {}
     // TODO: add decorators and option to overwrite or disable controller
-    class AdminUserCrudController extends ConfigurableControllerClass {
+
+    class UserCrudController extends ConfigurableControllerClass {
+      /**
+       * Override getOne to automatically use authenticated user's ID
+       */
+
+      @CrudReadOne({
+        path: '',
+      })
+      @ApiOperation({
+        summary: 'Get current user profile',
+        description:
+          'Retrieves the currently authenticated user profile information',
+      })
+      @ApiOkResponse({
+        description: 'User profile retrieved successfully',
+        type: admin.model || RocketsServerUserDto,
+      })
+      @ApiResponse({
+        status: 401,
+        description: 'Unauthorized - User not authenticated',
+      })
+      async getOne(
+        @CrudRequest()
+        crudRequest: CrudRequestInterface<RocketsServerUserEntityInterface>,
+        @AuthUser('id') authId: string,
+      ) {
+        // Create a new request with the authenticated user's ID
+        const modifiedRequest: CrudRequestInterface<RocketsServerUserEntityInterface> =
+          {
+            ...crudRequest,
+            parsed: {
+              ...crudRequest.parsed,
+              filter: [{ field: 'id', operator: '$eq', value: authId }],
+            },
+          };
+        return super.getOne(modifiedRequest);
+      }
+
       /**
        * Override updateOne to automatically use authenticated user's ID
        */
-      @CrudUpdateOne
+      @CrudUpdateOne({
+        path: '',
+      })
       @ApiOperation({
         summary: 'Update current user profile',
         description:
@@ -98,7 +114,7 @@ export class RocketsServerAdminModule {
       })
       @ApiOkResponse({
         description: 'User profile updated successfully',
-        type: ModelDto,
+        type: admin.model || RocketsServerUserDto,
       })
       @ApiResponse({
         status: 400,
@@ -109,8 +125,10 @@ export class RocketsServerAdminModule {
         description: 'Unauthorized - User not authenticated',
       })
       async updateOne(
+        @CrudRequest()
         crudRequest: CrudRequestInterface<RocketsServerUserEntityInterface>,
         updateDto: InstanceType<typeof UpdateDto>,
+        @AuthUser('id') authId: string,
       ) {
         const pipe = new ValidationPipe({
           transform: true,
@@ -119,23 +137,32 @@ export class RocketsServerAdminModule {
         });
         await pipe.transform(updateDto, { type: 'body', metatype: UpdateDto });
 
-        return super.updateOne(crudRequest, updateDto);
+        // Create a new request with the authenticated user's ID
+        const modifiedRequest: CrudRequestInterface<RocketsServerUserEntityInterface> =
+          {
+            ...crudRequest,
+            parsed: {
+              ...crudRequest.parsed,
+              filter: [{ field: 'id', operator: '$eq', value: authId }],
+            },
+          };
+        return super.updateOne(modifiedRequest, updateDto);
       }
     }
 
     return {
-      module: RocketsServerAdminModule,
+      module: RocketsServerUserModule,
       imports: [...(admin.imports || [])],
-      controllers: [AdminUserCrudController],
+      controllers: [UserCrudController],
       providers: [
         admin.adapter,
-        AdminUserCrudService,
+        UserCrudService,
         {
           provide: ADMIN_USER_CRUD_SERVICE_TOKEN,
-          useClass: AdminUserCrudService,
+          useClass: UserCrudService,
         },
       ],
-      exports: [AdminUserCrudService, admin.adapter],
+      exports: [UserCrudService, admin.adapter],
     };
   }
 }

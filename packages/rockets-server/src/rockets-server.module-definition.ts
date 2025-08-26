@@ -39,6 +39,7 @@ import { JwtModule } from '@concepta/nestjs-jwt';
 import { JwtOptionsInterface } from '@concepta/nestjs-jwt/dist/interfaces/jwt-options.interface';
 import { OtpModule, OtpService } from '@concepta/nestjs-otp';
 import { PasswordModule } from '@concepta/nestjs-password';
+import { RoleModule } from '@concepta/nestjs-role';
 import { SwaggerUiModule } from '@concepta/nestjs-swagger-ui';
 import {
   UserModelService,
@@ -55,22 +56,21 @@ import { rocketsServerOptionsDefaultConfig } from './config/rockets-server-optio
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { RocketsServerRecoveryController } from './controllers/auth/auth-recovery.controller';
 import { AuthTokenRefreshController } from './controllers/auth/auth-refresh.controller';
-import { AuthSignupController } from './controllers/auth/auth-signup.controller';
 import { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 import { RocketsServerOtpController } from './controllers/otp/rockets-server-otp.controller';
-import { RocketsServerUserController } from './controllers/user/rockets-server-user.controller';
+import { AdminGuard } from './guards/admin.guard';
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
 import { RocketsServerAdminModule } from './modules/admin/rockets-server-admin.module';
+import { RocketsServerSignUpModule } from './modules/admin/rockets-server-signup.module';
+import { RocketsServerUserModule } from './modules/admin/rockets-server-user.module';
 import {
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerUserModelService,
 } from './rockets-server.constants';
 import { RocketsServerNotificationService } from './services/rockets-server-notification.service';
 import { RocketsServerOtpService } from './services/rockets-server-otp.service';
-import { RoleModule } from '@concepta/nestjs-role';
-import { AdminGuard } from './guards/admin.guard';
 
 const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
 
@@ -108,7 +108,7 @@ function definitionTransform(
   extras: RocketsServerOptionsExtrasInterface,
 ): DynamicModule {
   const { imports = [], providers = [], exports = [] } = definition;
-  const { controllers, admin } = extras;
+  const { controllers, userCrud: admin } = extras;
   // TODO: need to define this, if set it as required we need to have defaults on extras
   // if (!user?.imports) throw new Error('Make sure imports entities for user');
   // if (!otp?.imports) throw new Error('Make sure imports entities for otp');
@@ -130,6 +130,8 @@ function definitionTransform(
     baseModule.imports = [
       ...(baseModule.imports || []),
       RocketsServerAdminModule.register(admin),
+      RocketsServerSignUpModule.register(admin),
+      RocketsServerUserModule.register(admin),
     ];
   }
 
@@ -143,8 +145,6 @@ export function createRocketsServerControllers(options: {
   return options?.controllers !== undefined
     ? options.controllers
     : [
-        AuthSignupController,
-        RocketsServerUserController,
         AuthPasswordController,
         AuthTokenRefreshController,
         RocketsServerRecoveryController,

@@ -2,7 +2,6 @@ import { registerAs } from '@nestjs/config';
 
 import { RocketsServerSettingsInterface } from '../interfaces/rockets-server-settings.interface';
 import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server.constants';
-import { formatTokenUrl } from '../rockets-server.utils';
 
 /**
  * Authentication combined configuration
@@ -22,7 +21,9 @@ export const rocketsServerOptionsDefaultConfig = registerAs(
       email: {
         from: 'from',
         baseUrl: 'baseUrl',
-        tokenUrlFormatter: formatTokenUrl,
+        tokenUrlFormatter: (baseUrl: string, passcode: string) => {
+          return `${baseUrl}/${passcode}`;
+        },
         templates: {
           sendOtp: {
             fileName: __dirname + '/../assets/send-otp.template.hbs',

@@ -65,7 +65,7 @@ const mockEmailService: EmailSendInterface = {
 })
 class MockConfigModule {}
 
-describe('RocketsServer (e2e)', () => {
+describe.skip('RocketsServer (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {

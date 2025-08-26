@@ -235,14 +235,12 @@ describe('AuthenticationCombinedImportModule Integration', () => {
                 }),
               ],
             },
-            admin: {
+            userCrud: {
               imports: [TypeOrmModule.forFeature([UserFixture])],
               adapter: AdminUserTypeOrmCrudAdapter,
               model: RocketsServerUserDto,
               dto: {
                 createOne: RocketsServerUserCreateDto,
-                createMany: RocketsServerUserCreateDto,
-                replaceOne: RocketsServerUserCreateDto,
                 updateOne: RocketsServerUserUpdateDto,
               },
             },
@@ -311,14 +309,12 @@ describe('AuthenticationCombinedImportModule Integration', () => {
               }),
             ],
             inject: [ConfigService],
-            admin: {
+            userCrud: {
               imports: [TypeOrmModule.forFeature([UserFixture])],
               adapter: AdminUserTypeOrmCrudAdapter,
               model: RocketsServerUserDto,
               dto: {
                 createOne: RocketsServerUserCreateDto,
-                createMany: RocketsServerUserCreateDto,
-                replaceOne: RocketsServerUserCreateDto,
                 updateOne: RocketsServerUserUpdateDto,
               },
             },
@@ -362,14 +358,12 @@ describe('AuthenticationCombinedImportModule Integration', () => {
         testModuleFactory([
           TypeOrmModuleFixture,
           RocketsServerModule.forRoot({
-            admin: {
+            userCrud: {
               imports: [TypeOrmModule.forFeature([UserFixture])],
               adapter: AdminUserTypeOrmCrudAdapter,
               model: RocketsServerUserDto,
               dto: {
                 createOne: RocketsServerUserCreateDto,
-                createMany: RocketsServerUserCreateDto,
-                replaceOne: RocketsServerUserCreateDto,
                 updateOne: RocketsServerUserUpdateDto,
               },
             },
@@ -439,14 +433,12 @@ describe('AuthenticationCombinedImportModule Integration', () => {
         testModuleFactory([
           TypeOrmModuleFixture,
           RocketsServerModule.forRoot({
-            admin: {
+            userCrud: {
               imports: [TypeOrmModule.forFeature([UserFixture])],
               adapter: AdminUserTypeOrmCrudAdapter,
               model: RocketsServerUserDto,
               dto: {
                 createOne: RocketsServerUserCreateDto,
-                createMany: RocketsServerUserCreateDto,
-                replaceOne: RocketsServerUserCreateDto,
                 updateOne: RocketsServerUserUpdateDto,
               },
             },
