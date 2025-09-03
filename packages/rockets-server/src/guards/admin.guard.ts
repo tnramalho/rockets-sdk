@@ -24,16 +24,19 @@ export class AdminGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    const AdminRole = this.settings.role.adminRoleName;
+    const ADMIN_ROLE = this.settings.role.adminRoleName;
 
     if (!user) {
       throw new ForbiddenException('User not authenticated');
+    }
+    if (!ADMIN_ROLE) {
+      throw new ForbiddenException('Admin Role not defined');
     }
 
     try {
       const roles = await this.roleModelService.find({
         where: {
-          name: AdminRole,
+          name: ADMIN_ROLE,
         },
       });
 

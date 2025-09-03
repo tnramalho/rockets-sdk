@@ -160,7 +160,7 @@ describe.skip('RocketsServer (e2e)', () => {
   };
 
   describe(AuthPasswordController.name, () => {
-    it('should access protected route with valid token', async () => {
+    it.only('should access protected route with valid token', async () => {
       // First create a user via signup
       await createTestUser();
 

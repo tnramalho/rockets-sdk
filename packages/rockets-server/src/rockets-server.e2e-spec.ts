@@ -2,8 +2,11 @@ import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 import { EmailSendInterface, ExceptionsFilter } from '@concepta/nestjs-common';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import {
+  CanActivate,
   Controller,
+  ExecutionContext,
   Get,
+  Injectable,
   INestApplication,
   Module,
   UseGuards,
@@ -55,6 +58,14 @@ const mockEmailService: EmailSendInterface = {
   sendMail: jest.fn().mockResolvedValue(undefined),
 };
 
+// Mock guard for testing OAuth flows
+@Injectable()
+export class MockOAuthGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    return true;
+  }
+}
+
 // Mock configuration module
 @Module({
   providers: [
@@ -102,6 +113,7 @@ describe('RocketsServer (e2e)', () => {
           UserFixture,
           UserRoleEntityFixture,
           RoleEntityFixture,
+          FederatedEntityFixture
         ]),
         RocketsServerModule.forRoot({
           userCrud: {
@@ -122,46 +134,32 @@ describe('RocketsServer (e2e)', () => {
           },
           user: {
             imports: [
-              TypeOrmExtModule.forFeature({
-                user: {
-                  entity: UserFixture,
-                },
-              }),
+              TypeOrmExtModule.forFeature({ user: { entity: UserFixture } }),
             ],
           },
           otp: {
             imports: [
               TypeOrmExtModule.forFeature({
-                userOtp: {
-                  entity: UserOtpEntityFixture,
-                },
+                userOtp: { entity: UserOtpEntityFixture },
               }),
             ],
           },
           role: {
             imports: [
               TypeOrmExtModule.forFeature({
-                role: {
-                  entity: RoleEntityFixture,
-                },
-                userRole: {
-                  entity: UserRoleEntityFixture,
-                },
+                role: { entity: RoleEntityFixture },
+                userRole: { entity: UserRoleEntityFixture },
               }),
             ],
           },
           federated: {
             imports: [
               TypeOrmExtModule.forFeature({
-                federated: {
-                  entity: FederatedEntityFixture,
-                },
+                federated: { entity: FederatedEntityFixture },
               }),
             ],
           },
-          services: {
-            mailerService: mockEmailService,
-          },
+          services: { mailerService: mockEmailService },
         }),
       ],
       controllers: [TestController],

@@ -10,5 +10,4 @@ export interface RocketsServerUserUpdatableInterface
     Partial<
       Pick<RocketsServerUserCreatableInterface, 'email' | 'username' | 'active'>
     > {
-  firstName?: string;
 }

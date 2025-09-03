@@ -4,7 +4,7 @@ import {
   CrudRequestInterface,
 } from '@concepta/nestjs-crud';
 import { PasswordCreationService } from '@concepta/nestjs-password';
-import { DynamicModule, Inject, Module, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, DynamicModule, Inject, Module, ValidationPipe } from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
@@ -19,6 +19,7 @@ import { ADMIN_USER_CRUD_SERVICE_TOKEN } from '../../rockets-server.constants';
 import { AuthPublic } from '@concepta/nestjs-authentication';
 import { RocketsServerUserCreatableInterface } from '../../interfaces/user/rockets-server-user-creatable.interface';
 import { RocketsServerUserEntityInterface } from '../../interfaces/user/rockets-server-user-entity.interface';
+import { UserModelService } from '@concepta/nestjs-user';
 @Module({})
 export class RocketsServerSignUpModule {
   static register(admin: UserCrudOptionsExtrasInterface): DynamicModule {
@@ -59,6 +60,8 @@ export class RocketsServerSignUpModule {
         private readonly userCrudService: SignupCrudService,
         @Inject(PasswordCreationService)
         protected readonly passwordCreationService: PasswordCreationService,
+        @Inject(UserModelService)
+        protected readonly userModelService: UserModelService,
       ) {
         super(userCrudService);
       }
@@ -93,20 +96,37 @@ export class RocketsServerSignUpModule {
         crudRequest: CrudRequestInterface<UserCreatableInterface>,
         dto: InstanceType<typeof CreateDto>,
       ) {
-        const pipe = new ValidationPipe({
-          transform: true,
-          forbidUnknownValues: true,
-        });
-        await pipe.transform(dto, { type: 'body', metatype: CreateDto });
+        try {
+          const pipe = new ValidationPipe({
+            transform: true,
+            forbidUnknownValues: true,
+          });
+          await pipe.transform(dto, { type: 'body', metatype: CreateDto });
 
-        const passwordHash = await this.passwordCreationService.create(
-          dto.password,
-        );
 
-        return super.createOne(crudRequest, {
-          ...dto,
-          ...passwordHash,
-        });
+          const existingUser = await this.userModelService.find({
+            where: [
+              { username: dto.username},
+              { email: dto.email}
+            ]
+          });
+
+          if (existingUser?.length) {
+            throw new BadRequestException('User with this username or email already exists');
+          }
+
+          const passwordHash = await this.passwordCreationService.create(
+            dto.password,
+          );
+
+          return await super.createOne(crudRequest, {
+            ...dto,
+            ...passwordHash,
+          });
+        } catch (err) {
+          console.log(err)
+          throw err;
+        }
       }
     }
 

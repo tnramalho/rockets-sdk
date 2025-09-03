@@ -46,7 +46,7 @@ class MockConfigModule {}
 describe('RocketsServerSignUpModule (e2e)', () => {
   let app: INestApplication;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         MockConfigModule,
@@ -127,7 +127,7 @@ describe('RocketsServerSignUpModule (e2e)', () => {
     await app.init();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await app.close();
   });
 
@@ -351,6 +351,53 @@ describe('RocketsServerSignUpModule (e2e)', () => {
       expect(response.body.username).toBe('noageuser');
       // Age should be undefined or null when not provided
       expect(response.body.age).toBeNull();
+    });
+
+    it('should not allow signup without duplicate username', async () => {
+      const userData = {
+        username: 'noageuser',
+        email: 'noageuser@example.com',
+        password: 'Password123!',
+        active: true,
+        // age not provided
+      };
+
+      let response = await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.username).toBe('noageuser');
+      
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+
+    });
+    it('should not allow signup without duplicate email', async () => {
+      let userData = {
+        username: 'noageuser',
+        email: 'noageuser@example.com',
+        password: 'Password123!',
+        active: true,
+        // age not provided
+      };
+
+      let response = await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.username).toBe('noageuser');
+      userData.username = 'noageuser-new';
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+
     });
 
     it('should reject signup with missing email', async () => {

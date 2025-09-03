@@ -106,7 +106,7 @@ export interface RocketsServerOptionsInterface {
    * Auth Local module options
    * Used in: AuthLocalModule.forRootAsync
    */
-  authLocal?: AuthLocalOptionsInterface;
+  authLocal?: Partial<AuthLocalOptionsInterface>;
 
   /**
    * Auth Recovery module options

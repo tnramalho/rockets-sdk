@@ -209,7 +209,7 @@ describe('RocketsServerUserModule (e2e)', () => {
       expect(response.body.passwordHash).toBeUndefined();
     });
 
-    it.only('should return age field in user profile when age is set', async () => {
+    it('should return age field in user profile when age is set', async () => {
       // First, update the user profile with an age
       await request(app.getHttpServer())
         .patch('/user')

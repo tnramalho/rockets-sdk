@@ -85,15 +85,22 @@ export class RocketsServerUserModule {
         crudRequest: CrudRequestInterface<RocketsServerUserEntityInterface>,
         @AuthUser('id') authId: string,
       ) {
-        // Create a new request with the authenticated user's ID
-        const modifiedRequest: CrudRequestInterface<RocketsServerUserEntityInterface> =
-          {
-            ...crudRequest,
-            parsed: {
-              ...crudRequest.parsed,
-              filter: [{ field: 'id', operator: '$eq', value: authId }],
-            },
-          };
+        const modifiedRequest: CrudRequestInterface<RocketsServerUserEntityInterface> = {
+          ...crudRequest,
+          parsed: {
+            ...crudRequest.parsed,
+            paramsFilter: [{ field: 'id', operator: '$eq', value: authId }],
+            search: {
+              "$and": [
+                {
+                    id: {
+                        "$eq": authId
+                    }
+                }
+              ] 
+            }
+          },
+        };
         return super.getOne(modifiedRequest);
       }
 
@@ -136,16 +143,24 @@ export class RocketsServerUserModule {
           forbidUnknownValues: true,
         });
         await pipe.transform(updateDto, { type: 'body', metatype: UpdateDto });
-
+        
         // Create a new request with the authenticated user's ID
-        const modifiedRequest: CrudRequestInterface<RocketsServerUserEntityInterface> =
-          {
-            ...crudRequest,
-            parsed: {
-              ...crudRequest.parsed,
-              filter: [{ field: 'id', operator: '$eq', value: authId }],
-            },
-          };
+        const modifiedRequest: CrudRequestInterface<RocketsServerUserEntityInterface> = {
+          ...crudRequest,
+          parsed: {
+            ...crudRequest.parsed,
+            paramsFilter: [{ field: 'id', operator: '$eq', value: authId }],
+            search: {
+              "$and": [
+                {
+                    id: {
+                        "$eq": authId
+                    }
+                }
+              ] 
+            }
+          },
+        };
         return super.updateOne(modifiedRequest, updateDto);
       }
     }

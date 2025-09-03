@@ -218,33 +218,16 @@ import { FederatedEntity } from './entities/federated.entity';
     
     // Rockets SDK configuration - minimal setup
     RocketsServerModule.forRootAsync({
-      imports: [ConfigModule],
-      // REQUIRED: User entity imports
-      user: {
-        imports: [
-          TypeOrmExtModule.forFeature({
-            user: { entity: UserEntity },
-          }),
-        ],
-      },
-      
-      // REQUIRED: OTP entity imports
-      otp: {
-        imports: [
-          TypeOrmExtModule.forFeature({
-            userOtp: { entity: UserOtpEntity },
-          }),
-        ],
-      },
-      
-      // OPTIONAL: Federated entity imports (required for OAuth)
-      federated: {
-        imports: [
-          TypeOrmExtModule.forFeature({
-            federated: { entity: FederatedEntity },
-          }),
-        ],
-      },
+      imports: [
+        TypeOrmModule.forFeature([UserEntity]),
+        TypeOrmExtModule.forFeature({
+          user: { entity: UserEntity },
+          role: { entity: RoleEntity },
+          userRole: { entity: UserRoleEntity },
+          userOtp: { entity: UserOtpEntity },
+          federated: { entity: FederatedEntity },
+        }),
+      ],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         // Required services
