@@ -10,11 +10,13 @@ import { RocketsServerUserDto } from './rockets-server-user.dto';
 export class RocketsServerUserUpdateDto
   extends IntersectionType(
     PickType(RocketsServerUserDto, ['id'] as const),
-    PartialType( PickType(RocketsServerUserDto, [
-      'id',
-      'username',
-      'email',
-      'active',
-    ] as const),
-  ))
+    PartialType(
+      PickType(RocketsServerUserDto, [
+        'id',
+        'username',
+        'email',
+        'active',
+      ] as const),
+    ),
+  )
   implements RocketsServerUserUpdatableInterface {}

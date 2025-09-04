@@ -17,6 +17,17 @@ export interface UserCrudOptionsExtrasInterface {
   };
 }
 
+export interface DisableControllerOptionsInterface {
+  password?: boolean; // true = disabled
+  refresh?: boolean; // true = disabled
+  recovery?: boolean; // true = disabled
+  otp?: boolean; // true = disabled
+  oAuth?: boolean; // true = disabled
+  signup?: boolean; // true = disabled (admin submodule)
+  admin?: boolean; // true = disabled (admin submodule)
+  user?: boolean; // true = disabled (user submodule)
+}
+
 export interface RocketsServerOptionsExtrasInterface
   extends Pick<DynamicModule, 'global' | 'controllers'> {
   user?: { imports: DynamicModule['imports'] };
@@ -25,4 +36,5 @@ export interface RocketsServerOptionsExtrasInterface
   role?: RoleOptionsExtrasInterface & { imports: DynamicModule['imports'] };
   authRouter?: AuthRouterOptionsExtrasInterface;
   userCrud?: UserCrudOptionsExtrasInterface;
+  disableController?: DisableControllerOptionsInterface;
 }

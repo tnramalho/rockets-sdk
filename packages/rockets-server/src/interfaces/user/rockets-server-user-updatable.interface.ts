@@ -9,5 +9,4 @@ export interface RocketsServerUserUpdatableInterface
   extends Pick<RocketsServerUserInterface, 'id'>,
     Partial<
       Pick<RocketsServerUserCreatableInterface, 'email' | 'username' | 'active'>
-    > {
-}
+    > {}

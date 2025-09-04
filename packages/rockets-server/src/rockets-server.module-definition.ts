@@ -120,18 +120,25 @@ function definitionTransform(
     ...definition,
     global: extras.global,
     imports: createRocketsServerImports({ imports, extras }),
-    controllers: createRocketsServerControllers({ controllers }) || [],
+    controllers: createRocketsServerControllers({ controllers, extras }) || [],
     providers: [...createRocketsServerProviders({ providers, extras })],
     exports: createRocketsServerExports({ exports, extras }),
   };
 
   // If admin is configured, add the admin submodule
   if (admin) {
+    const disableController = extras.disableController || {};
     baseModule.imports = [
       ...(baseModule.imports || []),
-      RocketsServerAdminModule.register(admin),
-      RocketsServerSignUpModule.register(admin),
-      RocketsServerUserModule.register(admin),
+      ...(!disableController.admin
+        ? [RocketsServerAdminModule.register(admin)]
+        : []),
+      ...(!disableController.signup
+        ? [RocketsServerSignUpModule.register(admin)]
+        : []),
+      ...(!disableController.user
+        ? [RocketsServerUserModule.register(admin)]
+        : []),
     ];
   }
 
@@ -144,13 +151,19 @@ export function createRocketsServerControllers(options: {
 }): DynamicModule['controllers'] {
   return options?.controllers !== undefined
     ? options.controllers
-    : [
-        AuthPasswordController,
-        AuthTokenRefreshController,
-        RocketsServerRecoveryController,
-        RocketsServerOtpController,
-        AuthOAuthController,
-      ];
+    : (() => {
+        const disableController = options?.extras?.disableController || {};
+        const list: DynamicModule['controllers'] = [];
+
+        if (!disableController.password) list.push(AuthPasswordController);
+        if (!disableController.refresh) list.push(AuthTokenRefreshController);
+        if (!disableController.recovery)
+          list.push(RocketsServerRecoveryController);
+        if (!disableController.otp) list.push(RocketsServerOtpController);
+        if (!disableController.oAuth) list.push(AuthOAuthController);
+
+        return list;
+      })();
 }
 
 export function createRocketsServerSettingsProvider(

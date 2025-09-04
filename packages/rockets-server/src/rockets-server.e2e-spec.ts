@@ -61,7 +61,7 @@ const mockEmailService: EmailSendInterface = {
 // Mock guard for testing OAuth flows
 @Injectable()
 export class MockOAuthGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(_context: ExecutionContext): boolean {
     return true;
   }
 }
@@ -113,7 +113,7 @@ describe('RocketsServer (e2e)', () => {
           UserFixture,
           UserRoleEntityFixture,
           RoleEntityFixture,
-          FederatedEntityFixture
+          FederatedEntityFixture,
         ]),
         RocketsServerModule.forRoot({
           userCrud: {

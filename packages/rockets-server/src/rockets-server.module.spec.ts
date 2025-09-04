@@ -36,6 +36,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRoleEntityFixture } from './__fixtures__/role/user-role.entity.fixture';
 import { RoleEntityFixture } from './__fixtures__/role/role.entity.fixture';
 import { AdminUserTypeOrmCrudAdapter } from './__fixtures__/admin/admin-user-crud.adapter';
+import { AuthPasswordController } from './controllers/auth/auth-password.controller';
+import { AuthTokenRefreshController } from './controllers/auth/auth-refresh.controller';
+import { RocketsServerRecoveryController } from './controllers/auth/auth-recovery.controller';
+import { RocketsServerOtpController } from './controllers/otp/rockets-server-otp.controller';
+import { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 // Mock user lookup service
 export const mockUserModelService: RocketsServerUserModelServiceInterface = {
   bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
@@ -507,6 +512,77 @@ describe('AuthenticationCombinedImportModule Integration', () => {
       // Verify that the refresh guard is still present
       const authRefreshGuard = testModule.get(AuthRefreshGuard);
       expect(authRefreshGuard).toBeDefined();
+    });
+  });
+
+  describe('disableController flags', () => {
+    it('should disable all controllers when configured', async () => {
+      const testModule = await Test.createTestingModule(
+        testModuleFactory([
+          TypeOrmModuleFixture,
+          RocketsServerModule.forRoot({
+            userCrud: {
+              imports: [TypeOrmModule.forFeature([UserFixture])],
+              adapter: AdminUserTypeOrmCrudAdapter,
+              model: RocketsServerUserDto,
+              dto: {
+                createOne: RocketsServerUserCreateDto,
+                updateOne: RocketsServerUserUpdateDto,
+              },
+            },
+            user: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  user: { entity: UserFixture },
+                }),
+              ],
+            },
+            otp: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  userOtp: { entity: UserOtpEntityFixture },
+                }),
+              ],
+            },
+            role: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  role: { entity: RoleEntityFixture },
+                  userRole: { entity: UserRoleEntityFixture },
+                }),
+              ],
+            },
+            federated: {
+              imports: [
+                TypeOrmExtModule.forFeature({
+                  federated: { entity: FederatedEntityFixture },
+                }),
+              ],
+            },
+            jwt: {
+              settings: { default: { secret: 'test-secret-disable-all' } },
+            },
+            services: { mailerService: mockEmailService },
+            // extras: disable all controllers and admin submodules
+            disableController: {
+              password: true,
+              refresh: true,
+              recovery: true,
+              otp: true,
+              oAuth: true,
+              admin: true,
+              signup: true,
+              user: true,
+            },
+          }),
+        ]),
+      ).compile();
+
+      expect(() => testModule.get(AuthPasswordController)).toThrow();
+      expect(() => testModule.get(AuthTokenRefreshController)).toThrow();
+      expect(() => testModule.get(RocketsServerRecoveryController)).toThrow();
+      expect(() => testModule.get(RocketsServerOtpController)).toThrow();
+      expect(() => testModule.get(AuthOAuthController)).toThrow();
     });
   });
 });

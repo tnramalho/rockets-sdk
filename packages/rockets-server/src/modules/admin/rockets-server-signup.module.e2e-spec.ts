@@ -362,22 +362,21 @@ describe('RocketsServerSignUpModule (e2e)', () => {
         // age not provided
       };
 
-      let response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/signup')
         .send(userData)
         .expect(201);
 
       expect(response.body).toBeDefined();
       expect(response.body.username).toBe('noageuser');
-      
+
       await request(app.getHttpServer())
         .post('/signup')
         .send(userData)
         .expect(400);
-
     });
     it('should not allow signup without duplicate email', async () => {
-      let userData = {
+      const userData = {
         username: 'noageuser',
         email: 'noageuser@example.com',
         password: 'Password123!',
@@ -385,7 +384,7 @@ describe('RocketsServerSignUpModule (e2e)', () => {
         // age not provided
       };
 
-      let response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/signup')
         .send(userData)
         .expect(201);
@@ -397,7 +396,6 @@ describe('RocketsServerSignUpModule (e2e)', () => {
         .post('/signup')
         .send(userData)
         .expect(400);
-
     });
 
     it('should reject signup with missing email', async () => {

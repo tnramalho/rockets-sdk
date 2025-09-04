@@ -4,7 +4,13 @@ import {
   CrudRequestInterface,
 } from '@concepta/nestjs-crud';
 import { PasswordCreationService } from '@concepta/nestjs-password';
-import { BadRequestException, DynamicModule, Inject, Module, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  DynamicModule,
+  Inject,
+  Module,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
@@ -103,16 +109,14 @@ export class RocketsServerSignUpModule {
           });
           await pipe.transform(dto, { type: 'body', metatype: CreateDto });
 
-
           const existingUser = await this.userModelService.find({
-            where: [
-              { username: dto.username},
-              { email: dto.email}
-            ]
+            where: [{ username: dto.username }, { email: dto.email }],
           });
 
           if (existingUser?.length) {
-            throw new BadRequestException('User with this username or email already exists');
+            throw new BadRequestException(
+              'User with this username or email already exists',
+            );
           }
 
           const passwordHash = await this.passwordCreationService.create(
@@ -124,7 +128,6 @@ export class RocketsServerSignUpModule {
             ...passwordHash,
           });
         } catch (err) {
-          console.log(err)
           throw err;
         }
       }
