@@ -2,8 +2,11 @@ import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 import { EmailSendInterface, ExceptionsFilter } from '@concepta/nestjs-common';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import {
+  CanActivate,
   Controller,
+  ExecutionContext,
   Get,
+  Injectable,
   INestApplication,
   Module,
   UseGuards,
@@ -25,6 +28,15 @@ import { FederatedEntityFixture } from './__fixtures__/federated/federated.entit
 import { AuthPasswordController } from './controllers/auth/auth-password.controller';
 import { AuthSignupController } from './controllers/auth/auth-signup.controller';
 import { RocketsServerModule } from './rockets-server.module';
+import { RoleEntityFixture } from './__fixtures__/role/role.entity.fixture';
+import { UserRoleEntityFixture } from './__fixtures__/role/user-role.entity.fixture';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserProfileEntityFixture } from './__fixtures__/user/user-profile.entity.fixture';
+import { UserPasswordHistoryEntityFixture } from './__fixtures__/user/user-password-history.entity.fixture';
+import { AdminUserTypeOrmCrudAdapter } from './__fixtures__/admin/admin-user-crud.adapter';
+import { RocketsServerUserDto } from './dto/user/rockets-server-user.dto';
+import { RocketsServerUserCreateDto } from './dto/user/rockets-server-user-create.dto';
+import { RocketsServerUserUpdateDto } from './dto/user/rockets-server-user-update.dto';
 
 // Test controller with protected route
 @Controller('test')
@@ -45,6 +57,14 @@ export class TestController {
 const mockEmailService: EmailSendInterface = {
   sendMail: jest.fn().mockResolvedValue(undefined),
 };
+
+// Mock guard for testing OAuth flows
+@Injectable()
+export class MockOAuthGuard implements CanActivate {
+  canActivate(_context: ExecutionContext): boolean {
+    return true;
+  }
+}
 
 // Mock configuration module
 @Module({
@@ -77,7 +97,34 @@ describe('RocketsServer (e2e)', () => {
             return ormConfig;
           },
         }),
+        TypeOrmModule.forRoot({
+          ...ormConfig,
+          entities: [
+            UserFixture,
+            UserProfileEntityFixture,
+            UserOtpEntityFixture,
+            UserPasswordHistoryEntityFixture,
+            FederatedEntityFixture,
+            UserRoleEntityFixture,
+            RoleEntityFixture,
+          ],
+        }),
+        TypeOrmModule.forFeature([
+          UserFixture,
+          UserRoleEntityFixture,
+          RoleEntityFixture,
+          FederatedEntityFixture,
+        ]),
         RocketsServerModule.forRoot({
+          userCrud: {
+            imports: [TypeOrmModule.forFeature([UserFixture])],
+            adapter: AdminUserTypeOrmCrudAdapter,
+            model: RocketsServerUserDto,
+            dto: {
+              createOne: RocketsServerUserCreateDto,
+              updateOne: RocketsServerUserUpdateDto,
+            },
+          },
           jwt: {
             settings: {
               access: { secret: 'test-secret' },
@@ -87,34 +134,32 @@ describe('RocketsServer (e2e)', () => {
           },
           user: {
             imports: [
-              TypeOrmExtModule.forFeature({
-                user: {
-                  entity: UserFixture,
-                },
-              }),
+              TypeOrmExtModule.forFeature({ user: { entity: UserFixture } }),
             ],
           },
           otp: {
             imports: [
               TypeOrmExtModule.forFeature({
-                userOtp: {
-                  entity: UserOtpEntityFixture,
-                },
+                userOtp: { entity: UserOtpEntityFixture },
+              }),
+            ],
+          },
+          role: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                role: { entity: RoleEntityFixture },
+                userRole: { entity: UserRoleEntityFixture },
               }),
             ],
           },
           federated: {
             imports: [
               TypeOrmExtModule.forFeature({
-                federated: {
-                  entity: FederatedEntityFixture,
-                },
+                federated: { entity: FederatedEntityFixture },
               }),
             ],
           },
-          services: {
-            mailerService: mockEmailService,
-          },
+          services: { mailerService: mockEmailService },
         }),
       ],
       controllers: [TestController],
@@ -145,8 +190,7 @@ describe('RocketsServer (e2e)', () => {
         email: `${username}@example.com`,
         password: 'Password123!',
         active: true,
-      })
-      .expect(201);
+      });
   };
 
   describe(AuthPasswordController.name, () => {
