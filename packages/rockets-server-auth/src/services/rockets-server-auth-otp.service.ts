@@ -3,7 +3,7 @@ import { OtpException, OtpService } from '@concepta/nestjs-otp';
 import { Inject, Injectable } from '@nestjs/common';
 import { RocketsServerAuthUserModelServiceInterface } from '../interfaces/rockets-server-auth-user-model-service.interface';
 import {
-  ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+  ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerAuthUserModelService,
 } from '../rockets-server-auth.constants';
 
@@ -17,7 +17,7 @@ export class RocketsServerAuthOtpService
   implements RocketsServerAuthOtpServiceInterface
 {
   constructor(
-    @Inject(ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
+    @Inject(ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
     private readonly settings: RocketsServerAuthSettingsInterface,
     @Inject(RocketsServerAuthUserModelService)
     private readonly userModelService: RocketsServerAuthUserModelServiceInterface,

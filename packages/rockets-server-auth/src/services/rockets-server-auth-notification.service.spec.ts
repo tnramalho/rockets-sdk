@@ -3,7 +3,7 @@ import { RocketsServerAuthNotificationService } from './rockets-server-auth-noti
 import { RocketsServerAuthSettingsInterface } from '../interfaces/rockets-server-auth-settings.interface';
 import { EmailSendInterface } from '@concepta/nestjs-common';
 import { EmailService } from '@concepta/nestjs-email';
-import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server-auth.constants';
+import { ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server-auth.constants';
 
 describe(RocketsServerAuthNotificationService.name, () => {
   let service: RocketsServerAuthNotificationService;
@@ -41,7 +41,7 @@ describe(RocketsServerAuthNotificationService.name, () => {
       providers: [
         RocketsServerAuthNotificationService,
         {
-          provide: ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+          provide: ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
           useValue: mockSettings,
         },
         {
@@ -128,7 +128,7 @@ describe(RocketsServerAuthNotificationService.name, () => {
         providers: [
           RocketsServerAuthNotificationService,
           {
-            provide: ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+            provide: ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
             useValue: customSettings,
           },
           {

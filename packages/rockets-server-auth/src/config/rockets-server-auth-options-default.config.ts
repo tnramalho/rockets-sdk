@@ -1,7 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
 import { RocketsServerAuthSettingsInterface } from '../interfaces/rockets-server-auth-settings.interface';
-import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server-auth.constants';
+import { ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server-auth.constants';
 
 /**
  * Authentication combined configuration
@@ -9,7 +9,7 @@ import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets
  * This combines all authentication-related configurations into a single namespace.
  */
 export const rocketsServerAuthOptionsDefaultConfig = registerAs(
-  ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+  ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   (): RocketsServerAuthSettingsInterface => {
     return {
       role: {

@@ -66,7 +66,7 @@ import { RocketsServerAuthAdminModule } from './modules/admin/rockets-server-aut
 import { RocketsServerAuthSignUpModule } from './modules/admin/rockets-server-auth-signup.module';
 import { RocketsServerAuthUserModule } from './modules/admin/rockets-server-auth-user.module';
 import {
-  ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+  ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerAuthUserModelService,
 } from './rockets-server-auth.constants';
 import { RocketsServerAuthNotificationService } from './services/rockets-server-auth-notification.service';
@@ -173,7 +173,7 @@ export function createRocketsServerAuthSettingsProvider(
     RocketsServerAuthSettingsInterface,
     RocketsServerAuthOptionsInterface
   >({
-    settingsToken: ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+    settingsToken: ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
     optionsToken: RAW_OPTIONS_TOKEN,
     settingsKey: rocketsServerAuthOptionsDefaultConfig.KEY,
     optionsOverrides,
@@ -522,7 +522,7 @@ export function createRocketsServerAuthExports(options: {
     ...(options.exports || []),
     ConfigModule,
     RAW_OPTIONS_TOKEN,
-    ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+    ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
     JwtModule,
     AuthJwtModule,
     AuthAppleModule,

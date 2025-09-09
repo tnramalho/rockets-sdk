@@ -2,7 +2,7 @@
 export { RocketsServerAuthModule } from './rockets-server-auth.module';
 
 // Export constants
-export { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from './rockets-server-auth.constants';
+export { ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN as ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from './rockets-server-auth.constants';
 
 // Export configuration
 export { rocketsServerAuthOptionsDefaultConfig } from './config/rockets-server-auth-options-default.config';

@@ -6,7 +6,7 @@ import { RocketsServerAuthOtpNotificationServiceInterface } from '../interfaces/
 import { RocketsServerAuthSettingsInterface } from '../interfaces/rockets-server-auth-settings.interface';
 import { RocketsServerAuthNotificationService } from './rockets-server-auth-notification.service';
 import {
-  ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+  ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsServerAuthUserModelService,
 } from '../rockets-server-auth.constants';
 
@@ -91,7 +91,7 @@ describe(RocketsServerAuthOtpService.name, () => {
       providers: [
         RocketsServerAuthOtpService,
         {
-          provide: ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+          provide: ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
           useValue: mockSettings,
         },
         {
