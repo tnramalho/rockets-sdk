@@ -75,7 +75,7 @@ export interface RocketsServerAuthOptionsInterface {
    * Auth JWT module options
    * Used in: AuthJwtModule.forRootAsync
    */
-  authJwt?: AuthJwtOptionsInterface;
+  authJwt?: Partial<AuthJwtOptionsInterface>;
 
   /**
    * Auth Guard Router module options

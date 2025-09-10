@@ -1,5 +1,5 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { RocketsServerAsyncOptions, RocketsServerModuleClass } from './rockets-server.module-definition';
+import { RocketsServerAsyncOptions, RocketsServerModuleClass, RocketsServerOptions } from './rockets-server.module-definition';
 
 
 /**
@@ -10,6 +10,9 @@ import { RocketsServerAsyncOptions, RocketsServerModuleClass } from './rockets-s
  */
 @Module({})
 export class RocketsServerModule extends RocketsServerModuleClass {
+  static forRoot(options: RocketsServerOptions): DynamicModule {
+    return super.register({ ...options, global: true });
+  }
   static forRootAsync(options: RocketsServerAsyncOptions): DynamicModule {
     return super.registerAsync({
       ...options,

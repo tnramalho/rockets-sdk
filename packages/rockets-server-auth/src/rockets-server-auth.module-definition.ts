@@ -258,7 +258,7 @@ export function createRocketsServerAuthImports(options: {
         userModelService: UserModelService,
       ): AuthJwtOptionsInterface => {
         return {
-          appGuard: options.authJwt?.appGuard,
+          appGuard: options.authJwt?.appGuard || false,
           verifyTokenService:
             options.authJwt?.verifyTokenService ||
             options.services?.verifyTokenService,

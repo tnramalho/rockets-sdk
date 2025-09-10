@@ -29,12 +29,17 @@
     "@nestjs/swagger": "^7.4.0"
   },
   "devDependencies": {
+    "@bitwild/rockets-server-auth": "^0.1.0-dev.8",
+    "@concepta/nestjs-crud": "^7.0.0-alpha.7",
     "@nestjs/platform-express": "^10.4.1",
     "@nestjs/testing": "^10.4.1",
+    "@nestjs/typeorm": "^10.0.2",
     "@types/supertest": "^6.0.2",
     "jest-mock-extended": "^2.0.9",
+    "sqlite3": "^5.1.6",
     "supertest": "^6.3.4",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typeorm": "^0.3.20"
   },
   "peerDependencies": {
     "class-transformer": "*",

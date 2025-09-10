@@ -4,12 +4,20 @@ import {
   DynamicModule,
   Provider,
 } from '@nestjs/common';
-import { ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from './rockets-server.constants';
+import { RocketsServerAuthProvider, ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from './rockets-server.constants';
+import { MeController } from './controllers/user.controller';
+
+import { AuthProviderInterface } from './interfaces/auth-provider.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { ConfigModule } from '@nestjs/config';
+import { AuthJwtModule } from '@concepta/nestjs-auth-jwt';
+import { JwtModule } from '@concepta/nestjs-jwt';
+import type { AuthJwtOptionsInterface } from '@concepta/nestjs-auth-jwt/dist/interfaces/auth-jwt-options.interface';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
 import { rocketsServerOptionsDefaultConfig } from './config/rockets-server-options-default.config';
+import { ProviderUserModelService } from './guards/provider-user-model.service';
+import { ProviderVerifyTokenService } from './guards/provider-verify-token.service';
 
 const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
 
@@ -67,7 +75,7 @@ export function createRocketsServerControllers(options: {
   extras?: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['controllers'] {
   return (() => {
-    const list: DynamicModule['controllers'] = [];
+    const list: DynamicModule['controllers'] = [MeController];
 
     return list;
   })();
@@ -97,7 +105,29 @@ export function createRocketsServerImports(options: {
   
   const imports: DynamicModule['imports'] = [
     ...(options.imports || []),
-    
+    ConfigModule.forFeature(rocketsServerOptionsDefaultConfig),
+    JwtModule.forRoot({}),
+    // This exports the AuthJWTGuard
+    // that will be validated based on overrides properties
+    AuthJwtModule.forRootAsync({
+      inject: [
+        RAW_OPTIONS_TOKEN,
+        ProviderUserModelService,
+        ProviderVerifyTokenService
+      ],
+      useFactory: (
+        opts: RocketsServerOptionsInterface,
+        providerUserModelService: ProviderUserModelService,
+        providerVerifyTokenService: ProviderVerifyTokenService,
+      ): AuthJwtOptionsInterface => {
+        return {
+          // get the user based on sub
+          userModelService: opts.services?.userModelService || providerUserModelService,
+          // verify and decode the token
+          verifyTokenService: opts.services?.verifyTokenService || providerVerifyTokenService,
+        };
+      },
+    }),
   ];
 
   return imports;
@@ -115,7 +145,8 @@ export function createRocketsServerExports(options: {
     ConfigModule,
     RAW_OPTIONS_TOKEN,
     ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
- 
+    ProviderVerifyTokenService,
+    ProviderUserModelService,
   ];
 }
 
@@ -129,6 +160,14 @@ export function createRocketsServerProviders(options: {
   return [
     ...(options.providers ?? []),
     createRocketsServerSettingsProvider(),
-    
+    {
+      provide: RocketsServerAuthProvider,
+      inject: [RAW_OPTIONS_TOKEN],
+      useFactory: (opts: RocketsServerOptionsInterface): AuthProviderInterface => {
+        return opts.services.authProvider;
+      },
+    },
+    ProviderVerifyTokenService,
+    ProviderUserModelService,
   ];
 }

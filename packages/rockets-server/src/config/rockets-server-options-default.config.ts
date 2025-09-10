@@ -12,4 +12,4 @@ export const rocketsServerOptionsDefaultConfig = registerAs(
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   (): RocketsServerSettingsInterface => {
     return {}
-);
+  });
