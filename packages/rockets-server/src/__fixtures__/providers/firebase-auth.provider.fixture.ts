@@ -4,25 +4,14 @@ import { AuthorizedUser } from '../../interfaces/auth-user.interface';
 
 @Injectable()
 export class FirebaseAuthProviderFixture implements AuthProviderInterface {
-  async verifyToken(bearerToken: string): Promise<AuthorizedUser> {
-    // pretend validate against Firebase and decode claims
-    const decoded: any = { sub: 'firebase-user-1', email: 'firebase@example.com', roles: ['user'] };
+  async validateToken(token: string): Promise<AuthorizedUser> {
+    // Simple test implementation - always returns the same user
     return {
-      sub: decoded.sub,
-      id: decoded.sub,
-      email: decoded.email,
-      roles: decoded.roles,
-      claims: decoded,
+      id: 'firebase-user-1',
+      sub: 'firebase-user-1',
+      email: 'firebase@example.com',
+      roles: ['user'],
+      claims: { sub: 'firebase-user-1', email: 'firebase@example.com', roles: ['user'] },
     };
   }
-
-  async getUserBySubject(subject: string): Promise<{ id: string } | null> {
-    return { id: subject };
-  }
-
-  getProviderInfo() {
-    return { name: 'firebase-fixture', type: 'firebase' as const, version: 'fixture' };
-  }
 }
-
-

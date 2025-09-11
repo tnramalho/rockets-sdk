@@ -1,17 +1,17 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 import { AuthUser } from '@concepta/nestjs-authentication';
+import { AuthGuard, Public } from '../guards/auth.guard';
 import type { AuthorizedUser } from '../interfaces/auth-user.interface';
 
 @Controller('me')
-@UseGuards(AuthJwtGuard)
+@UseGuards(AuthGuard)
 export class MeController {
   @Get()
   me(@AuthUser() user: AuthorizedUser) {
     //TODO: return rockets user
     // get with metadata
     // get profile by uId
-    const metadata = {};
+    const metadata: Record<string, unknown> = {};
     return {
       // not in our database
       ...user,
@@ -19,6 +19,12 @@ export class MeController {
       metadata
     };
   }
+
+  @Get('public')
+  @Public(true) // Example of public route
+  publicEndpoint(): { message: string } {
+    return {
+      message: 'This is a public endpoint'
+    };
+  }
 }
-
-
