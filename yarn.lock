@@ -491,6 +491,7 @@ __metadata:
   resolution: "@bitwild/rockets-server@workspace:packages/rockets-server"
   dependencies:
     "@bitwild/rockets-server-auth": "npm:^0.1.0-dev.8"
+    "@concepta/nestjs-authentication": "npm:^7.0.0-alpha.7"
     "@concepta/nestjs-common": "npm:^7.0.0-alpha.7"
     "@concepta/nestjs-crud": "npm:^7.0.0-alpha.7"
     "@nestjs/common": "npm:^10.4.1"
