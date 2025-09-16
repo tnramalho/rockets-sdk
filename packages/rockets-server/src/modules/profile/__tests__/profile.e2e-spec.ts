@@ -2,12 +2,11 @@ import {
   INestApplication,
   Controller,
   Get,
-  Patch,
-  Body,
   Module,
   Global,
 } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AuthUser } from '@concepta/nestjs-authentication';
 import { AuthorizedUser } from '../../../interfaces/auth-user.interface';
@@ -15,7 +14,6 @@ import { UserUpdateDto } from '../../user/user.dto';
 import { IsString, IsOptional } from 'class-validator';
 
 import { ServerAuthProviderFixture } from '../../../__fixtures__/providers/server-auth.provider.fixture';
-import { ProfileEntityFixture } from '../../../__fixtures__/entities/profile.entity.fixture';
 import { ProfileRepositoryFixture } from '../../../__fixtures__/repositories/profile.repository.fixture';
 import { RocketsServerOptionsInterface } from '../../../interfaces/rockets-server-options.interface';
 import { RocketsServerModule } from '../../../rockets-server.module';
@@ -91,9 +89,11 @@ class TestProfileUpdateDto
 }
 
 // Test controller for profile testing
+@ApiTags('profile-test')
 @Controller('profile-test')
 class ProfileTestController {
   @Get('protected')
+  @ApiOkResponse({ description: 'Protected route response' })
   protectedRoute(@AuthUser() user: AuthorizedUser): {
     message: string;
     user: AuthorizedUser;

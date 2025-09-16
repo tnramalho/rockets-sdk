@@ -6,7 +6,7 @@ import {
   IsDateString,
   IsObject,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   BaseProfileCreateDto,
   BaseProfileUpdateDto,
@@ -36,100 +36,89 @@ export class ExampleProfileCreateDto
   extends BaseProfileCreateDto
   implements ProfileCreatableInterface
 {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User first name',
     example: 'John',
-    required: false,
   })
   @IsOptional()
   @IsString()
   firstName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User last name',
     example: 'Doe',
-    required: false,
   })
   @IsOptional()
   @IsString()
   lastName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User email address',
     example: 'john.doe@example.com',
-    required: false,
   })
   @IsOptional()
   @IsEmail()
   email?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User phone number',
     example: '+1234567890',
-    required: false,
   })
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User avatar URL',
     example: 'https://example.com/avatar.jpg',
-    required: false,
   })
   @IsOptional()
   @IsUrl()
   avatar?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User bio',
     example: 'Software Developer',
-    required: false,
   })
   @IsOptional()
   @IsString()
   bio?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User date of birth',
     example: '1990-01-01',
-    required: false,
   })
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User location',
     example: 'New York, NY',
-    required: false,
   })
   @IsOptional()
   @IsString()
   location?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User website',
     example: 'https://johndoe.com',
-    required: false,
   })
   @IsOptional()
   @IsUrl()
   website?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User social links',
     example: { twitter: '@johndoe', linkedin: 'johndoe' },
-    required: false,
   })
   @IsOptional()
   @IsObject()
   socialLinks?: Record<string, string>;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User preferences',
     example: { theme: 'dark', notifications: true },
-    required: false,
   })
   @IsOptional()
   @IsObject()
@@ -152,100 +141,89 @@ export class ExampleProfileUpdateDto
   })
   @IsString()
   id!: string;
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User first name',
     example: 'John',
-    required: false,
   })
   @IsOptional()
   @IsString()
   firstName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User last name',
     example: 'Doe',
-    required: false,
   })
   @IsOptional()
   @IsString()
   lastName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User email address',
     example: 'john.doe@example.com',
-    required: false,
   })
   @IsOptional()
   @IsEmail()
   email?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User phone number',
     example: '+1234567890',
-    required: false,
   })
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User avatar URL',
     example: 'https://example.com/avatar.jpg',
-    required: false,
   })
   @IsOptional()
   @IsUrl()
   avatar?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User bio',
     example: 'Software Developer',
-    required: false,
   })
   @IsOptional()
   @IsString()
   bio?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User date of birth',
     example: '1990-01-01',
-    required: false,
   })
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User location',
     example: 'New York, NY',
-    required: false,
   })
   @IsOptional()
   @IsString()
   location?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User website',
     example: 'https://johndoe.com',
-    required: false,
   })
   @IsOptional()
   @IsUrl()
   website?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User social links',
     example: { twitter: '@johndoe', linkedin: 'johndoe' },
-    required: false,
   })
   @IsOptional()
   @IsObject()
   socialLinks?: Record<string, string>;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User preferences',
     example: { theme: 'dark', notifications: true },
-    required: false,
   })
   @IsOptional()
   @IsObject()

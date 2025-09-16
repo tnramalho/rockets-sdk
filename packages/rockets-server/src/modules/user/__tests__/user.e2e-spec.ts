@@ -1,5 +1,12 @@
-import { INestApplication, Controller, Get, Patch, Body, Module, Global } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import {
+  INestApplication,
+  Controller,
+  Get,
+  Module,
+  Global,
+} from '@nestjs/common';
+import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
+import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AuthUser } from '@concepta/nestjs-authentication';
 import { AuthorizedUser } from '../../../interfaces/auth-user.interface';
@@ -7,7 +14,6 @@ import { UserUpdateDto } from '../user.dto';
 import { IsString, IsOptional } from 'class-validator';
 
 import { ServerAuthProviderFixture } from '../../../__fixtures__/providers/server-auth.provider.fixture';
-import { ProfileEntityFixture } from '../../../__fixtures__/entities/profile.entity.fixture';
 import { ProfileRepositoryFixture } from '../../../__fixtures__/repositories/profile.repository.fixture';
 import { RocketsServerOptionsInterface } from '../../../interfaces/rockets-server-options.interface';
 import { RocketsServerModule } from '../../../rockets-server.module';
@@ -15,75 +21,86 @@ import { getDynamicRepositoryToken } from '@concepta/nestjs-common';
 import { PROFILE_MODULE_PROFILE_ENTITY_KEY } from '../../profile/constants/profile.constants';
 
 // Custom DTOs for testing - extending base DTOs
-import { 
-  BaseProfileCreateDto, 
-  BaseProfileUpdateDto, 
+import {
+  BaseProfileCreateDto,
+  BaseProfileUpdateDto,
   ProfileCreatableInterface,
-  ProfileModelUpdatableInterface 
+  ProfileModelUpdatableInterface,
 } from '../../profile/interfaces/profile.interface';
 
-class TestProfileCreateDto extends BaseProfileCreateDto implements ProfileCreatableInterface {
+class TestProfileCreateDto
+  extends BaseProfileCreateDto
+  implements ProfileCreatableInterface
+{
   @IsString()
   userId!: string;
-  
+
   @IsOptional()
   @IsString()
   firstName?: string;
-  
+
   @IsOptional()
   @IsString()
   lastName?: string;
-  
+
   @IsOptional()
   @IsString()
   email?: string;
-  
+
   @IsOptional()
   @IsString()
   bio?: string;
-  
+
   @IsOptional()
   @IsString()
   location?: string;
-  
+
   [key: string]: unknown;
 }
 
-class TestProfileUpdateDto extends BaseProfileUpdateDto implements ProfileModelUpdatableInterface {
+class TestProfileUpdateDto
+  extends BaseProfileUpdateDto
+  implements ProfileModelUpdatableInterface
+{
   @IsString()
   id!: string;
-  
+
   @IsOptional()
   @IsString()
   firstName?: string;
-  
+
   @IsOptional()
   @IsString()
   lastName?: string;
-  
+
   @IsOptional()
   @IsString()
   email?: string;
-  
+
   @IsOptional()
   @IsString()
   bio?: string;
-  
+
   @IsOptional()
   @IsString()
   location?: string;
-  
+
   [key: string]: unknown;
 }
 
 // Test controller for user testing
+@ApiTags('user-test')
 @Controller('user-test')
 class UserTestController {
   @Get('protected')
-  protectedRoute(@AuthUser() user: AuthorizedUser): { message: string; user: AuthorizedUser } {
+  @ApiOkResponse({ description: 'Protected route response' })
+  protectedRoute(@AuthUser() user: AuthorizedUser): {
+    message: string;
+    user: AuthorizedUser;
+  } {
     return {
       message: 'This is a protected route',
-      user
+      user,
     };
   }
 }
@@ -98,7 +115,7 @@ class UserTestController {
       useFactory: () => {
         return new ProfileRepositoryFixture();
       },
-    }
+    },
   ],
   exports: [
     {
@@ -131,10 +148,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
   describe('User Functionality', () => {
     it('GET /user should return user data with profile when profile exists', async () => {
       const moduleRef = await Test.createTestingModule({
-        imports: [
-          UserTestModule,
-          RocketsServerModule.forRoot(baseOptions),
-        ],
+        imports: [UserTestModule, RocketsServerModule.forRoot(baseOptions)],
       }).compile();
 
       app = moduleRef.createNestApplication();
@@ -158,17 +172,14 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
           bio: 'Test user profile',
           location: 'Test City',
           dateCreated: expect.any(String),
-          dateUpdated: expect.any(String)
-        }
+          dateUpdated: expect.any(String),
+        },
       });
     });
 
     it('PATCH /user should create new profile for user', async () => {
       const moduleRef = await Test.createTestingModule({
-        imports: [
-          UserTestModule,
-          RocketsServerModule.forRoot(baseOptions),
-        ],
+        imports: [UserTestModule, RocketsServerModule.forRoot(baseOptions)],
       }).compile();
 
       app = moduleRef.createNestApplication();
@@ -179,7 +190,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
           firstName: 'Updated',
           lastName: 'Name',
           bio: 'Updated bio',
-        }
+        },
       };
 
       const res = await request(app.getHttpServer())
@@ -200,8 +211,8 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
           lastName: 'Name',
           bio: 'Updated bio',
           dateCreated: expect.any(String),
-          dateUpdated: expect.any(String)
-        }
+          dateUpdated: expect.any(String),
+        },
       });
     });
 

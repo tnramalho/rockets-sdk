@@ -7,28 +7,27 @@ import { ProfileEntityFixture } from '../entities/profile.entity.fixture';
 export class ProfileRepositoryFixture
   implements RepositoryInterface<BaseProfileEntityInterface>
 {
-  private profiles: Map<string, BaseProfileEntityInterface> = new Map();
-
+  private profiles: Map<string, ProfileEntityFixture> = new Map();
   constructor() {
     // Initialize with some test data
     const profile1 = new ProfileEntityFixture({
       id: 'profile-1',
       userId: 'serverauth-user-1',
     });
-    (profile1 as any).firstName = 'John';
-    (profile1 as any).lastName = 'Doe';
-    (profile1 as any).bio = 'Test user profile';
-    (profile1 as any).location = 'Test City';
+    profile1.firstName = 'John';
+    profile1.lastName = 'Doe';
+    profile1.bio = 'Test user profile';
+    profile1.location = 'Test City';
     this.profiles.set('profile-1', profile1);
 
     const profile2 = new ProfileEntityFixture({
       id: 'profile-2',
       userId: 'firebase-user-1',
     });
-    (profile2 as any).firstName = 'Jane';
-    (profile2 as any).lastName = 'Smith';
-    (profile2 as any).bio = 'Firebase user profile';
-    (profile2 as any).location = 'Firebase City';
+    profile2.firstName = 'Jane';
+    profile2.lastName = 'Smith';
+    profile2.bio = 'Firebase user profile';
+    profile2.location = 'Firebase City';
     this.profiles.set('profile-2', profile2);
   }
 
@@ -45,7 +44,10 @@ export class ProfileRepositoryFixture
         return profile;
       }
       // Check profile fields for email if it exists
-      if (where.email && (profile as any).email === where.email) {
+      if (
+        where.email &&
+        profile.email === where.email
+      ) {
         return profile;
       }
     }
@@ -69,15 +71,15 @@ export class ProfileRepositoryFixture
 
   async save<T extends Partial<BaseProfileEntityInterface>>(
     entities: T[],
-    options?: any,
+    options?: unknown,
   ): Promise<(T & BaseProfileEntityInterface)[]>;
   async save<T extends Partial<BaseProfileEntityInterface>>(
     entity: T,
-    options?: any,
+    options?: unknown,
   ): Promise<T & BaseProfileEntityInterface>;
   async save<T extends Partial<BaseProfileEntityInterface>>(
     entity: T | T[],
-    options?: any,
+    options?: unknown,
   ): Promise<
     (T & BaseProfileEntityInterface) | (T & BaseProfileEntityInterface)[]
   > {
@@ -197,19 +199,19 @@ export class ProfileRepositoryFixture
     return entity;
   }
 
-  gt<T>(value: T): any {
+  gt<T>(value: T): { $gt: T } {
     return { $gt: value };
   }
 
-  gte<T>(value: T): any {
+  gte<T>(value: T): { $gte: T } {
     return { $gte: value };
   }
 
-  lt<T>(value: T): any {
+  lt<T>(value: T): { $lt: T } {
     return { $lt: value };
   }
 
-  lte<T>(value: T): any {
+  lte<T>(value: T): { $lte: T } {
     return { $lte: value };
   }
 }

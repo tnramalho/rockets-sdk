@@ -1,4 +1,4 @@
-import { IsOptional, IsObject } from 'class-validator';
+import { IsOptional, IsObject, IsDefined, Allow } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
@@ -33,33 +33,42 @@ export class UserResponseDto {
     description: 'User ID from auth provider',
     example: 'user-123',
   })
+  @IsDefined()
+  @Allow()
   id: string;
 
   @ApiProperty({
     description: 'User subject from auth provider',
     example: 'user-123',
   })
+  @IsDefined()
+  @Allow()
   sub: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User email from auth provider',
     example: 'user@example.com',
-    required: false,
   })
+  @IsOptional()
+  @Allow()
   email?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User roles from auth provider',
     example: ['user', 'admin'],
-    required: false,
+    isArray: true,
   })
+  @IsOptional()
+  @Allow()
   roles?: string[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User claims from auth provider',
     example: { iss: 'auth-provider', aud: 'app' },
-    required: false,
   })
+  @IsOptional()
+  @IsObject()
+  @Allow()
   claims?: Record<string, unknown>;
 
   @ApiPropertyOptional({

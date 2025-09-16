@@ -27,7 +27,7 @@ export class ProfileEntityFixture implements BaseProfileEntityInterface {
   preferences?: Record<string, unknown>;
   username?: string;
 
-  constructor(data: Partial<BaseProfileEntityInterface> = {}) {
+  constructor(data: Partial<ProfileEntityFixture> = {}) {
     this.id = data.id || `profile-${Date.now()}`;
     this.userId = data.userId || `user-${Date.now()}`;
     this.dateCreated = data.dateCreated || new Date();
@@ -36,7 +36,8 @@ export class ProfileEntityFixture implements BaseProfileEntityInterface {
     this.version = data.version || 1;
 
     // Initialize custom fields from data
-    const customData = data as any;
+    const customData = data as Partial<ProfileEntityFixture> &
+      Record<string, unknown>;
     this.firstName = customData.firstName;
     this.lastName = customData.lastName;
     this.email = customData.email;
@@ -46,8 +47,6 @@ export class ProfileEntityFixture implements BaseProfileEntityInterface {
     this.dateOfBirth = customData.dateOfBirth;
     this.location = customData.location;
     this.website = customData.website;
-    this.socialLinks = customData.socialLinks;
-    this.preferences = customData.preferences;
     this.username = customData.username;
   }
 }

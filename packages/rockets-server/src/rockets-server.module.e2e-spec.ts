@@ -7,6 +7,7 @@ import {
   HttpCode,
   Global,
 } from '@nestjs/common';
+import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AuthUser } from '@concepta/nestjs-authentication';
@@ -27,9 +28,11 @@ import { getDynamicRepositoryToken } from '@concepta/nestjs-common';
 import { PROFILE_MODULE_PROFILE_ENTITY_KEY } from './modules/profile/constants/profile.constants';
 
 // Test controller for comprehensive AuthGuard testing
+@ApiTags('test')
 @Controller('test')
 class TestController {
   @Get('protected')
+  @ApiOkResponse({ description: 'Protected route response' })
   protectedRoute(@AuthUser() user: AuthorizedUser): {
     message: string;
     user: AuthorizedUser;
@@ -42,6 +45,7 @@ class TestController {
 
   @Get('public')
   @Public(true)
+  @ApiOkResponse({ description: 'Public route response' })
   publicRoute(): { message: string } {
     return {
       message: 'This is a public route',
@@ -50,6 +54,7 @@ class TestController {
 
   @Post('admin-only')
   @HttpCode(200)
+  @ApiOkResponse({ description: 'Admin only route response' })
   adminOnlyRoute(@AuthUser() user: AuthorizedUser): {
     message: string;
     user: AuthorizedUser;
@@ -61,6 +66,7 @@ class TestController {
   }
 
   @Get('user-data')
+  @ApiOkResponse({ description: 'User data response' })
   getUserData(@AuthUser() user: AuthorizedUser): {
     id: string;
     email: string;
