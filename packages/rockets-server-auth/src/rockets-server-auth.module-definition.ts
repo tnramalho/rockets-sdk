@@ -120,7 +120,8 @@ function definitionTransform(
     ...definition,
     global: extras.global,
     imports: createRocketsServerAuthImports({ imports, extras }),
-    controllers: createRocketsServerAuthControllers({ controllers, extras }) || [],
+    controllers:
+      createRocketsServerAuthControllers({ controllers, extras }) || [],
     providers: [...createRocketsServerAuthProviders({ providers, extras })],
     exports: createRocketsServerAuthExports({ exports, extras }),
   };
@@ -258,7 +259,7 @@ export function createRocketsServerAuthImports(options: {
         userModelService: UserModelService,
       ): AuthJwtOptionsInterface => {
         return {
-          appGuard: options.authJwt?.appGuard || false,
+          appGuard: options.authJwt?.appGuard,
           verifyTokenService:
             options.authJwt?.verifyTokenService ||
             options.services?.verifyTokenService,
@@ -494,7 +495,9 @@ export function createRocketsServerAuthImports(options: {
     RoleModule.forRootAsync({
       imports: [...(options.extras?.role?.imports || [])],
       inject: [RAW_OPTIONS_TOKEN],
-      useFactory: (rocketsServerAuthOptions: RocketsServerAuthOptionsInterface) => ({
+      useFactory: (
+        rocketsServerAuthOptions: RocketsServerAuthOptionsInterface,
+      ) => ({
         roleModelService: rocketsServerAuthOptions.role?.roleModelService,
         settings: {
           ...rocketsServerAuthOptions.role?.settings,

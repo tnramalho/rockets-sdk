@@ -42,20 +42,21 @@ import { RocketsServerAuthRecoveryController } from './controllers/auth/auth-rec
 import { RocketsServerAuthOtpController } from './controllers/otp/rockets-server-auth-otp.controller';
 import { AuthOAuthController } from './controllers/oauth/auth-oauth.controller';
 // Mock user lookup service
-export const mockUserModelService: RocketsServerAuthUserModelServiceInterface = {
-  bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  byEmail: jest.fn().mockResolvedValue({
-    id: '1',
-    username: 'test',
-    email: 'test@example.com',
-  }),
-  update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-  remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
-};
+export const mockUserModelService: RocketsServerAuthUserModelServiceInterface =
+  {
+    bySubject: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    byUsername: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    byId: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    byEmail: jest.fn().mockResolvedValue({
+      id: '1',
+      username: 'test',
+      email: 'test@example.com',
+    }),
+    update: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    create: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    replace: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+    remove: jest.fn().mockResolvedValue({ id: '1', username: 'test' }),
+  };
 
 // Mock email service
 export const mockEmailService: EmailSendInterface = {
@@ -580,7 +581,9 @@ describe('AuthenticationCombinedImportModule Integration', () => {
 
       expect(() => testModule.get(AuthPasswordController)).toThrow();
       expect(() => testModule.get(AuthTokenRefreshController)).toThrow();
-      expect(() => testModule.get(RocketsServerAuthRecoveryController)).toThrow();
+      expect(() =>
+        testModule.get(RocketsServerAuthRecoveryController),
+      ).toThrow();
       expect(() => testModule.get(RocketsServerAuthOtpController)).toThrow();
       expect(() => testModule.get(AuthOAuthController)).toThrow();
     });

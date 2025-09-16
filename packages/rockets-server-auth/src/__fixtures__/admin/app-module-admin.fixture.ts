@@ -17,6 +17,7 @@ import { RocketsServerAuthUserCreateDto } from '../../dto/user/rockets-server-au
 import { RocketsServerAuthUserUpdateDto } from '../../dto/user/rockets-server-auth-user-update.dto';
 import { RocketsServerAuthUserDto } from '../../dto/user/rockets-server-auth-user.dto';
 import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
+import { AuthJwtGuard } from '@concepta/nestjs-auth-jwt';
 
 @Global()
 @Module({
@@ -63,7 +64,6 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
     RocketsServerAuthModule.forRootAsync({
       userCrud: {
         imports: [TypeOrmModule.forFeature([UserFixture])],
-        // entity: UserFixture,
         adapter: AdminUserTypeOrmCrudAdapter,
         model: RocketsServerAuthUserDto,
         dto: {
@@ -71,7 +71,11 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
           updateOne: RocketsServerAuthUserUpdateDto,
         },
       },
+      inject: [],
       useFactory: () => ({
+        // authJwt: {
+        //   appGuard: true
+        // },
         jwt: {
           settings: {
             access: { secret: 'test-secret' },

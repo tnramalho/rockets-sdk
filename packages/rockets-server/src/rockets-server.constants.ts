@@ -4,4 +4,4 @@ export const ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN =
 export const ROCKETS_SERVER_MODULE_OPTIONS_TOKEN =
   'ROCKETS_SERVER_MODULE_OPTIONS_TOKEN';
 
-  export const RocketsServerAuthProvider = Symbol('ROCKETS_SERVER_AUTH_PROVIDER');
+export const RocketsServerAuthProvider = Symbol('ROCKETS_SERVER_AUTH_PROVIDER');

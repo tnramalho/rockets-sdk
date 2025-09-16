@@ -5,8 +5,11 @@ import {
   Provider,
 } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { RocketsServerAuthProvider, ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from './rockets-server.constants';
-import { MeController } from './controllers/user.controller';
+import {
+  RocketsServerAuthProvider,
+  ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
+} from './rockets-server.constants';
+import { MeController } from './modules/user/user.controller';
 import { AuthProviderInterface } from './interfaces/auth-provider.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
@@ -14,8 +17,18 @@ import { ConfigModule } from '@nestjs/config';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
 import { rocketsServerOptionsDefaultConfig } from './config/rockets-server-options-default.config';
 import { AuthGuard } from './guards/auth.guard';
+import { GenericProfileModelService } from './modules/profile/services/profile.model.service';
+import {
+  ProfileModelService,
+  PROFILE_MODULE_PROFILE_ENTITY_KEY,
+} from './modules/profile/constants/profile.constants';
+import {
+  getDynamicRepositoryToken,
+  RepositoryInterface,
+} from '@concepta/nestjs-common';
+import { ProfileEntityInterface } from './modules/profile/interfaces/profile.interface';
 
-const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
+import { RAW_OPTIONS_TOKEN } from './rockets-server.tokens';
 
 export const {
   ConfigurableModuleClass: RocketsServerModuleClass,
@@ -26,9 +39,7 @@ export const {
   optionsInjectionToken: RAW_OPTIONS_TOKEN,
 })
   .setExtras<RocketsServerOptionsExtrasInterface>(
-    {
-      global: false,
-    },
+    { global: false },
     definitionTransform,
   )
   .build();
@@ -45,18 +56,19 @@ export type RocketsServerAsyncOptions = Omit<
 
 /**
  * Transform the definition to include the combined modules
+ * Follows SDK patterns for module transformation
  */
 function definitionTransform(
   definition: DynamicModule,
   extras: RocketsServerOptionsExtrasInterface,
 ): DynamicModule {
-  const { imports = [], providers = [], exports = [] } = definition;
+  const { imports: defImports = [], providers = [], exports = [] } = definition;
 
   // Base module
   const baseModule: DynamicModule = {
     ...definition,
     global: extras.global,
-    imports: createRocketsServerImports({ imports, extras }),
+    imports: [...createRocketsServerImports({ imports: defImports, extras })],
     controllers: createRocketsServerControllers({ extras }) || [],
     providers: [...createRocketsServerProviders({ providers, extras })],
     exports: createRocketsServerExports({ exports, extras }),
@@ -65,7 +77,11 @@ function definitionTransform(
   return baseModule;
 }
 
-export function createRocketsServerControllers(options: {
+/**
+ * Create controllers for the combined module
+ * Follows SDK patterns for controller creation
+ */
+export function createRocketsServerControllers(_options: {
   controllers?: DynamicModule['controllers'];
   extras?: RocketsServerOptionsExtrasInterface;
 }): DynamicModule['controllers'] {
@@ -75,6 +91,10 @@ export function createRocketsServerControllers(options: {
   })();
 }
 
+/**
+ * Create settings provider
+ * Follows SDK patterns for settings providers
+ */
 export function createRocketsServerSettingsProvider(
   optionsOverrides?: RocketsServerOptionsInterface,
 ): Provider {
@@ -91,22 +111,22 @@ export function createRocketsServerSettingsProvider(
 
 /**
  * Create imports for the combined module
+ * Follows SDK patterns for import creation
  */
 export function createRocketsServerImports(options: {
-  imports: DynamicModule['imports'];
+  imports?: DynamicModule['imports'];
   extras?: RocketsServerOptionsExtrasInterface;
-}): DynamicModule['imports'] {
-  
-  const imports: DynamicModule['imports'] = [
-    ...(options.imports || []),
+}): NonNullable<DynamicModule['imports']> {
+  const baseImports: NonNullable<DynamicModule['imports']> = [
     ConfigModule.forFeature(rocketsServerOptionsDefaultConfig),
   ];
-
-  return imports;
+  const extraImports = options.imports ?? [];
+  return [...extraImports, ...baseImports];
 }
 
 /**
  * Create exports for the combined module
+ * Follows SDK patterns for export creation
  */
 export function createRocketsServerExports(options: {
   exports: DynamicModule['exports'];
@@ -118,24 +138,43 @@ export function createRocketsServerExports(options: {
     RAW_OPTIONS_TOKEN,
     ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
     AuthGuard,
+    ProfileModelService,
   ];
 }
 
 /**
  * Create providers for the combined module
+ * Follows SDK patterns for provider creation
  */
 export function createRocketsServerProviders(options: {
   providers?: Provider[];
   extras?: RocketsServerOptionsExtrasInterface;
 }): Provider[] {
-  return [
+  const providers: Provider[] = [
     ...(options.providers ?? []),
     createRocketsServerSettingsProvider(),
     {
       provide: RocketsServerAuthProvider,
       inject: [RAW_OPTIONS_TOKEN],
-      useFactory: (opts: RocketsServerOptionsInterface): AuthProviderInterface => {
+      useFactory: (
+        opts: RocketsServerOptionsInterface,
+      ): AuthProviderInterface => {
         return opts.authProvider;
+      },
+    },
+    // Profile service provider
+    {
+      provide: ProfileModelService,
+      inject: [
+        RAW_OPTIONS_TOKEN,
+        getDynamicRepositoryToken(PROFILE_MODULE_PROFILE_ENTITY_KEY),
+      ],
+      useFactory: (
+        opts: RocketsServerOptionsInterface,
+        repository: RepositoryInterface<ProfileEntityInterface>,
+      ) => {
+        const { createDto, updateDto } = opts.profile;
+        return new GenericProfileModelService(repository, createDto, updateDto);
       },
     },
     AuthGuard,
@@ -145,4 +184,6 @@ export function createRocketsServerProviders(options: {
       useClass: AuthGuard,
     },
   ];
+
+  return providers;
 }

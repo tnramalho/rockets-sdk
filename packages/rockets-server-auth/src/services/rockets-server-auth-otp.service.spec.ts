@@ -109,7 +109,9 @@ describe(RocketsServerAuthOtpService.name, () => {
       ],
     }).compile();
 
-    service = module.get<RocketsServerAuthOtpService>(RocketsServerAuthOtpService);
+    service = module.get<RocketsServerAuthOtpService>(
+      RocketsServerAuthOtpService,
+    );
   });
 
   afterEach(() => {

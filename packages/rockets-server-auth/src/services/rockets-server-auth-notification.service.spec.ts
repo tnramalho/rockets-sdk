@@ -138,9 +138,10 @@ describe(RocketsServerAuthNotificationService.name, () => {
         ],
       }).compile();
 
-      const customService = customModule.get<RocketsServerAuthNotificationService>(
-        RocketsServerAuthNotificationService,
-      );
+      const customService =
+        customModule.get<RocketsServerAuthNotificationService>(
+          RocketsServerAuthNotificationService,
+        );
 
       const params = {
         email: 'test@example.com',

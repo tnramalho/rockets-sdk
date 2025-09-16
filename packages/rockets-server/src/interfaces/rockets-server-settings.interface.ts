@@ -1,6 +1,4 @@
 /**
  * Rockets Server settings interface
  */
-export interface RocketsServerSettingsInterface {
-
-}
+export interface RocketsServerSettingsInterface {}

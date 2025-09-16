@@ -1,6 +1,9 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { RocketsServerAsyncOptions, RocketsServerModuleClass, RocketsServerOptions } from './rockets-server.module-definition';
-
+import {
+  RocketsServerAsyncOptions,
+  RocketsServerModuleClass,
+  RocketsServerOptions,
+} from './rockets-server.module-definition';
 
 /**
  * Rockets Server module that provides core server functionality

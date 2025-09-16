@@ -1356,10 +1356,10 @@ export class ProjectEntity {
   description?: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date;
+  dateCreated!: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt!: Date;
+  dateUpdated!: Date;
 }
 ```
 
@@ -1380,10 +1380,10 @@ export class ProjectDto {
   description?: string;
 
   @ApiProperty()
-  createdAt!: Date;
+  dateCreated!: Date;
 
   @ApiProperty()
-  updatedAt!: Date;
+  dateUpdated!: Date;
 }
 
 // dto/project/project-create.dto.ts

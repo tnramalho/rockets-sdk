@@ -1,9 +1,9 @@
-import { 
-  Injectable, 
-  CanActivate, 
-  ExecutionContext, 
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
   UnauthorizedException,
-  Inject 
+  Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthProviderInterface } from '../interfaces/auth-provider.interface';
@@ -42,9 +42,9 @@ export class AuthGuard implements CanActivate {
     try {
       // Verify the token using the auth provider directly
       const user: AuthorizedUser = await this.authProvider.validateToken(token);
-      
+
       // Attach user to request for use in controllers (this makes @AuthUser() work)
-      request.user = user
+      request.user = user;
 
       return true;
     } catch (error) {
@@ -55,12 +55,14 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  private extractTokenFromHeader(request: { headers?: { authorization?: string } }): string | undefined {
+  private extractTokenFromHeader(request: {
+    headers?: { authorization?: string };
+  }): string | undefined {
     const authHeader = request.headers?.authorization;
     if (!authHeader) {
       return undefined;
     }
-    
+
     const [type, token] = authHeader.split(' ');
     return type === 'Bearer' ? token : undefined;
   }

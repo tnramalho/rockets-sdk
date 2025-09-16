@@ -10,7 +10,11 @@ import { RocketsServerAuthUserDto } from './rockets-server-auth-user.dto';
  */
 export class RocketsServerAuthUserCreateDto
   extends IntersectionType(
-    PickType(RocketsServerAuthUserDto, ['email', 'username', 'active'] as const),
+    PickType(RocketsServerAuthUserDto, [
+      'email',
+      'username',
+      'active',
+    ] as const),
     UserPasswordDto,
   )
   implements RocketsServerAuthUserCreatableInterface {}

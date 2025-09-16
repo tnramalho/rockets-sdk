@@ -5,5 +5,3 @@ export interface AuthorizedUser {
   roles?: string[];
   claims?: Record<string, unknown>;
 }
-
-

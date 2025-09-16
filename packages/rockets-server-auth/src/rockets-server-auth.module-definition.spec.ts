@@ -51,13 +51,14 @@ describe('RocketsServerAuthModuleDefinition', () => {
     verifyPassword: jest.fn(),
   };
 
-  const mockNotificationService: RocketsServerAuthNotificationServiceInterface = {
-    sendRecoverPasswordEmail: jest.fn(),
-    sendVerifyEmail: jest.fn(),
-    sendEmail: jest.fn(),
-    sendRecoverLoginEmail: jest.fn(),
-    sendPasswordUpdatedSuccessfullyEmail: jest.fn(),
-  };
+  const mockNotificationService: RocketsServerAuthNotificationServiceInterface =
+    {
+      sendRecoverPasswordEmail: jest.fn(),
+      sendVerifyEmail: jest.fn(),
+      sendEmail: jest.fn(),
+      sendRecoverLoginEmail: jest.fn(),
+      sendPasswordUpdatedSuccessfullyEmail: jest.fn(),
+    };
 
   const mockOptions: RocketsServerAuthOptionsInterface = {
     jwt: {
@@ -251,18 +252,19 @@ describe('RocketsServerAuthModuleDefinition', () => {
     });
 
     it('should handle extras with federated imports', () => {
-      const extrasWithFederatedImports: RocketsServerAuthOptionsExtrasInterface = {
-        ...mockExtras,
-        federated: {
-          imports: [
-            TypeOrmExtModule.forFeature({
-              federated: {
-                entity: FederatedEntityFixture,
-              },
-            }),
-          ],
-        },
-      };
+      const extrasWithFederatedImports: RocketsServerAuthOptionsExtrasInterface =
+        {
+          ...mockExtras,
+          federated: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                federated: {
+                  entity: FederatedEntityFixture,
+                },
+              }),
+            ],
+          },
+        };
 
       const result = createRocketsServerAuthImports({
         imports: [],
@@ -363,7 +365,9 @@ describe('RocketsServerAuthModuleDefinition', () => {
       };
 
       const imports = createRocketsServerAuthImports({ imports: [], extras });
-      const controllers = createRocketsServerAuthControllers({ controllers: [] });
+      const controllers = createRocketsServerAuthControllers({
+        controllers: [],
+      });
       const providers = createRocketsServerAuthProviders({ providers: [] });
       const exports = createRocketsServerAuthExports({ exports: [] });
 
@@ -387,7 +391,9 @@ describe('RocketsServerAuthModuleDefinition', () => {
       };
 
       const imports = createRocketsServerAuthImports({ imports: [], extras });
-      const controllers = createRocketsServerAuthControllers({ controllers: [] });
+      const controllers = createRocketsServerAuthControllers({
+        controllers: [],
+      });
       const providers = createRocketsServerAuthProviders({ providers: [] });
       const exports = createRocketsServerAuthExports({ exports: [] });
 
