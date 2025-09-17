@@ -44,10 +44,7 @@ export class ProfileRepositoryFixture
         return profile;
       }
       // Check profile fields for email if it exists
-      if (
-        where.email &&
-        profile.email === where.email
-      ) {
+      if (where.email && profile.email === where.email) {
         return profile;
       }
     }
