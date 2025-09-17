@@ -4,7 +4,7 @@ import {
   ProfileModelUpdatableInterface,
 } from '../modules/profile/interfaces/profile.interface';
 import { AuthProviderInterface } from './auth-provider.interface';
-import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui/dist/interfaces/swagger-ui-options.interface';
+import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui';
 
 /**
  * Generic profile configuration interface

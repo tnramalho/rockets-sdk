@@ -131,10 +131,7 @@ export function createRocketsServerImports(options: {
     }),
   ];
   const extraImports = options.imports ?? [];
-  return [
-    ...extraImports,
-    ...baseImports
-  ];
+  return [...extraImports, ...baseImports];
 }
 
 /**
