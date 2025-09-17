@@ -4,6 +4,7 @@ import {
   ProfileModelUpdatableInterface,
 } from '../modules/profile/interfaces/profile.interface';
 import { AuthProviderInterface } from './auth-provider.interface';
+import { SwaggerUiOptionsInterface } from '@concepta/nestjs-swagger-ui/dist/interfaces/swagger-ui-options.interface';
 
 /**
  * Generic profile configuration interface
@@ -30,7 +31,12 @@ export interface ProfileConfigInterface<
  * Rockets Server module options interface
  */
 export interface RocketsServerOptionsInterface {
-  settings: RocketsServerSettingsInterface;
+  settings?: RocketsServerSettingsInterface;
+  /**
+   * Swagger UI configuration options
+   * Used to customize the Swagger/OpenAPI documentation interface
+   */
+  swagger?: SwaggerUiOptionsInterface;
   /**
    * Auth provider implementation to validate tokens
    */

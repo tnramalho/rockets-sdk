@@ -10,6 +10,9 @@ export { AuthGuard } from './guards/auth.guard';
 export { AuthProviderInterface } from './interfaces/auth-provider.interface';
 export { AuthorizedUser } from './interfaces/auth-user.interface';
 
+// Export filters
+export { ExceptionsFilter } from './filter/exceptions.filter';
+
 // Export user components
 export { UserUpdateDto, UserResponseDto } from './modules/user/user.dto';
 export {

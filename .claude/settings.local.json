@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn test)",
+      "Bash(yarn test:e2e)",
+      "Bash(yarn test:e2e:*)",
+      "Bash(yarn build)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(npm test:*)",
+      "Bash(grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run test:e2e:*)",
+      "Bash(npm run:*)",
+      "Bash(sed:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx eslint:*)",
+      "WebFetch(domain:docs.nestjs.com)",
+      "Bash(yarn start:dev)",
+      "Bash(ls:*)",
+      "Bash(yarn install)",
+      "Bash(pkill -f \"nest start\")"
+    ],
+    "deny": []
+  }
+}

@@ -4,7 +4,8 @@ import {
   DynamicModule,
   Provider,
 } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { SwaggerUiModule } from '@concepta/nestjs-swagger-ui';
 import {
   RocketsServerAuthProvider,
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
@@ -119,9 +120,21 @@ export function createRocketsServerImports(options: {
 }): NonNullable<DynamicModule['imports']> {
   const baseImports: NonNullable<DynamicModule['imports']> = [
     ConfigModule.forFeature(rocketsServerOptionsDefaultConfig),
+    SwaggerUiModule.registerAsync({
+      inject: [RAW_OPTIONS_TOKEN],
+      useFactory: (options: RocketsServerOptionsInterface) => {
+        return {
+          documentBuilder: options.swagger?.documentBuilder,
+          settings: options.swagger?.settings,
+        };
+      },
+    }),
   ];
   const extraImports = options.imports ?? [];
-  return [...extraImports, ...baseImports];
+  return [
+    ...extraImports,
+    ...baseImports
+  ];
 }
 
 /**
@@ -137,7 +150,6 @@ export function createRocketsServerExports(options: {
     ConfigModule,
     RAW_OPTIONS_TOKEN,
     ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
-    AuthGuard,
     ProfileModelService,
   ];
 }
@@ -153,6 +165,7 @@ export function createRocketsServerProviders(options: {
   const providers: Provider[] = [
     ...(options.providers ?? []),
     createRocketsServerSettingsProvider(),
+    Reflector, // Add Reflector explicitly
     {
       provide: RocketsServerAuthProvider,
       inject: [RAW_OPTIONS_TOKEN],
@@ -177,9 +190,7 @@ export function createRocketsServerProviders(options: {
         return new GenericProfileModelService(repository, createDto, updateDto);
       },
     },
-    AuthGuard,
     {
-      // Make AuthGuard global
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
