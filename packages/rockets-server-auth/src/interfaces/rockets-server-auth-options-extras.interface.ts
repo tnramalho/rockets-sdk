@@ -30,6 +30,13 @@ export interface DisableControllerOptionsInterface {
 
 export interface RocketsServerAuthOptionsExtrasInterface
   extends Pick<DynamicModule, 'global' | 'controllers'> {
+  /**
+   * Enable global auth guard
+   * When true, registers AuthGuard as APP_GUARD globally
+   * When false, only provides AuthGuard as a service (not global)
+   * Default: true
+   */
+  enableGlobalGuard?: boolean;
   user?: { imports: DynamicModule['imports'] };
   otp?: { imports: DynamicModule['imports'] };
   federated?: { imports: DynamicModule['imports'] };

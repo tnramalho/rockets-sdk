@@ -428,7 +428,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bitwild/rockets-server-auth@npm:^0.1.0-dev.8, @bitwild/rockets-server-auth@workspace:packages/rockets-server-auth":
+"@bitwild/rockets-server-auth@npm:^0.1.0-dev.8, @bitwild/rockets-server-auth@workspace:*, @bitwild/rockets-server-auth@workspace:packages/rockets-server-auth":
   version: 0.0.0-use.local
   resolution: "@bitwild/rockets-server-auth@workspace:packages/rockets-server-auth"
   dependencies:
@@ -494,6 +494,7 @@ __metadata:
     "@concepta/nestjs-authentication": "npm:^7.0.0-alpha.7"
     "@concepta/nestjs-common": "npm:^7.0.0-alpha.7"
     "@concepta/nestjs-crud": "npm:^7.0.0-alpha.7"
+    "@concepta/nestjs-swagger-ui": "npm:^7.0.0-alpha.7"
     "@nestjs/common": "npm:^10.4.1"
     "@nestjs/config": "npm:^3.2.3"
     "@nestjs/core": "npm:^10.4.1"
@@ -3342,7 +3343,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:*, @types/jsonwebtoken@npm:^9.0.4":
+"@types/jsonwebtoken@npm:*, @types/jsonwebtoken@npm:^9.0.3, @types/jsonwebtoken@npm:^9.0.4":
   version: 9.0.10
   resolution: "@types/jsonwebtoken@npm:9.0.10"
   dependencies:
@@ -14381,12 +14382,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sample-server-auth@workspace:examples/sample-server-auth":
+  version: 0.0.0-use.local
+  resolution: "sample-server-auth@workspace:examples/sample-server-auth"
+  dependencies:
+    "@bitwild/rockets-server": "workspace:*"
+    "@bitwild/rockets-server-auth": "workspace:*"
+    "@concepta/nestjs-typeorm-ext": "npm:^7.0.0-alpha.7"
+    "@nestjs/common": "npm:10.4.19"
+    "@nestjs/core": "npm:10.4.19"
+    "@nestjs/platform-express": "npm:10.4.19"
+    "@nestjs/swagger": "npm:7.4.0"
+    "@nestjs/typeorm": "npm:10.0.2"
+    "@types/jsonwebtoken": "npm:^9.0.3"
+    "@types/node": "npm:^18.19.44"
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.14.1"
+    jsonwebtoken: "npm:^9.0.2"
+    reflect-metadata: "npm:^0.1.14"
+    rxjs: "npm:^7.8.1"
+    sqlite3: "npm:^5.1.7"
+    ts-node: "npm:^10.9.2"
+    tsconfig-paths: "npm:^4.2.0"
+    typeorm: "npm:^0.3.20"
+    typescript: "npm:^5.4.0"
+  languageName: unknown
+  linkType: soft
+
 "sample-server@workspace:examples/sample-server":
   version: 0.0.0-use.local
   resolution: "sample-server@workspace:examples/sample-server"
   dependencies:
     "@bitwild/rockets-server": "workspace:*"
-    "@concepta/nestjs-common": "npm:^7.0.0-alpha.7"
     "@concepta/nestjs-typeorm-ext": "npm:^7.0.0-alpha.7"
     "@nestjs/common": "npm:10.4.19"
     "@nestjs/core": "npm:10.4.19"

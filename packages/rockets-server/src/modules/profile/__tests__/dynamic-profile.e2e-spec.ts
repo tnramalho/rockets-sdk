@@ -177,7 +177,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
 
       // Test that the dynamic profile service is working
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer valid-token')
         .expect(200);
 
@@ -229,7 +229,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       const updateData: UserUpdateDto = customMetadata;
 
       const res = await request(app.getHttpServer())
-        .patch('/user')
+        .patch('/me')
         .set('Authorization', 'Bearer valid-token')
         .send(updateData)
         .expect((response) => {
@@ -288,7 +288,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       await app.init();
 
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer valid-token')
         .expect(200);
 
@@ -330,7 +330,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       };
 
       const res = await request(app.getHttpServer())
-        .patch('/user')
+        .patch('/me')
         .set('Authorization', 'Bearer valid-token')
         .send(partialUpdate)
         .expect(200);
@@ -382,7 +382,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       await app.init();
 
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer valid-token')
         .expect(200);
 
@@ -443,7 +443,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       const updateData: UserUpdateDto = complexMetadata;
 
       const res = await request(app.getHttpServer())
-        .patch('/user')
+        .patch('/me')
         .set('Authorization', 'Bearer valid-token')
         .send(updateData)
         .expect(200);
@@ -495,7 +495,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       const updateData: UserUpdateDto = invalidData;
 
       const res = await request(app.getHttpServer())
-        .patch('/user')
+        .patch('/me')
         .set('Authorization', 'Bearer valid-token')
         .send(updateData)
         .expect(400); // Expecting validation error
@@ -536,7 +536,7 @@ describe('RocketsServerModule - Dynamic Profile Service (e2e)', () => {
       const updateData: UserUpdateDto = validData;
 
       const res = await request(app.getHttpServer())
-        .patch('/user')
+        .patch('/me')
         .set('Authorization', 'Bearer valid-token')
         .send(updateData)
         .expect(200);

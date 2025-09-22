@@ -9,12 +9,10 @@ import { Reflector } from '@nestjs/core';
 import { AuthProviderInterface } from '../interfaces/auth-provider.interface';
 import { AuthorizedUser } from '../interfaces/auth-user.interface';
 import { RocketsServerAuthProvider } from '../rockets-server.constants';
-
-// Decorator to mark routes as public (skip authentication)
-export const Public = Reflector.createDecorator<boolean>();
+import { AUTHENTICATION_MODULE_DISABLE_GUARDS_TOKEN } from '@concepta/nestjs-authentication';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthServerGuard implements CanActivate {
   constructor(
     @Inject(RocketsServerAuthProvider)
     private readonly authProvider: AuthProviderInterface,
@@ -22,13 +20,19 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Check if route is marked as public
-    const isPublic = this.reflector.getAllAndOverride<boolean>(Public, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    // get the context handler and class
+    const contextHandler = context.getHandler();
+    const contextClass = context.getClass();
 
-    if (isPublic) {
+    // check if guards are disabled on the handler or class
+    const isDisabled = this.reflector.getAllAndOverride<boolean>(
+      AUTHENTICATION_MODULE_DISABLE_GUARDS_TOKEN,
+      [contextHandler, contextClass],
+    );
+
+    // disabled via context?
+    if (isDisabled === true) {
+      // yes, immediate activation
       return true;
     }
 

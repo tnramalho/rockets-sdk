@@ -155,7 +155,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
       await app.init();
 
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer valid-token')
         .expect(200);
 
@@ -194,7 +194,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
       };
 
       const res = await request(app.getHttpServer())
-        .patch('/user')
+        .patch('/me')
         .set('Authorization', 'Bearer valid-token')
         .send(updateData)
         .expect(200);
@@ -235,7 +235,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
       await app.init();
 
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer valid-token')
         .expect(200);
 

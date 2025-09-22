@@ -12,6 +12,8 @@ import {
 import { isObject } from '@nestjs/common/utils/shared.utils';
 import { HttpAdapterHost } from '@nestjs/core';
 
+export const ERROR_MESSAGE_FALLBACK = 'Internal Server Error';
+//TODO: use the exception filter from concepta modules
 @Catch()
 export class ExceptionsFilter implements ExceptionsFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
@@ -27,7 +29,7 @@ export class ExceptionsFilter implements ExceptionsFilter {
     let statusCode = 500;
 
     // what will this message be?
-    let message: unknown = 'ERROR_MESSAGE_FALLBACK';
+    let message: unknown = ERROR_MESSAGE_FALLBACK;
 
     // is this an http exception?
     if (exception instanceof HttpException) {
@@ -62,7 +64,7 @@ export class ExceptionsFilter implements ExceptionsFilter {
         message =
           exception.message ??
           exception?.safeMessage ??
-          'ERROR_MESSAGE_FALLBACK';
+          ERROR_MESSAGE_FALLBACK;
       }
     }
 

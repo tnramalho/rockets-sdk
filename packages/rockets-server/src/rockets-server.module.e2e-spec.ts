@@ -10,8 +10,7 @@ import {
 import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AuthUser } from '@concepta/nestjs-authentication';
-import { Public } from './guards/auth.guard';
+import { AuthPublic, AuthUser } from '@concepta/nestjs-authentication';
 import { AuthorizedUser } from './interfaces/auth-user.interface';
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import {
@@ -44,7 +43,7 @@ class TestController {
   }
 
   @Get('public')
-  @Public(true)
+  @AuthPublic()
   @ApiOkResponse({ description: 'Public route response' })
   publicRoute(): { message: string } {
     return {
@@ -173,7 +172,7 @@ describe('RocketsServerModule (e2e)', () => {
       await app.init();
 
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer valid-token')
         .expect(200);
 
@@ -200,7 +199,7 @@ describe('RocketsServerModule (e2e)', () => {
       await app.init();
 
       const res = await request(app.getHttpServer())
-        .get('/user')
+        .get('/me')
         .set('Authorization', 'Bearer firebase-token')
         .expect(200);
 
@@ -223,7 +222,7 @@ describe('RocketsServerModule (e2e)', () => {
       app = moduleRef.createNestApplication();
       await app.init();
 
-      await request(app.getHttpServer()).get('/user').expect(401);
+      await request(app.getHttpServer()).get('/me').expect(401);
     });
   });
 

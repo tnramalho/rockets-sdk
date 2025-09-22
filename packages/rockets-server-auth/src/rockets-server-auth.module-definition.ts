@@ -184,7 +184,7 @@ export function createRocketsServerAuthSettingsProvider(
 /**
  * Create imports for the combined module
  */
-export function createRocketsServerAuthImports(options: {
+export function createRocketsServerAuthImports(importOptions: {
   imports: DynamicModule['imports'];
   extras?: RocketsServerAuthOptionsExtrasInterface;
 }): DynamicModule['imports'] {
@@ -196,7 +196,7 @@ export function createRocketsServerAuthImports(options: {
   ];
 
   const imports: DynamicModule['imports'] = [
-    ...(options.imports || []),
+    ...(importOptions.imports || []),
     ConfigModule.forFeature(rocketsServerAuthOptionsDefaultConfig),
     CrudModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
@@ -253,13 +253,16 @@ export function createRocketsServerAuthImports(options: {
       },
     }),
     AuthJwtModule.forRootAsync({
-      inject: [RAW_OPTIONS_TOKEN, UserModelService],
+      inject: [
+        RAW_OPTIONS_TOKEN,
+        UserModelService
+      ],
       useFactory: (
         options: RocketsServerAuthOptionsInterface,
         userModelService: UserModelService,
       ): AuthJwtOptionsInterface => {
         return {
-          appGuard: options.authJwt?.appGuard,
+          appGuard: false,
           verifyTokenService:
             options.authJwt?.verifyTokenService ||
             options.services?.verifyTokenService,
@@ -273,7 +276,7 @@ export function createRocketsServerAuthImports(options: {
     }),
     FederatedModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN, UserModelService],
-      imports: [...(options.extras?.federated?.imports || [])],
+      imports: [...(importOptions.extras?.federated?.imports || [])],
       useFactory: (
         options: RocketsServerAuthOptionsInterface,
         userModelService: UserModelService,
@@ -334,7 +337,7 @@ export function createRocketsServerAuthImports(options: {
     }),
     AuthRouterModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
-      guards: options.extras?.authRouter?.guards || defaultAuthRouterGuards,
+      guards: importOptions.extras?.authRouter?.guards || defaultAuthRouterGuards,
       useFactory: (
         options: RocketsServerAuthOptionsInterface,
       ): AuthRouterOptionsInterface => {
@@ -453,7 +456,7 @@ export function createRocketsServerAuthImports(options: {
     }),
     UserModule.forRootAsync({
       inject: [RAW_OPTIONS_TOKEN],
-      imports: [...(options.extras?.user?.imports || [])],
+      imports: [...(importOptions.extras?.user?.imports || [])],
       useFactory: (options: RocketsServerAuthOptionsInterface) => {
         return {
           settings: options.user?.settings,
@@ -473,7 +476,7 @@ export function createRocketsServerAuthImports(options: {
       },
     }),
     OtpModule.forRootAsync({
-      imports: [...(options.extras?.otp?.imports || [])],
+      imports: [...(importOptions.extras?.otp?.imports || [])],
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (options: RocketsServerAuthOptionsInterface) => {
         return {
@@ -493,7 +496,7 @@ export function createRocketsServerAuthImports(options: {
       },
     }),
     RoleModule.forRootAsync({
-      imports: [...(options.extras?.role?.imports || [])],
+      imports: [...(importOptions.extras?.role?.imports || [])],
       inject: [RAW_OPTIONS_TOKEN],
       useFactory: (
         rocketsServerAuthOptions: RocketsServerAuthOptionsInterface,
@@ -507,7 +510,7 @@ export function createRocketsServerAuthImports(options: {
           },
         },
       }),
-      entities: ['userRole', ...(options.extras?.role?.entities || [])],
+      entities: ['userRole', ...(importOptions.extras?.role?.entities || [])],
     }),
   ];
 
@@ -547,7 +550,7 @@ export function createRocketsServerAuthProviders(options: {
   providers?: Provider[];
   extras?: RocketsServerAuthOptionsExtrasInterface;
 }): Provider[] {
-  return [
+  const providers: Provider[] = [
     ...(options.providers ?? []),
     createRocketsServerAuthSettingsProvider(),
     {
@@ -564,4 +567,10 @@ export function createRocketsServerAuthProviders(options: {
     RocketsServerAuthNotificationService,
     AdminGuard,
   ];
+
+  // Note: The rockets-server-auth module doesn't have its own AuthGuard
+  // It uses decorators like @AuthUser() and @AuthPublic() for authentication control
+  // The enableGlobalGuard option is available for future use if needed
+
+  return providers;
 }

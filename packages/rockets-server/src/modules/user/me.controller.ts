@@ -21,11 +21,11 @@ import { ProfileModelService } from '../profile/constants/profile.constants';
  */
 @ApiTags('user')
 @ApiBearerAuth()
-@Controller('user')
+@Controller('me')
 export class MeController {
   constructor(
     @Inject(ProfileModelService)
-    private readonly profileModeService: ProfileModelServiceInterface,
+    private readonly profileModelService: ProfileModelServiceInterface,
   ) {}
 
   /**
@@ -50,7 +50,7 @@ export class MeController {
     let profile: ProfileEntityInterface | null;
 
     try {
-      const userProfile = await this.profileModeService.getProfileByUserId(
+      const userProfile = await this.profileModelService.getProfileByUserId(
         user.id,
       );
 
@@ -98,7 +98,7 @@ export class MeController {
     // Extract profile data from nested profile property
     const profileData = updateData.profile || {};
     // Update profile data
-    const profile = await this.profileModeService.createOrUpdate(
+    const profile = await this.profileModelService.createOrUpdate(
       user.id,
       profileData,
     );

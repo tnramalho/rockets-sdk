@@ -10,14 +10,14 @@ import {
   RocketsServerAuthProvider,
   ROCKETS_SERVER_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
 } from './rockets-server.constants';
-import { MeController } from './modules/user/user.controller';
+import { MeController } from './modules/user/me.controller';
 import { AuthProviderInterface } from './interfaces/auth-provider.interface';
 import { RocketsServerOptionsInterface } from './interfaces/rockets-server-options.interface';
 import { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
 import { ConfigModule } from '@nestjs/config';
 import { RocketsServerSettingsInterface } from './interfaces/rockets-server-settings.interface';
 import { rocketsServerOptionsDefaultConfig } from './config/rockets-server-options-default.config';
-import { AuthGuard } from './guards/auth.guard';
+import { AuthServerGuard } from './guards/auth-server.guard';
 import { GenericProfileModelService } from './modules/profile/services/profile.model.service';
 import {
   ProfileModelService,
@@ -187,11 +187,16 @@ export function createRocketsServerProviders(options: {
         return new GenericProfileModelService(repository, createDto, updateDto);
       },
     },
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
   ];
+
+  // Conditionally add global guard based on enableGlobalGuard in extras
+  // Default: true (when enableGlobalGuard is not explicitly set to false)
+  if (options.extras?.enableGlobalGuard !== false) {
+    providers.push({
+      provide: APP_GUARD,
+      useClass: AuthServerGuard,
+    });
+  }
 
   return providers;
 }

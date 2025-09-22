@@ -15,7 +15,7 @@ import { PetModule } from './modules/pet/pet.module';
 
 const options: RocketsServerOptionsInterface = {
   settings: {},
-  authProvider: new MockAuthProvider() as any,
+  authProvider: new MockAuthProvider(),
   profile: {
     createDto: ProfileCreateDto,
     updateDto: ProfileUpdateDto,
