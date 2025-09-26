@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { TypeOrmCrudAdapter } from '@concepta/nestjs-crud';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RocketsServerAuthUserEntityInterface } from '@bitwild/rockets-server-auth';
+import { RocketsAuthUserEntityInterface } from '@bitwild/rockets-server-auth';
 import { UserEntity } from '../entities/user.entity';
 
 @Injectable()
-export class UserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsServerAuthUserEntityInterface> {
+export class UserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthUserEntityInterface> {
   constructor(
     @InjectRepository(UserEntity)
-    private readonly repository: Repository<RocketsServerAuthUserEntityInterface>,
+    private readonly repository: Repository<RocketsAuthUserEntityInterface>,
   ) {
     super(repository);
   }

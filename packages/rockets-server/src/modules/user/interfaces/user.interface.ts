@@ -16,7 +16,7 @@ export interface BaseUserEntityInterface {
  * This is a generic interface that can be extended by clients
  */
 export interface UserEntityInterface extends BaseUserEntityInterface {
-  profile?: Record<string, unknown>;
+  userMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface UserCreatableInterface {
  * Used for updating existing users with custom data
  */
 export interface UserUpdatableInterface {
-  profile?: Record<string, unknown>;
+  userMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -72,5 +72,5 @@ export class BaseUserCreateDto extends BaseUserDto {
  * This can be extended by clients with their own validation rules
  */
 export class BaseUserUpdateDto extends BaseUserDto {
-  profile?: Record<string, unknown>;
+  userMetadata?: Record<string, unknown>;
 }

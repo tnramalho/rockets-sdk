@@ -20,9 +20,8 @@ import request from 'supertest';
 import { UserOtpEntityFixture } from './__fixtures__/user/user-otp-entity.fixture';
 import { UserFixture } from './__fixtures__/user/user.entity.fixture';
 import { FederatedEntityFixture } from './__fixtures__/federated/federated.entity.fixture';
-import { AuthPasswordController } from './controllers/auth/auth-password.controller';
-import { AuthSignupController } from './controllers/auth/auth-signup.controller';
-import { RocketsServerAuthModule } from './rockets-server-auth.module';
+import { AuthPasswordController } from './domains/auth/controllers/auth-password.controller';
+import { RocketsAuthModule } from './rockets-auth.module';
 import { SqliteAdapterModule } from './__fixtures__/sqlite-adapter/sqlite-adapter.module';
 import { RoleEntityFixture } from './__fixtures__/role/role.entity.fixture';
 import { UserRoleEntityFixture } from './__fixtures__/role/user-role.entity.fixture';
@@ -65,7 +64,7 @@ const mockEmailService: EmailSendInterface = {
 })
 class MockConfigModule {}
 
-describe.skip('RocketsServerAuth (e2e)', () => {
+describe.skip('RocketsAuth (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -75,7 +74,7 @@ describe.skip('RocketsServerAuth (e2e)', () => {
         SqliteAdapterModule.forRoot({
           dbPath: ':memory:',
         }),
-        RocketsServerAuthModule.forRoot({
+        RocketsAuthModule.forRoot({
           jwt: {
             settings: {
               access: { secret: 'test-secret' },
@@ -262,7 +261,7 @@ describe.skip('RocketsServerAuth (e2e)', () => {
     });
   });
 
-  describe(AuthSignupController.name, () => {
+  describe('AuthSignupController', () => {
     it('should create new user via signup endpoint', async () => {
       const userData = {
         username: 'newuser',
@@ -310,7 +309,7 @@ describe.skip('RocketsServerAuth (e2e)', () => {
     });
   });
 
-  describe('RocketsServerAuthRecoveryController', () => {
+  describe('RocketsAuthRecoveryController', () => {
     describe('POST /recovery/login', () => {
       it('should accept valid email for username recovery', async () => {
         // Create a test user first

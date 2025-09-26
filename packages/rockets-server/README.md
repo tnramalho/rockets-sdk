@@ -68,7 +68,7 @@ maintaining flexibility for customization and extension.
   refresh tokens, and password recovery
 - **🔗 OAuth Integration**: Support for Google, GitHub, and Apple OAuth
   providers by default, with custom providers support
-- **👥 User Management**: Full CRUD operations, profile management, and
+- **👥 User Management**: Full CRUD operations, userMetadata management, and
   password history
 - **📱 OTP Support**: One-time password generation and validation for secure
   authentication
@@ -329,8 +329,8 @@ With the basic setup complete, your application now provides these endpoints:
 
 #### User Management Endpoints
 
-- `GET /user` - Get current user profile
-- `PATCH /user` - Update current user profile
+- `GET /user` - Get current user userMetadata
+- `PATCH /user` - Update current user userMetadata
 
 #### Admin Endpoints (optional)
 
@@ -1652,7 +1652,7 @@ graph TB
 
 1. **RocketsServerAuthModule**: The main module that orchestrates all other modules
 2. **Authentication Layer**: Handles JWT, local auth, refresh tokens
-3. **User Management**: CRUD operations, profiles, password management
+3. **User Management**: CRUD operations, userMetadatas, password management
 4. **OTP System**: One-time password generation and validation
 5. **Email Service**: Template-based email notifications
 6. **Data Layer**: TypeORM integration with adapter support
@@ -1862,8 +1862,8 @@ sequenceDiagram
     CT->>US: createUser(userData)
     US->>D: Save User Entity
     D-->>US: User Created
-    US-->>CT: User Profile
-    CT-->>C: 201 Created (User Profile)
+    US-->>CT: User UserMetadata
+    CT-->>C: 201 Created (User UserMetadata)
 ```
 
 **Services to customize for registration:**
@@ -2168,7 +2168,7 @@ User CRUD management is now provided via a dynamic submodule that you enable
 through the module extras. It provides comprehensive user management including:
 
 - User signup endpoints (`POST /signup`)
-- User profile management (`GET /user`, `PATCH /user`)
+- User userMetadata management (`GET /user`, `PATCH /user`)
 - Admin user CRUD operations (`/admin/users/*`)
 
 All endpoints are properly guarded and documented in Swagger.
@@ -2251,8 +2251,8 @@ export class AppModule {}
 **User Management Endpoints:**
 
 - `POST /signup` - User registration with validation
-- `GET /user` - Get current user profile (authenticated)
-- `PATCH /user` - Update current user profile (authenticated)
+- `GET /user` - Get current user userMetadata (authenticated)
+- `PATCH /user` - Update current user userMetadata (authenticated)
 
 **Admin User CRUD Endpoints:**
 
@@ -2266,7 +2266,7 @@ export class AppModule {}
 
 The Rockets SDK provides comprehensive user management functionality through
 automatically generated endpoints. These endpoints handle user registration,
-authentication, and profile management with built-in validation and security.
+authentication, and userMetadata management with built-in validation and security.
 
 ### User Registration (POST /signup)
 
@@ -2298,11 +2298,11 @@ Users can register through the `/signup` endpoint with automatic validation:
 }
 ```
 
-### User Profile Management
+### User UserMetadata Management
 
-#### Get Current User Profile (GET /user)
+#### Get Current User UserMetadata (GET /user)
 
-Authenticated users can retrieve their profile information:
+Authenticated users can retrieve their userMetadata information:
 
 ```bash
 GET /user
@@ -2324,9 +2324,9 @@ Authorization: Bearer <jwt-token>
 }
 ```
 
-#### Update User Profile (PATCH /user)
+#### Update User UserMetadata (PATCH /user)
 
-Users can update their own profile information:
+Users can update their own userMetadata information:
 
 ```typescript
 // PATCH /user

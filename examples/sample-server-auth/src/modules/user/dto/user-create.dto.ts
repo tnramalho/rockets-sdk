@@ -1,3 +1,3 @@
-import { RocketsServerAuthUserCreateDto } from '@bitwild/rockets-server-auth';
+import { RocketsAuthUserCreateDto } from '@bitwild/rockets-server-auth';
 
-export class UserCreateDto extends RocketsServerAuthUserCreateDto {}
+export class UserCreateDto extends RocketsAuthUserCreateDto {}

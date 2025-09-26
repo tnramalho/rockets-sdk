@@ -3,19 +3,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 
-import { RocketsServerAuthModule } from '../../rockets-server-auth.module';
+import { RocketsAuthModule } from '../../rockets-auth.module';
 import { FederatedEntityFixture } from '../federated/federated.entity.fixture';
 import { ormConfig } from '../ormconfig.fixture';
 import { RoleEntityFixture } from '../role/role.entity.fixture';
 import { UserRoleEntityFixture } from '../role/user-role.entity.fixture';
 import { UserOtpEntityFixture } from '../user/user-otp-entity.fixture';
 import { UserPasswordHistoryEntityFixture } from '../user/user-password-history.entity.fixture';
-import { UserProfileEntityFixture } from '../user/user-profile.entity.fixture';
+import { UserUserMetadataEntityFixture } from '../user/user-metadata.entity.fixture';
 import { UserFixture } from '../user/user.entity.fixture';
 
-import { RocketsServerAuthUserCreateDto } from '../../dto/user/rockets-server-auth-user-create.dto';
-import { RocketsServerAuthUserUpdateDto } from '../../dto/user/rockets-server-auth-user-update.dto';
-import { RocketsServerAuthUserDto } from '../../dto/user/rockets-server-auth-user.dto';
+import { RocketsAuthUserCreateDto } from '../../domains/user/dto/rockets-auth-user-create.dto';
+import { RocketsAuthUserUpdateDto } from '../../domains/user/dto/rockets-auth-user-update.dto';
+import { RocketsAuthUserDto } from '../../domains/user/dto/rockets-auth-user.dto';
 import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
 
 @Global()
@@ -26,7 +26,7 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
       ...ormConfig,
       entities: [
         UserFixture,
-        UserProfileEntityFixture,
+        UserUserMetadataEntityFixture,
         UserPasswordHistoryEntityFixture,
         UserOtpEntityFixture,
         FederatedEntityFixture,
@@ -44,7 +44,7 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
             UserFixture,
             UserOtpEntityFixture,
             UserPasswordHistoryEntityFixture,
-            UserProfileEntityFixture,
+            UserUserMetadataEntityFixture,
             FederatedEntityFixture,
             UserRoleEntityFixture,
             RoleEntityFixture,
@@ -60,14 +60,14 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
       federated: { entity: FederatedEntityFixture },
     }),
     TypeOrmModule.forFeature([UserFixture]),
-    RocketsServerAuthModule.forRootAsync({
+    RocketsAuthModule.forRootAsync({
       userCrud: {
         imports: [TypeOrmModule.forFeature([UserFixture])],
         adapter: AdminUserTypeOrmCrudAdapter,
-        model: RocketsServerAuthUserDto,
+        model: RocketsAuthUserDto,
         dto: {
-          createOne: RocketsServerAuthUserCreateDto,
-          updateOne: RocketsServerAuthUserUpdateDto,
+          createOne: RocketsAuthUserCreateDto,
+          updateOne: RocketsAuthUserUpdateDto,
         },
       },
       inject: [],

@@ -18,5 +18,5 @@ export * from './dto/user-update.dto';
 export * from './adapters/user-typeorm-crud.adapter';
 
 // Providers
-export * from '../../rockets-jwt-auth.provider';
+export { RocketsJwtAuthProvider } from '@bitwild/rockets-server-auth';
 export * from '../../mock-auth.provider';

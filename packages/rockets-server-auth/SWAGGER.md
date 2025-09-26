@@ -49,7 +49,7 @@ documentation. If you need to customize the output, you can modify the
 Key customization points:
 
 ```typescript
-// Change the API metadata
+// Change the API userMetadata
 const options = new DocumentBuilder()
   .setTitle('Rockets API')
   .setDescription('API documentation for Rockets Server')

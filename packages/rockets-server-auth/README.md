@@ -68,7 +68,7 @@ maintaining flexibility for customization and extension.
   refresh tokens, and password recovery
 - **🔗 OAuth Integration**: Support for Google, GitHub, and Apple OAuth
   providers by default, with custom providers support
-- **👥 User Management**: Full CRUD operations, profile management, and
+- **👥 User Management**: Full CRUD operations, userMetadata management, and
   password history
 - **📱 OTP Support**: One-time password generation and validation for secure
   authentication
@@ -193,7 +193,7 @@ Create your main application module with the minimal Rockets SDK setup:
 // app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RocketsServerAuthModule } from '@bitwild/rockets-server-auth';
+import { RocketsAuthModule } from '@bitwild/rockets-server-auth';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import { UserEntity } from './entities/user.entity';
 import { UserOtpEntity } from './entities/user-otp.entity';
@@ -217,7 +217,7 @@ import { FederatedEntity } from './entities/federated.entity';
     }),
     
     // Rockets SDK configuration - minimal setup
-    RocketsServerAuthModule.forRootAsync({
+    RocketsAuthModule.forRootAsync({
       imports: [
         TypeOrmModule.forFeature([UserEntity]),
         TypeOrmExtModule.forFeature({
@@ -266,7 +266,7 @@ import { FederatedEntity } from './entities/federated.entity';
         // Optional: Enable Admin endpoints
         // Provide a CRUD adapter + DTOs and import the repository via
         // TypeOrmModule.forFeature([...]). Enable by passing `admin` at the
-        // top-level of RocketsServerAuthModule.forRoot/forRootAsync options.
+        // top-level of RocketsAuthModule.forRoot/forRootAsync options.
         // See the admin how-to section for a complete example.
       }),
     }),
@@ -329,8 +329,8 @@ With the basic setup complete, your application now provides these endpoints:
 
 #### User Management Endpoints
 
-- `GET /user` - Get current user profile
-- `PATCH /user` - Update current user profile
+- `GET /user` - Get current user userMetadata
+- `PATCH /user` - Update current user userMetadata
 
 #### Admin Endpoints (optional)
 
@@ -466,7 +466,7 @@ Expected OTP confirm response (200 OK):
 
 ```bash
 # Redirect to Google OAuth (returns 200 OK)
-curl -X GET "http://localhost:3000/oauth/authorize?provider=google&scopes=email,profile"
+curl -X GET "http://localhost:3000/oauth/authorize?provider=google&scopes=email,userMetadata"
 
 # Redirect to GitHub OAuth (returns 200 OK)
 curl -X GET "http://localhost:3000/oauth/authorize?provider=github&scopes=user,email"
@@ -535,7 +535,7 @@ installed explicitly.
 ## How-to Guides
 
 This section provides comprehensive guides for every configuration option
-available in the `RocketsServerAuthOptionsInterface`. Each guide explains what the
+available in the `RocketsAuthOptionsInterface`. Each guide explains what the
 option does, how it connects with core modules, when you should customize it
 (since defaults are provided), and includes real-world examples.
 
@@ -544,8 +544,8 @@ option does, how it connects with core modules, when you should customize it
 The Rockets SDK uses a hierarchical configuration system with the following structure:
 
 ```typescript
-interface RocketsServerAuthOptionsInterface {
-  settings?: RocketsServerAuthSettingsInterface;
+interface RocketsAuthOptionsInterface {
+  settings?: RocketsAuthSettingsInterface;
   swagger?: SwaggerUiOptionsInterface;
   authentication?: AuthenticationOptionsInterface;
   jwt?: JwtOptions;
@@ -560,8 +560,8 @@ interface RocketsServerAuthOptionsInterface {
   otp?: OtpOptionsInterface;
   email?: Partial<EmailOptionsInterface>;
   services: {
-    userModelService?: RocketsServerAuthUserModelServiceInterface;
-    notificationService?: RocketsServerAuthNotificationServiceInterface;
+    userModelService?: RocketsAuthUserModelServiceInterface;
+    notificationService?: RocketsAuthNotificationServiceInterface;
     verifyTokenService?: VerifyTokenService;
     issueTokenService?: IssueTokenServiceInterface;
     validateTokenService?: ValidateTokenServiceInterface;
@@ -579,11 +579,11 @@ interface RocketsServerAuthOptionsInterface {
 ### settings
 
 **What it does**: Global settings that configure the custom OTP and email
-services provided by RocketsServerAuth. These settings are used by the custom OTP
+services provided by RocketsAuth. These settings are used by the custom OTP
 controller and notification services, not by the core authentication modules.
 
-**Core services it connects to**: RocketsServerAuthOtpService,
-RocketsServerAuthNotificationService
+**Core services it connects to**: RocketsAuthOtpService,
+RocketsAuthNotificationService
 
 **When to update**: Required when using the custom OTP endpoints
 (`POST /otp`, `PATCH /otp`). The defaults use placeholder values that won't
@@ -938,7 +938,7 @@ Apple OAuth providers with sensible defaults.
 
 **OAuth Flow**:
 
-1. Client calls `/oauth/authorize?provider=google&scopes=email profile`
+1. Client calls `/oauth/authorize?provider=google&scopes=email userMetadata`
 2. AuthRouterGuard routes to the appropriate OAuth guard based on provider
 3. OAuth guard redirects to the provider's authorization URL
 4. User authenticates with the OAuth provider
@@ -1650,9 +1650,9 @@ graph TB
 
 #### Core Components
 
-1. **RocketsServerAuthModule**: The main module that orchestrates all other modules
+1. **RocketsAuthModule**: The main module that orchestrates all other modules
 2. **Authentication Layer**: Handles JWT, local auth, refresh tokens
-3. **User Management**: CRUD operations, profiles, password management
+3. **User Management**: CRUD operations, userMetadatas, password management
 4. **OTP System**: One-time password generation and validation
 5. **Email Service**: Template-based email notifications
 6. **Data Layer**: TypeORM integration with adapter support
@@ -1690,7 +1690,7 @@ graph TB
 
 ```typescript
 // Configuration-driven approach
-RocketsServerAuthModule.forRoot({
+RocketsAuthModule.forRoot({
   jwt: { settings: { /* ... */ } },
   user: { /* ... */ },
   otp: { /* ... */ },
@@ -1771,7 +1771,7 @@ describe('AuthOAuthController (e2e)', () => {
         TypeOrmExtModule.forRootAsync({
           useFactory: () => ormConfig,
         }),
-        RocketsServerAuthModule.forRoot({
+        RocketsAuthModule.forRoot({
           user: {
             imports: [
               TypeOrmExtModule.forFeature({
@@ -1862,8 +1862,8 @@ sequenceDiagram
     CT->>US: createUser(userData)
     US->>D: Save User Entity
     D-->>US: User Created
-    US-->>CT: User Profile
-    CT-->>C: 201 Created (User Profile)
+    US-->>CT: User UserMetadata
+    CT-->>C: 201 Created (User UserMetadata)
 ```
 
 **Services to customize for registration:**
@@ -1974,7 +1974,7 @@ sequenceDiagram
     
     Note over C,E: OTP Generation Flow
     C->>S: POST /otp (email)
-    S->>OS: Generate OTP (RocketsServerAuthOtpService)
+    S->>OS: Generate OTP (RocketsAuthOtpService)
     OS->>D: Store OTP with Expiry
     OS->>E: Send Email (NotificationService)
     E-->>OS: Email Sent
@@ -2168,7 +2168,7 @@ User CRUD management is now provided via a dynamic submodule that you enable
 through the module extras. It provides comprehensive user management including:
 
 - User signup endpoints (`POST /signup`)
-- User profile management (`GET /user`, `PATCH /user`)
+- User userMetadata management (`GET /user`, `PATCH /user`)
 - Admin user CRUD operations (`/admin/users/*`)
 
 All endpoints are properly guarded and documented in Swagger.
@@ -2199,13 +2199,13 @@ export class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<UserEntity> 
 }
 ```
 
-#### Enable userCrud in RocketsServerAuthModule
+#### Enable userCrud in RocketsAuthModule
 
 ```typescript
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity]),
-    RocketsServerAuthModule.forRootAsync({
+    RocketsAuthModule.forRootAsync({
       // ... other options
       imports: [TypeOrmModule.forFeature([UserEntity])],
       useFactory: () => ({
@@ -2251,8 +2251,8 @@ export class AppModule {}
 **User Management Endpoints:**
 
 - `POST /signup` - User registration with validation
-- `GET /user` - Get current user profile (authenticated)
-- `PATCH /user` - Update current user profile (authenticated)
+- `GET /user` - Get current user userMetadata (authenticated)
+- `PATCH /user` - Update current user userMetadata (authenticated)
 
 **Admin User CRUD Endpoints:**
 
@@ -2266,7 +2266,7 @@ export class AppModule {}
 
 The Rockets SDK provides comprehensive user management functionality through
 automatically generated endpoints. These endpoints handle user registration,
-authentication, and profile management with built-in validation and security.
+authentication, and userMetadata management with built-in validation and security.
 
 ### User Registration (POST /signup)
 
@@ -2298,11 +2298,11 @@ Users can register through the `/signup` endpoint with automatic validation:
 }
 ```
 
-### User Profile Management
+### User UserMetadata Management
 
-#### Get Current User Profile (GET /user)
+#### Get Current User UserMetadata (GET /user)
 
-Authenticated users can retrieve their profile information:
+Authenticated users can retrieve their userMetadata information:
 
 ```bash
 GET /user
@@ -2324,9 +2324,9 @@ Authorization: Bearer <jwt-token>
 }
 ```
 
-#### Update User Profile (PATCH /user)
+#### Update User UserMetadata (PATCH /user)
 
-Users can update their own profile information:
+Users can update their own userMetadata information:
 
 ```typescript
 // PATCH /user
@@ -2362,11 +2362,11 @@ Extend the base user DTO to include additional fields in API responses:
 
 ```typescript
 import { UserDto } from '@concepta/nestjs-user';
-import { RocketsServerAuthUserInterface } from '@concepta/rockets-server-auth';
+import { RocketsAuthUserInterface } from '@concepta/rockets-server-auth';
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CustomUserDto extends UserDto implements RocketsServerAuthUserInterface {
+export class CustomUserDto extends UserDto implements RocketsAuthUserInterface {
   @ApiProperty({
     description: 'User age',
     example: 25,
@@ -2402,13 +2402,13 @@ Add validation for user registration:
 import { PickType, IntersectionType, ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsOptional, Min, IsString, MinLength, MaxLength } from 'class-validator';
 import { UserPasswordDto } from '@concepta/nestjs-user';
-import { RocketsServerAuthUserCreatableInterface } from '@concepta/rockets-server-auth';
+import { RocketsAuthUserCreatableInterface } from '@concepta/rockets-server-auth';
 import { CustomUserDto } from './custom-user.dto';
 
 export class CustomUserCreateDto extends IntersectionType(
   PickType(CustomUserDto, ['email', 'username', 'active'] as const),
   UserPasswordDto,
-) implements RocketsServerAuthUserCreatableInterface {
+) implements RocketsAuthUserCreatableInterface {
   
   @ApiProperty({
     description: 'User age (must be 18 or older)',
@@ -2456,12 +2456,12 @@ Define which fields can be updated:
 ```typescript
 import { PickType, ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsOptional, Min, IsString, MinLength, MaxLength } from 'class-validator';
-import { RocketsServerAuthUserUpdatableInterface } from '@concepta/rockets-server-auth';
+import { RocketsAuthUserUpdatableInterface } from '@concepta/rockets-server-auth';
 import { CustomUserDto } from './custom-user.dto';
 
 export class CustomUserUpdateDto
   extends PickType(CustomUserDto, ['id', 'username', 'email', 'active'] as const)
-  implements RocketsServerAuthUserUpdatableInterface {
+  implements RocketsAuthUserUpdatableInterface {
 
   @ApiProperty({
     description: 'User age (must be 18 or older)',
@@ -2500,12 +2500,12 @@ export class CustomUserUpdateDto
 
 ### Using Custom DTOs
 
-Configure your custom DTOs in the RocketsServerAuthModule:
+Configure your custom DTOs in the RocketsAuthModule:
 
 ```typescript
 @Module({
   imports: [
-    RocketsServerAuthModule.forRoot({
+    RocketsAuthModule.forRoot({
       userCrud: {
         imports: [TypeOrmModule.forFeature([UserEntity])],
         adapter: CustomUserTypeOrmCrudAdapter,
@@ -2635,7 +2635,7 @@ Update your module to use the custom entity:
 @Module({
   imports: [
     TypeOrmModule.forFeature([CustomUserEntity]), // Use your custom entity
-    RocketsServerAuthModule.forRoot({
+    RocketsAuthModule.forRoot({
       userCrud: {
         imports: [TypeOrmModule.forFeature([CustomUserEntity])],
         adapter: CustomUserTypeOrmCrudAdapter,
@@ -2702,7 +2702,7 @@ Always implement the appropriate interfaces:
 
 ```typescript
 // ✅ Good - Implements interface
-export class CustomUserDto extends UserDto implements RocketsServerAuthUserInterface {
+export class CustomUserDto extends UserDto implements RocketsAuthUserInterface {
   @Expose()
   customField: string;
 }

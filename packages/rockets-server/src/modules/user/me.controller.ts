@@ -8,15 +8,15 @@ import {
 } from '@nestjs/swagger';
 import type { AuthorizedUser } from '../../interfaces/auth-user.interface';
 import {
-  ProfileEntityInterface,
-  ProfileModelServiceInterface,
-} from '../profile/interfaces/profile.interface';
+  UserMetadataEntityInterface,
+  UserMetadataModelServiceInterface,
+} from '../user-metadata/interfaces/user-metadata.interface';
 import { UserUpdateDto, UserResponseDto } from './user.dto';
-import { ProfileModelService } from '../profile/constants/profile.constants';
+import { UserMetadataModelService } from '../user-metadata/constants/user-metadata.constants';
 
 /**
  * User Controller
- * Provides endpoints for user profile management
+ * Provides endpoints for user userMetadata management
  * Follows SDK patterns for controllers
  */
 @ApiTags('user')
@@ -24,17 +24,17 @@ import { ProfileModelService } from '../profile/constants/profile.constants';
 @Controller('me')
 export class MeController {
   constructor(
-    @Inject(ProfileModelService)
-    private readonly profileModelService: ProfileModelServiceInterface,
+    @Inject(UserMetadataModelService)
+    private readonly userMetadataModelService: UserMetadataModelServiceInterface,
   ) {}
 
   /**
-   * Get current user information with profile data
+   * Get current user information with userMetadata data
    */
   @Get()
   @ApiOperation({
     summary: 'Get current user information',
-    description: 'Returns authenticated user data along with profile data',
+    description: 'Returns authenticated user data along with userMetadata data',
   })
   @ApiResponse({
     status: 200,
@@ -46,24 +46,23 @@ export class MeController {
     description: 'Unauthorized - Invalid or missing token',
   })
   async me(@AuthUser() user: AuthorizedUser): Promise<UserResponseDto> {
-    // Get user profile from database
-    let profile: ProfileEntityInterface | null;
+    // Get user userMetadata from database
+    let userMetadata: UserMetadataEntityInterface | null;
 
     try {
-      const userProfile = await this.profileModelService.getProfileByUserId(
-        user.id,
-      );
+      const userUserMetadata =
+        await this.userMetadataModelService.getUserMetadataByUserId(user.id);
 
-      profile = userProfile;
+      userMetadata = userUserMetadata;
     } catch (error) {
-      // Profile not found, use empty profile
-      profile = null;
+      // UserMetadata not found, use empty userMetadata
+      userMetadata = null;
     }
 
     const response = {
       ...user,
-      profile: {
-        ...profile,
+      userMetadata: {
+        ...userMetadata,
       },
     };
 
@@ -71,21 +70,21 @@ export class MeController {
   }
 
   /**
-   * Update current user profile data
+   * Update current user userMetadata data
    */
   @Patch()
   @ApiOperation({
-    summary: 'Update user profile data',
-    description: 'Creates or updates user profile data',
+    summary: 'Update user userMetadata data',
+    description: 'Creates or updates user userMetadata data',
   })
   @ApiResponse({
     status: 200,
-    description: 'User profile updated successfully',
+    description: 'User userMetadata updated successfully',
     type: UserResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Bad Request - Invalid profile format',
+    description: 'Bad Request - Invalid userMetadata format',
   })
   @ApiResponse({
     status: 401,
@@ -95,20 +94,20 @@ export class MeController {
     @AuthUser() user: AuthorizedUser,
     @Body() updateData: UserUpdateDto,
   ): Promise<UserResponseDto> {
-    // Extract profile data from nested profile property
-    const profileData = updateData.profile || {};
-    // Update profile data
-    const profile = await this.profileModelService.createOrUpdate(
+    // Extract userMetadata data from nested userMetadata property
+    const userMetadataData = updateData.userMetadata || {};
+    // Update userMetadata data
+    const userMetadata = await this.userMetadataModelService.createOrUpdate(
       user.id,
-      profileData,
+      userMetadataData,
     );
 
     return {
       // Auth provider data
       ...user,
-      // Updated profile data (spread into response)
-      profile: {
-        ...profile,
+      // Updated userMetadata data (spread into response)
+      userMetadata: {
+        ...userMetadata,
       },
     };
   }

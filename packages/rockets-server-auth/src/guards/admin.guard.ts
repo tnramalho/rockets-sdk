@@ -6,14 +6,14 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { RocketsServerAuthSettingsInterface } from '../interfaces/rockets-server-auth-settings.interface';
-import { ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../rockets-server-auth.constants';
+import { RocketsAuthSettingsInterface } from '../shared/interfaces/rockets-auth-settings.interface';
+import { ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../shared/constants/rockets-auth.constants';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
-    @Inject(ROCKETS_SERVER_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
-    private readonly settings: RocketsServerAuthSettingsInterface,
+    @Inject(ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
+    private readonly settings: RocketsAuthSettingsInterface,
     @Inject(RoleModelService)
     private readonly roleModelService: RoleModelService,
     @Inject(RoleService)
@@ -29,6 +29,7 @@ export class AdminGuard implements CanActivate {
     if (!user) {
       throw new ForbiddenException('User not authenticated');
     }
+
     if (!ADMIN_ROLE) {
       throw new ForbiddenException('Admin Role not defined');
     }

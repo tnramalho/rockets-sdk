@@ -24,15 +24,15 @@ import { IsOptional, IsString } from 'class-validator';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Column, Entity, Repository } from 'typeorm';
-import { RocketsServerAuthUserDto } from './dto/user/rockets-server-auth-user.dto';
-import { RocketsServerAuthUserEntityInterface } from './interfaces/user/rockets-server-auth-user-entity.interface';
-import { RocketsServerAuthModule } from './rockets-server-auth.module';
+import { RocketsAuthUserDto } from './domains/user/dto/rockets-auth-user.dto';
+import { RocketsAuthUserEntityInterface } from './domains/user/interfaces/rockets-auth-user-entity.interface';
+import { RocketsAuthModule } from './rockets-auth.module';
 
 // Create concrete entity implementations for TypeORM
 @Entity()
 class UserEntity
   extends UserSqliteEntity
-  implements RocketsServerAuthUserEntityInterface
+  implements RocketsAuthUserEntityInterface
 {
   @Column({ type: 'varchar', length: 255, nullable: true })
   firstName: string;
@@ -54,15 +54,12 @@ class UserOtpEntity extends OtpSqliteEntity {
 }
 
 @Entity()
-class FederatedEntity extends FederatedSqliteEntity {
-  // TypeORM needs this properly defined, but it's not used for swagger gen
-  user: UserEntity;
-}
+class FederatedEntity extends FederatedSqliteEntity {}
 
-class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsServerAuthUserEntityInterface> {
+class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthUserEntityInterface> {
   constructor(
     @InjectRepository(UserEntity)
-    private readonly repository: Repository<RocketsServerAuthUserEntityInterface>,
+    private readonly repository: Repository<RocketsAuthUserEntityInterface>,
   ) {
     super(repository);
   }
@@ -172,7 +169,7 @@ class MockUserModelService implements Partial<UserModelService> {
 
 // New DTOs with firstName and lastName fields
 @Expose()
-class ExtendedUserDto extends RocketsServerAuthUserDto {
+class ExtendedUserDto extends RocketsAuthUserDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
@@ -210,7 +207,7 @@ class ExtendedUserUpdateDto extends PickType(ExtendedUserDto, [
 ] as const) {}
 
 /**
- * Generate Swagger documentation JSON file based on RocketsServerAuth controllers
+ * Generate Swagger documentation JSON file based on RocketsAuth controllers
  */
 async function generateSwaggerJson() {
   try {
@@ -251,7 +248,7 @@ async function generateSwaggerJson() {
             };
           },
         }),
-        RocketsServerAuthModule.forRootAsync({
+        RocketsAuthModule.forRootAsync({
           imports: [
             TypeOrmModule.forFeature([UserEntity]),
             TypeOrmExtModule.forFeature({

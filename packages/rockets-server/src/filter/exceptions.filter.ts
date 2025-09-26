@@ -13,7 +13,7 @@ import { isObject } from '@nestjs/common/utils/shared.utils';
 import { HttpAdapterHost } from '@nestjs/core';
 
 export const ERROR_MESSAGE_FALLBACK = 'Internal Server Error';
-//TODO: use the exception filter from concepta modules
+// TODO: use the exception filter from concepta modules need to update rockets to add validation errors
 @Catch()
 export class ExceptionsFilter implements ExceptionsFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
@@ -62,9 +62,7 @@ export class ExceptionsFilter implements ExceptionsFilter {
       } else {
         // use the error message with safe message as fallback
         message =
-          exception.message ??
-          exception?.safeMessage ??
-          ERROR_MESSAGE_FALLBACK;
+          exception.message ?? exception?.safeMessage ?? ERROR_MESSAGE_FALLBACK;
       }
     }
 

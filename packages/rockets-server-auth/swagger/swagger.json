@@ -13,7 +13,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthLoginDto"
+                "$ref": "#/components/schemas/RocketsAuthLoginDto"
               },
               "examples": {
                 "standard": {
@@ -33,7 +33,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RocketsServerAuthJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsAuthJwtResponseDto"
                 }
               }
             }
@@ -59,7 +59,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthRefreshDto"
+                "$ref": "#/components/schemas/RocketsAuthRefreshDto"
               },
               "examples": {
                 "standard": {
@@ -78,7 +78,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RocketsServerAuthJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsAuthJwtResponseDto"
                 }
               }
             }
@@ -99,7 +99,7 @@
     },
     "/recovery/login": {
       "post": {
-        "operationId": "RocketsServerAuthRecoveryController_recoverLogin",
+        "operationId": "RocketsAuthRecoveryController_recoverLogin",
         "summary": "Recover username",
         "description": "Sends an email with the username associated with the provided email address",
         "parameters": [],
@@ -109,7 +109,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthRecoverLoginDto"
+                "$ref": "#/components/schemas/RocketsAuthRecoverLoginDto"
               },
               "examples": {
                 "standard": {
@@ -137,7 +137,7 @@
     },
     "/recovery/password": {
       "post": {
-        "operationId": "RocketsServerAuthRecoveryController_recoverPassword",
+        "operationId": "RocketsAuthRecoveryController_recoverPassword",
         "summary": "Request password reset",
         "description": "Sends an email with a password reset link to the provided email address",
         "parameters": [],
@@ -147,7 +147,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthRecoverPasswordDto"
+                "$ref": "#/components/schemas/RocketsAuthRecoverPasswordDto"
               },
               "examples": {
                 "standard": {
@@ -173,7 +173,7 @@
         ]
       },
       "patch": {
-        "operationId": "RocketsServerAuthRecoveryController_updatePassword",
+        "operationId": "RocketsAuthRecoveryController_updatePassword",
         "summary": "Reset password",
         "description": "Updates the user password using a valid recovery passcode",
         "parameters": [],
@@ -183,7 +183,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthUpdatePasswordDto"
+                "$ref": "#/components/schemas/RocketsAuthUpdatePasswordDto"
               },
               "examples": {
                 "standard": {
@@ -212,7 +212,7 @@
     },
     "/recovery/passcode/{passcode}": {
       "get": {
-        "operationId": "RocketsServerAuthRecoveryController_validatePasscode",
+        "operationId": "RocketsAuthRecoveryController_validatePasscode",
         "summary": "Validate recovery passcode",
         "description": "Checks if the provided passcode is valid and not expired",
         "parameters": [
@@ -242,7 +242,7 @@
     },
     "/otp": {
       "post": {
-        "operationId": "RocketsServerAuthOtpController_sendOtp",
+        "operationId": "RocketsAuthOtpController_sendOtp",
         "summary": "Send OTP to the provided email",
         "description": "Generates a one-time passcode and sends it to the specified email address",
         "parameters": [],
@@ -252,7 +252,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthOtpSendDto"
+                "$ref": "#/components/schemas/RocketsAuthOtpSendDto"
               },
               "examples": {
                 "standard": {
@@ -278,7 +278,7 @@
         ]
       },
       "patch": {
-        "operationId": "RocketsServerAuthOtpController_confirmOtp",
+        "operationId": "RocketsAuthOtpController_confirmOtp",
         "summary": "Confirm OTP for a given email and passcode",
         "description": "Validates the OTP passcode for the specified email and returns authentication tokens on success",
         "parameters": [],
@@ -288,7 +288,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RocketsServerAuthOtpConfirmDto"
+                "$ref": "#/components/schemas/RocketsAuthOtpConfirmDto"
               },
               "examples": {
                 "standard": {
@@ -308,7 +308,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RocketsServerAuthJwtResponseDto"
+                  "$ref": "#/components/schemas/RocketsAuthJwtResponseDto"
                 }
               }
             }
@@ -333,7 +333,7 @@
             "name": "scopes",
             "required": true,
             "in": "query",
-            "description": "Space separated list of OAuth scopes to pass on to the provider. Common scopes: email, profile, openid",
+            "description": "Space separated list of OAuth scopes to pass on to the provider. Common scopes: email, userMetadata, openid",
             "schema": {
               "type": "string",
               "pattern": "[^ ]+( +[^ ]+)*"
@@ -417,11 +417,11 @@
       "patch": {
         "operationId": "admin_users_updateOne",
         "summary": "",
-        "description": "Updates the currently authenticated user profile information",
+        "description": "Updates the currently authenticated user userMetadata information",
         "parameters": [],
         "requestBody": {
           "required": true,
-          "description": "User profile information to update",
+          "description": "User userMetadata information to update",
           "content": {
             "application/json": {
               "schema": {
@@ -432,7 +432,7 @@
         },
         "responses": {
           "200": {
-            "description": "User profile updated successfully",
+            "description": "User userMetadata updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -719,80 +719,6 @@
           "auth"
         ]
       }
-    },
-    "/user": {
-      "get": {
-        "operationId": "UserCrudController_getOne",
-        "summary": "",
-        "description": "Retrieves the currently authenticated user profile information",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "User profile retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExtendedUserDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - User not authenticated"
-          }
-        },
-        "tags": [
-          "user"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "patch": {
-        "operationId": "UserCrudController_updateOne",
-        "summary": "",
-        "description": "Updates the currently authenticated user profile information",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "description": "User profile information to update",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExtendedUserUpdateDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User profile updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExtendedUserDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid input data"
-          },
-          "401": {
-            "description": "Unauthorized - User not authenticated"
-          }
-        },
-        "tags": [
-          "user"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
     }
   },
   "info": {
@@ -812,7 +738,7 @@
       }
     },
     "schemas": {
-      "RocketsServerAuthLoginDto": {
+      "RocketsAuthLoginDto": {
         "type": "object",
         "properties": {
           "username": {
@@ -829,7 +755,7 @@
           "password"
         ]
       },
-      "RocketsServerAuthJwtResponseDto": {
+      "RocketsAuthJwtResponseDto": {
         "type": "object",
         "properties": {
           "accessToken": {
@@ -846,7 +772,7 @@
           "refreshToken"
         ]
       },
-      "RocketsServerAuthRefreshDto": {
+      "RocketsAuthRefreshDto": {
         "type": "object",
         "properties": {
           "refreshToken": {
@@ -858,7 +784,7 @@
           "refreshToken"
         ]
       },
-      "RocketsServerAuthRecoverLoginDto": {
+      "RocketsAuthRecoverLoginDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -871,7 +797,7 @@
           "email"
         ]
       },
-      "RocketsServerAuthRecoverPasswordDto": {
+      "RocketsAuthRecoverPasswordDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -884,7 +810,7 @@
           "email"
         ]
       },
-      "RocketsServerAuthUpdatePasswordDto": {
+      "RocketsAuthUpdatePasswordDto": {
         "type": "object",
         "properties": {
           "passcode": {
@@ -903,7 +829,7 @@
           "newPassword"
         ]
       },
-      "RocketsServerAuthOtpSendDto": {
+      "RocketsAuthOtpSendDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -916,7 +842,7 @@
           "email"
         ]
       },
-      "RocketsServerAuthOtpConfirmDto": {
+      "RocketsAuthOtpConfirmDto": {
         "type": "object",
         "properties": {
           "email": {

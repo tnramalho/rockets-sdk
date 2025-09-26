@@ -2,19 +2,19 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
 import {
-  RocketsServerAuthModule,
+  RocketsAuthModule,
+  RocketsJwtAuthProvider,
 } from '@bitwild/rockets-server-auth';
 import {
-  RocketsServerModule,
+  RocketsModule,
 } from '@bitwild/rockets-server';
-import { DocumentBuilder } from '@nestjs/swagger';
-import { ProfileEntity } from './modules/user/entities/profile.entity';
-import { ProfileCreateDto, ProfileUpdateDto } from './modules/user/dto/profile.dto';
 
+import { UserMetadataEntity } from './modules/user/entities/user-metadata.entity';
+import { UserMetadataCreateDto, UserMetadataUpdateDto } from './modules/user/dto/user-metadata.dto';
 
 // Import modules
 import { PetModule } from './modules/pet';
-import { RocketsJwtAuthProvider, MockAuthProvider, UserModule } from './modules/user';
+import { UserModule } from './modules/user';
 
 // Import user-related items
 import {
@@ -40,7 +40,7 @@ import { PetEntity } from './modules/pet';
       type: 'sqlite',
       database: ':memory:',
       entities: [
-        ProfileEntity, 
+        UserMetadataEntity, 
         PetEntity,
         UserEntity,
         UserOtpEntity,
@@ -55,7 +55,7 @@ import { PetEntity } from './modules/pet';
     PetModule,
     UserModule,
     TypeOrmExtModule.forFeature({
-      profile: { entity: ProfileEntity },
+      userMetadata: { entity: UserMetadataEntity },
       user: { entity: UserEntity },
       role: { entity: RoleEntity },
       userRole: { entity: UserRoleEntity },
@@ -63,7 +63,7 @@ import { PetEntity } from './modules/pet';
       federated: { entity: FederatedEntity },
     }),
     
-    RocketsServerAuthModule.forRootAsync({
+    RocketsAuthModule.forRootAsync({
       imports: [TypeOrmModule.forFeature([UserEntity])],
       
       useFactory: () => ({
@@ -94,19 +94,24 @@ import { PetEntity } from './modules/pet';
       },
     }),
     
-    // RocketsServerModule for additional server features with JWT validation
-    RocketsServerModule.forRoot({
-      settings: {},
-      enableGlobalGuard: true,
-      authProvider: new MockAuthProvider(),
-      profile: {
-        createDto: ProfileCreateDto,
-        updateDto: ProfileUpdateDto,
-      },
+    // RocketsModule for additional server features with JWT validation
+    RocketsModule.forRootAsync({
+      imports: [TypeOrmModule.forFeature([UserEntity])],
+      inject:[RocketsJwtAuthProvider],
+      useFactory: (rocketsJwtAuthProvider: RocketsJwtAuthProvider) => ({
+        settings: {},
+        enableGlobalGuard: true,
+        authProvider: rocketsJwtAuthProvider,
+        userMetadata: {
+          createDto: UserMetadataCreateDto,
+          updateDto: UserMetadataUpdateDto,
+        },
+      }),
     }),
   ],
   controllers: [],
   providers: [],
+  exports: [],
 })
 export class AppModule {}
 

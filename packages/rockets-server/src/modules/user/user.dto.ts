@@ -3,13 +3,14 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * Generic User Update DTO
- * This DTO is generic and uses dynamic profile structure
- * The actual profile validation is handled by the dynamically configured DTO classes
+ * This DTO is generic and uses dynamic userMetadata structure
+ * The actual userMetadata validation is handled by the dynamically configured DTO classes
  * Follows SDK patterns for DTOs
  */
 export class UserUpdateDto {
   @ApiPropertyOptional({
-    description: 'Profile data to update - structure is defined dynamically',
+    description:
+      'UserMetadata data to update - structure is defined dynamically',
     type: 'object',
     example: {
       firstName: 'John',
@@ -20,12 +21,12 @@ export class UserUpdateDto {
   })
   @IsOptional()
   @IsObject()
-  profile?: Record<string, unknown>;
+  userMetadata?: Record<string, unknown>;
 }
 
 /**
  * Generic User Response DTO
- * Contains auth user data + metadata
+ * Contains auth user data + userMetadata
  * Follows SDK patterns for response DTOs
  */
 export class UserResponseDto {
@@ -72,7 +73,8 @@ export class UserResponseDto {
   claims?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    description: 'Profile data to update - structure is defined dynamically',
+    description:
+      'UserMetadata data from user userMetadata - structure is defined dynamically',
     type: 'object',
     example: {
       firstName: 'John',
@@ -83,5 +85,5 @@ export class UserResponseDto {
   })
   @IsOptional()
   @IsObject()
-  profile?: Record<string, unknown>;
+  userMetadata?: Record<string, unknown>;
 }

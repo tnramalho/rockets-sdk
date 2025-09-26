@@ -7,7 +7,7 @@ import { RoleEntity } from './entities/role.entity';
 import { UserRoleEntity } from './entities/user-role.entity';
 import { FederatedEntity } from './entities/federated.entity';
 import { UserTypeOrmCrudAdapter } from './adapters/user-typeorm-crud.adapter';
-import { RocketsJwtAuthProvider } from '../../rockets-jwt-auth.provider';
+import { RocketsJwtAuthProvider } from '@bitwild/rockets-server-auth';
 import { MockAuthProvider } from '../../mock-auth.provider';
 
 @Module({

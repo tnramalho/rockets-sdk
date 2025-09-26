@@ -14,23 +14,23 @@ import { UserUpdateDto } from '../user.dto';
 import { IsString, IsOptional } from 'class-validator';
 
 import { ServerAuthProviderFixture } from '../../../__fixtures__/providers/server-auth.provider.fixture';
-import { ProfileRepositoryFixture } from '../../../__fixtures__/repositories/profile.repository.fixture';
-import { RocketsServerOptionsInterface } from '../../../interfaces/rockets-server-options.interface';
-import { RocketsServerModule } from '../../../rockets-server.module';
+import { UserMetadataRepositoryFixture } from '../../../__fixtures__/repositories/user-metadata.repository.fixture';
+import { RocketsOptionsInterface } from '../../../interfaces/rockets-options.interface';
+import { RocketsModule } from '../../../rockets.module';
 import { getDynamicRepositoryToken } from '@concepta/nestjs-common';
-import { PROFILE_MODULE_PROFILE_ENTITY_KEY } from '../../profile/constants/profile.constants';
+import { USER_METADATA_MODULE_ENTITY_KEY } from '../../user-metadata/constants/user-metadata.constants';
 
 // Custom DTOs for testing - extending base DTOs
 import {
-  BaseProfileCreateDto,
-  BaseProfileUpdateDto,
-  ProfileCreatableInterface,
-  ProfileModelUpdatableInterface,
-} from '../../profile/interfaces/profile.interface';
+  BaseUserMetadataCreateDto,
+  BaseUserMetadataUpdateDto,
+  UserMetadataCreatableInterface,
+  UserMetadataModelUpdatableInterface,
+} from '../../user-metadata/interfaces/user-metadata.interface';
 
-class TestProfileCreateDto
-  extends BaseProfileCreateDto
-  implements ProfileCreatableInterface
+class TestUserMetadataCreateDto
+  extends BaseUserMetadataCreateDto
+  implements UserMetadataCreatableInterface
 {
   @IsString()
   userId!: string;
@@ -58,9 +58,9 @@ class TestProfileCreateDto
   [key: string]: unknown;
 }
 
-class TestProfileUpdateDto
-  extends BaseProfileUpdateDto
-  implements ProfileModelUpdatableInterface
+class TestUserMetadataUpdateDto
+  extends BaseUserMetadataUpdateDto
+  implements UserMetadataModelUpdatableInterface
 {
   @IsString()
   id!: string;
@@ -110,34 +110,34 @@ class UserTestController {
   controllers: [UserTestController],
   providers: [
     {
-      provide: getDynamicRepositoryToken(PROFILE_MODULE_PROFILE_ENTITY_KEY),
+      provide: getDynamicRepositoryToken(USER_METADATA_MODULE_ENTITY_KEY),
       inject: [],
       useFactory: () => {
-        return new ProfileRepositoryFixture();
+        return new UserMetadataRepositoryFixture();
       },
     },
   ],
   exports: [
     {
-      provide: getDynamicRepositoryToken(PROFILE_MODULE_PROFILE_ENTITY_KEY),
+      provide: getDynamicRepositoryToken(USER_METADATA_MODULE_ENTITY_KEY),
       inject: [],
       useFactory: () => {
-        return new ProfileRepositoryFixture();
+        return new UserMetadataRepositoryFixture();
       },
     },
   ],
 })
 class UserTestModule {}
 
-describe('RocketsServerModule - User Integration (e2e)', () => {
+describe('RocketsModule - User Integration (e2e)', () => {
   let app: INestApplication;
 
-  const baseOptions: RocketsServerOptionsInterface = {
+  const baseOptions: RocketsOptionsInterface = {
     settings: {},
     authProvider: new ServerAuthProviderFixture(),
-    profile: {
-      createDto: TestProfileCreateDto,
-      updateDto: TestProfileUpdateDto,
+    userMetadata: {
+      createDto: TestUserMetadataCreateDto,
+      updateDto: TestUserMetadataUpdateDto,
     },
   };
 
@@ -146,9 +146,9 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
   });
 
   describe('User Functionality', () => {
-    it('GET /user should return user data with profile when profile exists', async () => {
+    it('GET /user should return user data with userMetadata when userMetadata exists', async () => {
       const moduleRef = await Test.createTestingModule({
-        imports: [UserTestModule, RocketsServerModule.forRoot(baseOptions)],
+        imports: [UserTestModule, RocketsModule.forRoot(baseOptions)],
       }).compile();
 
       app = moduleRef.createNestApplication();
@@ -164,12 +164,12 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
         roles: ['admin'],
-        profile: {
-          id: 'profile-1',
+        userMetadata: {
+          id: 'userMetadata-1',
           userId: 'serverauth-user-1',
           firstName: 'John',
           lastName: 'Doe',
-          bio: 'Test user profile',
+          bio: 'Test user userMetadata',
           location: 'Test City',
           dateCreated: expect.any(String),
           dateUpdated: expect.any(String),
@@ -177,16 +177,16 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
       });
     });
 
-    it('PATCH /user should create new profile for user', async () => {
+    it('PATCH /user should create new userMetadata for user', async () => {
       const moduleRef = await Test.createTestingModule({
-        imports: [UserTestModule, RocketsServerModule.forRoot(baseOptions)],
+        imports: [UserTestModule, RocketsModule.forRoot(baseOptions)],
       }).compile();
 
       app = moduleRef.createNestApplication();
       await app.init();
 
       const updateData: UserUpdateDto = {
-        profile: {
+        userMetadata: {
           firstName: 'Updated',
           lastName: 'Name',
           bio: 'Updated bio',
@@ -204,7 +204,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
         roles: ['admin'],
-        profile: {
+        userMetadata: {
           id: expect.any(String),
           userId: 'serverauth-user-1',
           firstName: 'Updated',
@@ -219,12 +219,12 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
     it('should work with minimal user configuration', async () => {
       const moduleRef = await Test.createTestingModule({
         imports: [
-          RocketsServerModule.forRoot({
+          RocketsModule.forRoot({
             settings: {},
             authProvider: new ServerAuthProviderFixture(),
-            profile: {
-              createDto: TestProfileCreateDto,
-              updateDto: TestProfileUpdateDto,
+            userMetadata: {
+              createDto: TestUserMetadataCreateDto,
+              updateDto: TestUserMetadataUpdateDto,
             },
           }),
           UserTestModule,
@@ -244,7 +244,7 @@ describe('RocketsServerModule - User Integration (e2e)', () => {
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
         roles: ['admin'],
-        // Should not have profile fields when empty
+        // Should not have userMetadata fields when empty
       });
     });
   });

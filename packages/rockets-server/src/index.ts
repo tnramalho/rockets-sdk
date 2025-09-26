@@ -1,9 +1,9 @@
 // Export configuration types
 export type {
-  RocketsServerOptionsInterface,
-  ProfileConfigInterface,
-} from './interfaces/rockets-server-options.interface';
-export type { RocketsServerOptionsExtrasInterface } from './interfaces/rockets-server-options-extras.interface';
+  RocketsOptionsInterface,
+  UserMetadataConfigInterface,
+} from './interfaces/rockets-options.interface';
+export type { RocketsOptionsExtrasInterface } from './interfaces/rockets-options-extras.interface';
 
 // Export auth components
 export { AuthServerGuard } from './guards/auth-server.guard';
@@ -27,22 +27,22 @@ export {
 } from './modules/user/interfaces/user.interface';
 export { UserModule } from './modules/user/user.module';
 
-// Export profile components (for advanced usage)
+// Export userMetadata components (for advanced usage)
 export {
-  BaseProfileEntityInterface,
-  ProfileEntityInterface,
-  ProfileCreatableInterface,
-  ProfileUpdatableInterface,
-  ProfileModelUpdatableInterface,
-  ProfileModelServiceInterface,
-  BaseProfileDto,
-  BaseProfileCreateDto,
-  BaseProfileUpdateDto,
-} from './modules/profile/interfaces/profile.interface';
+  BaseUserMetadataEntityInterface,
+  UserMetadataEntityInterface,
+  UserMetadataCreatableInterface,
+  UserMetadataUpdatableInterface,
+  UserMetadataModelUpdatableInterface,
+  UserMetadataModelServiceInterface,
+  BaseUserMetadataDto,
+  BaseUserMetadataCreateDto,
+  BaseUserMetadataUpdateDto,
+} from './modules/user-metadata/interfaces/user-metadata.interface';
 export {
-  ProfileModelService,
-  PROFILE_MODULE_PROFILE_ENTITY_KEY,
-} from './modules/profile/constants/profile.constants';
+  UserMetadataModelService,
+  USER_METADATA_MODULE_ENTITY_KEY,
+} from './modules/user-metadata/constants/user-metadata.constants';
 
 // Export main module
-export { RocketsServerModule } from './rockets-server.module';
+export { RocketsModule } from './rockets.module';
