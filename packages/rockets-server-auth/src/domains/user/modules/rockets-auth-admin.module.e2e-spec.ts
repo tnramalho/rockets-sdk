@@ -14,6 +14,7 @@ describe('RocketsAuthAdminModule (e2e)', () => {
   let adminRole: RoleEntityInterface;
 
   beforeAll(async () => {
+    process.env.ADMIN_ROLE_NAME = 'admin';
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModuleAdminFixture],
     }).compile();
@@ -51,17 +52,10 @@ describe('RocketsAuthAdminModule (e2e)', () => {
       .set('Authorization', `Bearer wrong_token`)
       .expect(401);
 
-    await request(app.getHttpServer())
+    const signupRes = await request(app.getHttpServer())
       .post('/signup')
       .send({ username, email, password, active: true })
       .expect(201);
-
-    // const userId = response.body.id;
-    // await roleService.assignRole({
-    //   assignment: 'user',
-    //   role: { id: adminRole.id},
-    //   assignee: {id: userId }
-    // })
 
     const loginRes = await request(app.getHttpServer())
       .post('/token/password')
@@ -71,16 +65,7 @@ describe('RocketsAuthAdminModule (e2e)', () => {
     const token = loginRes.body.accessToken;
     expect(token).toBeDefined();
 
-    const response = await request(app.getHttpServer())
-      .get('/user')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .catch((err) => {
-        console.error('Error:', err);
-        throw err;
-      });
-
-    const userId = response.body.id;
+    const userId = signupRes.body.id;
     await roleService.assignRole({
       assignment: 'user',
       role: { id: adminRole.id },
@@ -95,9 +80,16 @@ describe('RocketsAuthAdminModule (e2e)', () => {
     });
     expect(hasAdminRole).toBe(true);
 
+    // Re-login to get a fresh access token after role assignment
+    const loginRes2 = await request(app.getHttpServer())
+      .post('/token/password')
+      .send({ username, password })
+      .expect(200);
+    const adminToken = loginRes2.body.accessToken;
+
     const listRes = await request(app.getHttpServer())
       .get('/admin/users')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
 
     expect(listRes.body).toBeDefined();

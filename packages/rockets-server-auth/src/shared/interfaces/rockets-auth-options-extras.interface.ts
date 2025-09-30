@@ -5,6 +5,9 @@ import { DynamicModule, Type } from '@nestjs/common';
 import { RocketsAuthUserEntityInterface } from '../../domains/user/interfaces/rockets-auth-user-entity.interface';
 import { RocketsAuthUserCreatableInterface } from '../../domains/user/interfaces/rockets-auth-user-creatable.interface';
 import { RocketsAuthUserUpdatableInterface } from '../../domains/user/interfaces/rockets-auth-user-updatable.interface';
+import { RocketsAuthRoleEntityInterface } from '../../domains/role/interfaces/rockets-auth-role-entity.interface';
+import { RocketsAuthRoleCreatableInterface } from '../../domains/role/interfaces/rockets-auth-role-creatable.interface';
+import { RocketsAuthRoleUpdatableInterface } from '../../domains/role/interfaces/rockets-auth-role-updatable.interface';
 
 export interface UserCrudOptionsExtrasInterface {
   imports?: DynamicModule['imports'];
@@ -17,6 +20,17 @@ export interface UserCrudOptionsExtrasInterface {
   };
 }
 
+export interface RoleCrudOptionsExtrasInterface {
+  imports?: DynamicModule['imports'];
+  path?: string;
+  model: Type;
+  adapter: Type<CrudAdapter<RocketsAuthRoleEntityInterface>>;
+  dto?: {
+    createOne?: Type<RocketsAuthRoleCreatableInterface>;
+    updateOne?: Type<RocketsAuthRoleUpdatableInterface>;
+  };
+}
+
 export interface DisableControllerOptionsInterface {
   password?: boolean; // true = disabled
   refresh?: boolean; // true = disabled
@@ -25,6 +39,8 @@ export interface DisableControllerOptionsInterface {
   oAuth?: boolean; // true = disabled
   signup?: boolean; // true = disabled (admin submodule)
   admin?: boolean; // true = disabled (admin submodule)
+  adminRoles?: boolean; // true = disabled (roles admin submodule)
+  user?: boolean; // legacy/tests compatibility
 }
 
 export interface RocketsAuthOptionsExtrasInterface
@@ -35,12 +51,13 @@ export interface RocketsAuthOptionsExtrasInterface
    * When false, only provides AuthGuard as a service (not global)
    * Default: true
    */
-  enableGlobalGuard?: boolean;
+  enableGlobalJWTGuard?: boolean;
   user?: { imports: DynamicModule['imports'] };
   otp?: { imports: DynamicModule['imports'] };
   federated?: { imports: DynamicModule['imports'] };
   role?: RoleOptionsExtrasInterface & { imports: DynamicModule['imports'] };
   authRouter?: AuthRouterOptionsExtrasInterface;
   userCrud?: UserCrudOptionsExtrasInterface;
+  roleCrud?: RoleCrudOptionsExtrasInterface;
   disableController?: DisableControllerOptionsInterface;
 }

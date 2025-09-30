@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { RocketsAuthSettingsInterface } from '../shared/interfaces/rockets-auth-settings.interface';
 import { ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../shared/constants/rockets-auth.constants';
@@ -26,9 +27,7 @@ export class AdminGuard implements CanActivate {
 
     const ADMIN_ROLE = this.settings.role.adminRoleName;
 
-    if (!user) {
-      throw new ForbiddenException('User not authenticated');
-    }
+    if (!user) throw new UnauthorizedException('User not authenticated');
 
     if (!ADMIN_ROLE) {
       throw new ForbiddenException('Admin Role not defined');

@@ -4,7 +4,6 @@ export * from './user.module';
 // Entities
 export * from './entities/user.entity';
 export * from './entities/user-otp.entity';
-export * from './entities/role.entity';
 export * from './entities/user-role.entity';
 export * from './entities/federated.entity';
 export * from './entities/user.interface';

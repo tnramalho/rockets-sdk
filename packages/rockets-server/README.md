@@ -2,8 +2,8 @@
 
 ## Project
 
-[![NPM Latest](https://img.shields.io/npm/v/@bitwild/rockets-server-auth)](https://www.npmjs.com/package/@bitwild/rockets-server-auth)
-[![NPM Downloads](https://img.shields.io/npm/dw/@bitwild/rockets-server-auth)](https://www.npmjs.com/package/@bitwild/rockets-server-auth)
+[![NPM Latest](https://img.shields.io/npm/v/@bitwild/rockets-server)](https://www.npmjs.com/package/@bitwild/rockets-server)
+[![NPM Downloads](https://img.shields.io/npm/dw/@bitwild/rockets-server)](https://www.npmjs.com/package/@bitwild/rockets-server)
 [![GH Last Commit](https://img.shields.io/github/last-commit/btwld/rockets?logo=github)](https://github.com/btwld/rockets)
 [![GH Contrib](https://img.shields.io/github/contributors/btwld/rockets?logo=github)](https://github.com/btwld/rockets/graphs/contributors)
 
@@ -83,11 +83,11 @@ maintaining flexibility for customization and extension.
 
 ### Installation
 
-**⚠️ CRITICAL: Alpha Version Issue**:
+**About this package**:
 
-> **The current alpha version (7.0.0-alpha.6) has a dependency injection
-> issue with AuthJwtGuard that prevents the minimal setup from working. This
-> is a known issue being investigated.**
+> This package provides the base server module and global authentication guard
+> that integrates with your authentication provider. It does not expose
+> login/signup/recovery/OAuth endpoints (those live in `@bitwild/rockets-server-auth`).
 
 **Version Requirements**:
 
@@ -101,12 +101,12 @@ Let's create a new NestJS project:
 npx @nestjs/cli@10 new my-app-with-rockets --package-manager yarn --language TypeScript --strict
 ```
 
-Install the Rockets SDK and all required dependencies:
+Install the base server package and required dependencies:
 
 ```bash
-yarn add @bitwild/rockets-server-auth @concepta/nestjs-typeorm-ext \
+yarn add @bitwild/rockets-server @concepta/nestjs-typeorm-ext \
   @concepta/nestjs-common typeorm @nestjs/typeorm @nestjs/config \
-  @nestjs/swagger class-transformer class-validator sqlite3
+  @concepta/nestjs-swagger-ui class-transformer class-validator sqlite3
 ```
 
 ---
@@ -187,17 +187,19 @@ NODE_ENV=development
 
 #### Step 3: Configure Your Module
 
-Create your main application module with the minimal Rockets SDK setup:
+Configure the base server module with your authentication provider and user metadata:
 
 ```typescript
 // app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RocketsServerAuthModule } from '@bitwild/rockets-server-auth';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmExtModule } from '@concepta/nestjs-typeorm-ext';
-import { UserEntity } from './entities/user.entity';
-import { UserOtpEntity } from './entities/user-otp.entity';
-import { FederatedEntity } from './entities/federated.entity';
+import { RocketsModule } from '@bitwild/rockets-server';
+// If you're also using rockets-server-auth, import its provider:
+import { RocketsJwtAuthProvider } from '@bitwild/rockets-server-auth';
+import { UserMetadataEntity } from './entities/user-metadata.entity';
+import { UserMetadataCreateDto, UserMetadataUpdateDto } from './dto/user-metadata.dto';
 
 @Module({
   imports: [
@@ -207,67 +209,32 @@ import { FederatedEntity } from './entities/federated.entity';
     }),
     
     // Database configuration - SQLite in-memory for easy testing
-    TypeOrmExtModule.forRoot({
+    TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: ':memory:', // In-memory database - no files created
-      synchronize: true,    // Auto-create tables (dev only)
-      autoLoadEntities: true,
-      logging: false,       // Set to true to see SQL queries
-      entities: [UserEntity, UserOtpEntity, FederatedEntity],
+      database: ':memory:',
+      synchronize: true,
+      dropSchema: true,
+      entities: [UserMetadataEntity],
     }),
-    
-    // Rockets SDK configuration - minimal setup
-    RocketsServerAuthModule.forRootAsync({
-      imports: [
-        TypeOrmModule.forFeature([UserEntity]),
-        TypeOrmExtModule.forFeature({
-          user: { entity: UserEntity },
-          role: { entity: RoleEntity },
-          userRole: { entity: UserRoleEntity },
-          userOtp: { entity: UserOtpEntity },
-          federated: { entity: FederatedEntity },
-        }),
-      ],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        // Required services
-        services: {
-          mailerService: {
-            sendMail: (options: any) => {
-              console.log('📧 Email would be sent:', {
-                to: options.to,
-                subject: options.subject,
-                // Don't log the full content in examples
-              });
-              return Promise.resolve();
-            },
-          },
+
+    // Provide the dynamic repository for user metadata
+    TypeOrmExtModule.forFeature({
+      userMetadata: { entity: UserMetadataEntity },
+    }),
+
+    // Base server module with global guard
+    RocketsModule.forRootAsync({
+      // If using RocketsJwtAuthProvider, ensure it's provided in your module
+      inject: [RocketsJwtAuthProvider],
+      useFactory: (authProvider: RocketsJwtAuthProvider) => ({
+        authProvider,
+        settings: {},
+        // Enable global guard (default true); can be turned off per-route via decorator
+        enableGlobalGuard: true,
+        userMetadata: {
+          createDto: UserMetadataCreateDto,
+          updateDto: UserMetadataUpdateDto,
         },
-        
-        // Email and OTP settings
-        settings: {
-          email: {
-            from: 'noreply@yourapp.com',
-            baseUrl: 'http://localhost:3000',
-            templates: {
-              sendOtp: {
-                fileName: 'otp.template.hbs',
-                subject: 'Your verification code',
-              },
-            },
-          },
-          otp: {
-            assignment: 'userOtp',
-            category: 'auth-login',
-            type: 'numeric',
-            expiresIn: '10m',
-          },
-        },
-        // Optional: Enable Admin endpoints
-        // Provide a CRUD adapter + DTOs and import the repository via
-        // TypeOrmModule.forFeature([...]). Enable by passing `admin` at the
-        // top-level of RocketsServerAuthModule.forRoot/forRootAsync options.
-        // See the admin how-to section for a complete example.
       }),
     }),
   ],
@@ -309,45 +276,10 @@ bootstrap();
 
 ### Your First API
 
-With the basic setup complete, your application now provides these endpoints:
+With the basic setup complete, your application provides:
 
-#### Authentication Endpoints
-
-- `POST /signup` - Register a new user
-- `POST /token/password` - Login with username/password (returns 200 OK with tokens)
-- `POST /token/refresh` - Refresh access token
-- `POST /recovery/login` - Initiate username recovery
-- `POST /recovery/password` - Initiate password reset
-- `PATCH /recovery/password` - Reset password with passcode
-- `GET /recovery/passcode/:passcode` - Validate recovery passcode
-
-#### OAuth Endpoints
-
-- `GET /oauth/authorize` - Redirect to OAuth provider (Google, GitHub, Apple)
-- `GET /oauth/callback` - Handle OAuth callback and return tokens
-- `POST /oauth/callback` - Handle OAuth callback via POST method
-
-#### User Management Endpoints
-
-- `GET /user` - Get current user userMetadata
-- `PATCH /user` - Update current user userMetadata
-
-#### Admin Endpoints (optional)
-
-If you enable the admin module (see How-to Guides > admin), these routes become
-available and are protected by `AdminGuard`:
-
-- `GET /admin/users` - List users
-- `GET /admin/users/:id` - Get a user
-- `POST /admin/users` - Create a user
-- `PATCH /admin/users/:id` - Update a user
-- `PUT /admin/users/:id` - Replace a user
-- `DELETE /admin/users/:id` - Delete a user
-
-#### OTP Endpoints
-
-- `POST /otp` - Send OTP to user email (returns 200 OK)
-- `PATCH /otp` - Confirm OTP code (returns 200 OK with tokens)
+- `GET /me` - Get the current authenticated user (guarded by the global guard)
+- Any custom routes you create, protected by the global `AuthServerGuard`
 
 ### Testing the Setup
 
@@ -357,63 +289,10 @@ available and are protected by `AdminGuard`:
 npm run start:dev
 ```
 
-#### 2. Register a New User
+#### 2. Access Protected Endpoint
 
 ```bash
-curl -X POST http://localhost:3000/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "SecurePass123",
-    "username": "testuser"
-  }'
-```
-
-Expected response:
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "email": "user@example.com",
-  "username": "testuser",
-  "active": true,
-  "dateCreated": "2024-01-01T00:00:00.000Z",
-  "dateUpdated": "2024-01-01T00:00:00.000Z",
-  "dateDeleted": null,
-  "version": 1
-}
-```
-
-#### 3. Login and Get Access Token
-
-```bash
-curl -X POST http://localhost:3000/token/password \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "password": "SecurePass123"
-  }'
-```
-
-Expected response (200 OK):
-
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-**Note**: The login endpoint returns a 200 OK status (not 201 Created) as it's
-retrieving tokens, not creating a new resource.
-
-**Defaults Working**: All authentication endpoints work out-of-the-box with
-sensible defaults.
-
-#### 4. Access Protected Endpoint
-
-```bash
-curl -X GET http://localhost:3000/user \
+curl -X GET http://localhost:3000/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
 ```
 
@@ -432,61 +311,6 @@ Expected response:
 }
 ```
 
-#### 5. Test OTP Functionality
-
-```bash
-# Send OTP (returns 200 OK)
-curl -X POST http://localhost:3000/otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com"
-  }'
-
-# Check console for the "email" that would be sent with the OTP code
-# Then confirm with the code (replace 123456 with actual code)
-# Returns 200 OK with tokens
-curl -X PATCH http://localhost:3000/otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "passcode": "123456"
-  }'
-```
-
-Expected OTP confirm response (200 OK):
-
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-#### 6. Test OAuth Functionality
-
-```bash
-# Redirect to Google OAuth (returns 200 OK)
-curl -X GET "http://localhost:3000/oauth/authorize?provider=google&scopes=email,profile"
-
-# Redirect to GitHub OAuth (returns 200 OK)
-curl -X GET "http://localhost:3000/oauth/authorize?provider=github&scopes=user,email"
-
-# Redirect to Apple OAuth (returns 200 OK)
-curl -X GET "http://localhost:3000/oauth/authorize?provider=apple&scopes=email,name"
-
-# Handle OAuth callback (returns 200 OK with tokens)
-curl -X GET "http://localhost:3000/oauth/callback?provider=google"
-```
-
-Expected OAuth callback response (200 OK):
-
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
 🎉 **Congratulations!** You now have a fully functional authentication system
 with user management, JWT tokens, OAuth integration, and API documentation
 running with minimal configuration.
@@ -498,15 +322,11 @@ you restart the application. This is perfect for testing and development!
 
 #### Common Issues
 
-#### AuthJwtGuard Dependency Error
+#### No authentication token provided (401)
 
-If you encounter this error:
-
-```text
-Nest can't resolve dependencies of the AuthJwtGuard
-(AUTHENTICATION_MODULE_SETTINGS_TOKEN, ?). Please make sure that the
-argument Reflector at index [1] is available in the AuthJwtModule context.
-```
+If you receive 401 on protected routes, ensure you are passing a
+valid `Authorization: Bearer <token>` header and that your
+`authProvider.validateToken` returns an `AuthorizedUser`.
 
 #### Module Resolution Errors
 
@@ -938,7 +758,7 @@ Apple OAuth providers with sensible defaults.
 
 **OAuth Flow**:
 
-1. Client calls `/oauth/authorize?provider=google&scopes=email profile`
+1. Client calls `/oauth/authorize?provider=google&scopes=email userMetadata`
 2. AuthRouterGuard routes to the appropriate OAuth guard based on provider
 3. OAuth guard redirects to the provider's authorization URL
 4. User authenticates with the OAuth provider
@@ -965,12 +785,12 @@ user: {
   imports: [
     TypeOrmExtModule.forFeature({
       user: { entity: UserEntity },
-      userProfile: { entity: UserProfileEntity },
+      userUserMetadata: { entity: UserUserMetadataEntity },
       userPasswordHistory: { entity: UserPasswordHistoryEntity },
     }),
   ],
   settings: {
-    enableProfiles: true, // Enable user profiles
+    enableUserMetadatas: true, // Enable user userMetadatas
     enablePasswordHistory: true, // Track password history
   },
   userModelService: new EnterpriseUserModelService(),
@@ -1813,7 +1633,7 @@ describe('AuthOAuthController (e2e)', () => {
   describe('GET /oauth/authorize', () => {
     it('should handle authorize with google provider', async () => {
       await request(app.getHttpServer())
-        .get('/oauth/authorize?provider=google&scopes=email profile')
+        .get('/oauth/authorize?provider=google&scopes=email userMetadata')
         .expect(200);
     });
   });
@@ -2142,7 +1962,7 @@ sequenceDiagram
     participant G as Google OAuth
     participant C as Client
     
-    C->>AR: GET /oauth/authorize?provider=google&scopes=email profile
+    C->>AR: GET /oauth/authorize?provider=google&scopes=email userMetadata
     AR->>AR: Route to AuthGoogleGuard
     AR->>AG: canActivate(context)
     AG->>G: Redirect to Google OAuth URL

@@ -26,6 +26,10 @@ import * as path from 'path';
 import { Column, Entity, Repository } from 'typeorm';
 import { RocketsAuthUserDto } from './domains/user/dto/rockets-auth-user.dto';
 import { RocketsAuthUserEntityInterface } from './domains/user/interfaces/rockets-auth-user-entity.interface';
+import { RocketsAuthRoleDto } from './domains/role/dto/rockets-auth-role.dto';
+import { RocketsAuthRoleCreateDto } from './domains/role/dto/rockets-auth-role-create.dto';
+import { RocketsAuthRoleUpdateDto } from './domains/role/dto/rockets-auth-role-update.dto';
+import { RocketsAuthRoleEntityInterface } from './domains/role/interfaces/rockets-auth-role-entity.interface';
 import { RocketsAuthModule } from './rockets-auth.module';
 
 // Create concrete entity implementations for TypeORM
@@ -60,6 +64,15 @@ class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthUserEnti
   constructor(
     @InjectRepository(UserEntity)
     private readonly repository: Repository<RocketsAuthUserEntityInterface>,
+  ) {
+    super(repository);
+  }
+}
+
+class AdminRoleTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthRoleEntityInterface> {
+  constructor(
+    @InjectRepository(RoleEntity)
+    private readonly repository: Repository<RocketsAuthRoleEntityInterface>,
   ) {
     super(repository);
   }
@@ -211,6 +224,7 @@ class ExtendedUserUpdateDto extends PickType(ExtendedUserDto, [
  */
 async function generateSwaggerJson() {
   try {
+    process.env.ADMIN_ROLE_NAME = process.env.ADMIN_ROLE_NAME || 'admin';
     const mockUserModelService = new MockUserModelService();
 
     @Module({
@@ -228,7 +242,7 @@ async function generateSwaggerJson() {
             FederatedEntity,
           ],
         }),
-        TypeOrmModule.forFeature([UserEntity]),
+        TypeOrmModule.forFeature([UserEntity, RoleEntity]),
         TypeOrmExtModule.forRootAsync({
           inject: [],
           useFactory: () => {
@@ -250,7 +264,7 @@ async function generateSwaggerJson() {
         }),
         RocketsAuthModule.forRootAsync({
           imports: [
-            TypeOrmModule.forFeature([UserEntity]),
+            TypeOrmModule.forFeature([UserEntity, RoleEntity]),
             TypeOrmExtModule.forFeature({
               user: { entity: UserEntity },
               role: { entity: RoleEntity },
@@ -267,6 +281,23 @@ async function generateSwaggerJson() {
               createOne: ExtendedUserCreateDto,
               updateOne: ExtendedUserUpdateDto,
             },
+          },
+          roleCrud: {
+            imports: [TypeOrmModule.forFeature([RoleEntity])],
+            adapter: AdminRoleTypeOrmCrudAdapter,
+            model: RocketsAuthRoleDto,
+            dto: {
+              createOne: RocketsAuthRoleCreateDto,
+              updateOne: RocketsAuthRoleUpdateDto,
+            },
+          },
+          role: {
+            imports: [
+              TypeOrmExtModule.forFeature({
+                role: { entity: RoleEntity },
+                userRole: { entity: UserRoleEntity },
+              }),
+            ],
           },
           useFactory: () => ({
             jwt: {

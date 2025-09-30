@@ -28,3 +28,7 @@ export const RocketsAuthUserModelService = Symbol(
 export const ADMIN_USER_CRUD_SERVICE_TOKEN = Symbol(
   '__ADMIN_USER_CRUD_SERVICE_TOKEN__',
 );
+
+export const ADMIN_ROLE_CRUD_SERVICE_TOKEN = Symbol(
+  '__ADMIN_ROLE_CRUD_SERVICE_TOKEN__',
+);

@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reflector } from '@nestjs/core';
 import { UserEntity } from './entities/user.entity';
 import { UserOtpEntity } from './entities/user-otp.entity';
-import { RoleEntity } from './entities/role.entity';
+import { RoleEntity } from '../role/role.entity';
 import { UserRoleEntity } from './entities/user-role.entity';
 import { FederatedEntity } from './entities/federated.entity';
 import { UserTypeOrmCrudAdapter } from './adapters/user-typeorm-crud.adapter';

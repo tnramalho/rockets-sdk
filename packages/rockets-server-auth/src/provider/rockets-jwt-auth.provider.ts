@@ -7,7 +7,7 @@ import {
 import { VerifyTokenService } from '@concepta/nestjs-authentication';
 import { UserModelService } from '@concepta/nestjs-user';
 import { UserEntityInterface } from '@concepta/nestjs-common';
-import { RoleModelService, RoleService } from '@concepta/nestjs-role';
+import { RoleService } from '@concepta/nestjs-role';
 
 @Injectable()
 export class RocketsJwtAuthProvider {
@@ -18,7 +18,7 @@ export class RocketsJwtAuthProvider {
     private readonly verifyTokenService: VerifyTokenService,
     @Inject(UserModelService)
     private readonly userModelService: UserModelService,
-    @Inject(RoleModelService)
+    @Inject(RoleService)
     private readonly roleModelService: RoleService,
   ) {}
 

@@ -64,6 +64,7 @@ import { RocketsAuthOptionsInterface } from './shared/interfaces/rockets-auth-op
 import { RocketsAuthSettingsInterface } from './shared/interfaces/rockets-auth-settings.interface';
 import { RocketsAuthAdminModule } from './domains/user/modules/rockets-auth-admin.module';
 import { RocketsAuthSignUpModule } from './domains/user/modules/rockets-auth-signup.module';
+import { RocketsAuthRoleAdminModule } from './domains/role/modules/rockets-auth-role-admin.module';
 import {
   ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN,
   RocketsAuthUserModelService,
@@ -108,7 +109,7 @@ function definitionTransform(
   extras: RocketsAuthOptionsExtrasInterface,
 ): DynamicModule {
   const { imports = [], providers = [], exports = [] } = definition;
-  const { controllers, userCrud: admin } = extras;
+  const { controllers, userCrud, roleCrud } = extras;
   // TODO: need to define this, if set it as required we need to have defaults on extras
   // if (!user?.imports) throw new Error('Make sure imports entities for user');
   // if (!otp?.imports) throw new Error('Make sure imports entities for otp');
@@ -126,15 +127,26 @@ function definitionTransform(
   };
 
   // If admin is configured, add the admin submodule
-  if (admin) {
+  if (userCrud) {
     const disableController = extras.disableController || {};
     baseModule.imports = [
       ...(baseModule.imports || []),
       ...(!disableController.admin
-        ? [RocketsAuthAdminModule.register(admin)]
+        ? [RocketsAuthAdminModule.register(userCrud)]
         : []),
       ...(!disableController.signup
-        ? [RocketsAuthSignUpModule.register(admin)]
+        ? [RocketsAuthSignUpModule.register(userCrud)]
+        : []),
+    ];
+  }
+
+  // If role CRUD is configured, add the role admin submodule
+  if (roleCrud) {
+    const disableController = extras.disableController || {};
+    baseModule.imports = [
+      ...(baseModule.imports || []),
+      ...(!disableController.adminRoles
+        ? [RocketsAuthRoleAdminModule.register(roleCrud)]
         : []),
     ];
   }
@@ -255,7 +267,10 @@ export function createRocketsAuthImports(importOptions: {
         userModelService: UserModelService,
       ): AuthJwtOptionsInterface => {
         return {
-          appGuard: false,
+          appGuard:
+            importOptions.extras?.enableGlobalJWTGuard === true
+              ? undefined
+              : false,
           verifyTokenService:
             options.authJwt?.verifyTokenService ||
             options.services?.verifyTokenService,

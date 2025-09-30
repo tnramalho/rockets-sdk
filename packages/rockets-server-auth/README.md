@@ -263,11 +263,7 @@ import { FederatedEntity } from './entities/federated.entity';
             expiresIn: '10m',
           },
         },
-        // Optional: Enable Admin endpoints
-        // Provide a CRUD adapter + DTOs and import the repository via
-        // TypeOrmModule.forFeature([...]). Enable by passing `admin` at the
-        // top-level of RocketsAuthModule.forRoot/forRootAsync options.
-        // See the admin how-to section for a complete example.
+        // Optional: Admin and Signup endpoints can be enabled via userCrud extras
       }),
     }),
   ],
@@ -494,19 +490,52 @@ running with minimal configuration.
 **💡 Pro Tip**: Since we're using an in-memory database, all data is lost when
 you restart the application. This is perfect for testing and development!
 
+### Integrating with @bitwild/rockets-server
+
+Use `RocketsJwtAuthProvider` from this package as the `authProvider` for
+`@bitwild/rockets-server` so your app has a global guard that validates
+tokens issued by the auth module:
+
+```typescript
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RocketsAuthModule, RocketsJwtAuthProvider } from '@bitwild/rockets-server-auth';
+import { RocketsModule } from '@bitwild/rockets-server';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([UserEntity]),
+    RocketsAuthModule.forRootAsync({
+      imports: [TypeOrmModule.forFeature([UserEntity])],
+      useFactory: () => ({
+        services: {
+          mailerService: { sendMail: async () => Promise.resolve() },
+        },
+      }),
+    }),
+    RocketsModule.forRootAsync({
+      inject: [RocketsJwtAuthProvider],
+      useFactory: (authProvider: RocketsJwtAuthProvider) => ({
+        authProvider,
+        userMetadata: { createDto: UserMetadataCreateDto, updateDto: UserMetadataUpdateDto },
+        enableGlobalGuard: true,
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
 ### Troubleshooting
 
 #### Common Issues
 
-#### AuthJwtGuard Dependency Error
+#### AuthJwtGuard Reflector dependency
 
-If you encounter this error:
-
-```text
-Nest can't resolve dependencies of the AuthJwtGuard
-(AUTHENTICATION_MODULE_SETTINGS_TOKEN, ?). Please make sure that the
-argument Reflector at index [1] is available in the AuthJwtModule context.
-```
+If you enable `authJwt.appGuard: true` and see a dependency error regarding
+`Reflector`, ensure `Reflector` is available (provided in your module or via
+Nest core). The sample app includes `Reflector` in providers.
 
 #### Module Resolution Errors
 
@@ -965,12 +994,12 @@ user: {
   imports: [
     TypeOrmExtModule.forFeature({
       user: { entity: UserEntity },
-      userProfile: { entity: UserProfileEntity },
+      userUserMetadata: { entity: UserUserMetadataEntity },
       userPasswordHistory: { entity: UserPasswordHistoryEntity },
     }),
   ],
   settings: {
-    enableProfiles: true, // Enable user profiles
+    enableUserMetadatas: true, // Enable user userMetadatas
     enablePasswordHistory: true, // Track password history
   },
   userModelService: new EnterpriseUserModelService(),
@@ -1813,7 +1842,7 @@ describe('AuthOAuthController (e2e)', () => {
   describe('GET /oauth/authorize', () => {
     it('should handle authorize with google provider', async () => {
       await request(app.getHttpServer())
-        .get('/oauth/authorize?provider=google&scopes=email profile')
+        .get('/oauth/authorize?provider=google&scopes=email userMetadata')
         .expect(200);
     });
   });
@@ -2142,7 +2171,7 @@ sequenceDiagram
     participant G as Google OAuth
     participant C as Client
     
-    C->>AR: GET /oauth/authorize?provider=google&scopes=email profile
+    C->>AR: GET /oauth/authorize?provider=google&scopes=email userMetadata
     AR->>AR: Route to AuthGoogleGuard
     AR->>AG: canActivate(context)
     AG->>G: Redirect to Google OAuth URL

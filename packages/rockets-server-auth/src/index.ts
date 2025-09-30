@@ -6,6 +6,7 @@ export * from './domains/auth';
 export * from './domains/user';
 export * from './domains/oauth';
 export * from './domains/otp';
+export * from './domains/role';
 
 // Export shared resources
 export * from './shared';
@@ -20,10 +21,17 @@ export type { RocketsAuthUserInterface } from './domains/user/interfaces/rockets
 export type { RocketsAuthUserCreatableInterface } from './domains/user/interfaces/rockets-auth-user-creatable.interface';
 export type { RocketsAuthUserUpdatableInterface } from './domains/user/interfaces/rockets-auth-user-updatable.interface';
 export type { RocketsAuthUserEntityInterface } from './domains/user/interfaces/rockets-auth-user-entity.interface';
+export type { RocketsAuthRoleInterface } from './domains/role/interfaces/rockets-auth-role.interface';
+export type { RocketsAuthRoleCreatableInterface } from './domains/role/interfaces/rockets-auth-role-creatable.interface';
+export type { RocketsAuthRoleUpdatableInterface } from './domains/role/interfaces/rockets-auth-role-updatable.interface';
+export type { RocketsAuthRoleEntityInterface } from './domains/role/interfaces/rockets-auth-role-entity.interface';
 
 // Export JWT auth provider
 export { RocketsJwtAuthProvider } from './provider/rockets-jwt-auth.provider';
 
 // Export commonly used constants for backward compatibility
 export { ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN as ROCKETS_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from './shared/constants/rockets-auth.constants';
-export { ADMIN_USER_CRUD_SERVICE_TOKEN } from './shared/constants/rockets-auth.constants';
+export {
+  ADMIN_USER_CRUD_SERVICE_TOKEN,
+  ADMIN_ROLE_CRUD_SERVICE_TOKEN,
+} from './shared/constants/rockets-auth.constants';

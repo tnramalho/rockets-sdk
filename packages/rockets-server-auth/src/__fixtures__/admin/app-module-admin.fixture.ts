@@ -17,6 +17,10 @@ import { RocketsAuthUserCreateDto } from '../../domains/user/dto/rockets-auth-us
 import { RocketsAuthUserUpdateDto } from '../../domains/user/dto/rockets-auth-user-update.dto';
 import { RocketsAuthUserDto } from '../../domains/user/dto/rockets-auth-user.dto';
 import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
+import { RocketsAuthRoleDto } from '../../domains/role/dto/rockets-auth-role.dto';
+import { RocketsAuthRoleUpdateDto } from '../../domains/role/dto/rockets-auth-role-update.dto';
+import { RoleTypeOrmCrudAdapter } from '../role/role-typeorm-crud.adapter';
+import { RocketsAuthRoleCreateDto } from '../../domains/role';
 
 @Global()
 @Module({
@@ -59,7 +63,7 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
       userOtp: { entity: UserOtpEntityFixture },
       federated: { entity: FederatedEntityFixture },
     }),
-    TypeOrmModule.forFeature([UserFixture]),
+    TypeOrmModule.forFeature([UserFixture, RoleEntityFixture]),
     RocketsAuthModule.forRootAsync({
       userCrud: {
         imports: [TypeOrmModule.forFeature([UserFixture])],
@@ -70,11 +74,18 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
           updateOne: RocketsAuthUserUpdateDto,
         },
       },
+      roleCrud: {
+        imports: [TypeOrmModule.forFeature([RoleEntityFixture])],
+        adapter: RoleTypeOrmCrudAdapter,
+        model: RocketsAuthRoleDto,
+        dto: {
+          createOne: RocketsAuthRoleCreateDto,
+          updateOne: RocketsAuthRoleUpdateDto,
+        },
+      },
+      enableGlobalJWTGuard: true,
       inject: [],
       useFactory: () => ({
-        // authJwt: {
-        //   appGuard: true
-        // },
         jwt: {
           settings: {
             access: { secret: 'test-secret' },
@@ -88,7 +99,12 @@ import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
       }),
     }),
   ],
-  providers: [],
+  providers: [
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // }
+  ],
   exports: [],
 })
 export class AppModuleAdminFixture {}

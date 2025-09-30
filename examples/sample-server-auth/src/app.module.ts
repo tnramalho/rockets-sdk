@@ -20,7 +20,6 @@ import { UserModule } from './modules/user';
 import {
   UserEntity,
   UserOtpEntity,
-  RoleEntity,
   UserRoleEntity,
   FederatedEntity,
   UserDto,
@@ -29,8 +28,17 @@ import {
   UserTypeOrmCrudAdapter,
 } from './modules/user';
 
+// Import role-related items
+import {
+  RoleEntity,
+  RoleDto,
+  RoleUpdateDto,
+  RoleTypeOrmCrudAdapter,
+} from './modules/role';
+
 // Import pet-related items
 import { PetEntity } from './modules/pet';
+import { RoleCreateDto } from './modules/role/role.dto';
 
 
 @Module({
@@ -61,16 +69,13 @@ import { PetEntity } from './modules/pet';
       userRole: { entity: UserRoleEntity },
       userOtp: { entity: UserOtpEntity },
       federated: { entity: FederatedEntity },
-    }),
+    }), 
     
     RocketsAuthModule.forRootAsync({
       imports: [TypeOrmModule.forFeature([UserEntity])],
       
+      enableGlobalJWTGuard: true,
       useFactory: () => ({
-        
-        authJwt: {
-          appGuard: false,
-        },
         
         // Services configuration (REQUIRED)
         services: {
@@ -90,6 +95,16 @@ import { PetEntity } from './modules/pet';
         dto: {
           createOne: UserCreateDto,
           updateOne: UserUpdateDto,
+        },
+      },
+      // Admin role CRUD functionality
+      roleCrud: {
+        imports: [TypeOrmModule.forFeature([RoleEntity])],
+        adapter: RoleTypeOrmCrudAdapter,
+        model: RoleDto,
+        dto: {
+          createOne: RoleCreateDto,
+          updateOne: RoleUpdateDto,
         },
       },
     }),
