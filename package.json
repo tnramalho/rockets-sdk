@@ -10,7 +10,10 @@
     ]
   },
   "resolutions": {
-    "path-to-regexp": "3.3.0"
+    "path-to-regexp": "3.3.0",
+    "form-data": "4.0.4",
+    "multer": "2.0.2",
+    "tar-fs": "2.1.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.4.0",

@@ -44,7 +44,7 @@ import { RoleCreateDto } from './modules/role/role.dto';
 @Module({
   imports: [
     // TypeORM configuration with SQLite in-memory
-    TypeOrmModule.forRoot({
+    TypeOrmExtModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
       entities: [
@@ -72,7 +72,11 @@ import { RoleCreateDto } from './modules/role/role.dto';
     }), 
     
     RocketsAuthModule.forRootAsync({
-      imports: [TypeOrmModule.forFeature([UserEntity])],
+      imports: [
+        TypeOrmExtModule.forFeature({
+          user: { entity: UserEntity },
+        }), 
+      ],
       
       enableGlobalJWTGuard: true,
       useFactory: () => ({
@@ -89,7 +93,9 @@ import { RoleCreateDto } from './modules/role/role.dto';
       }),
       // Admin user CRUD functionality
       userCrud: {
-        imports: [TypeOrmModule.forFeature([UserEntity])],
+        imports: [
+          TypeOrmModule.forFeature([UserEntity])
+        ],
         adapter: UserTypeOrmCrudAdapter,
         model: UserDto,
         dto: {
@@ -111,7 +117,11 @@ import { RoleCreateDto } from './modules/role/role.dto';
     
     // RocketsModule for additional server features with JWT validation
     RocketsModule.forRootAsync({
-      imports: [TypeOrmModule.forFeature([UserEntity])],
+      imports: [
+        TypeOrmExtModule.forFeature({
+          user: { entity: UserEntity },
+        }), 
+      ],
       inject:[RocketsJwtAuthProvider],
       useFactory: (rocketsJwtAuthProvider: RocketsJwtAuthProvider) => ({
         settings: {},

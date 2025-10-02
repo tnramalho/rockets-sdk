@@ -1,11 +1,11 @@
-# Rockets SDK Documentation
+# Rockets Server Auth
 
 ## Project
 
 [![NPM Latest](https://img.shields.io/npm/v/@bitwild/rockets-server-auth)](https://www.npmjs.com/package/@bitwild/rockets-server-auth)
 [![NPM Downloads](https://img.shields.io/npm/dw/@bitwild/rockets-server-auth)](https://www.npmjs.com/package/@bitwild/rockets-server-auth)
-[![GH Last Commit](https://img.shields.io/github/last-commit/btwld/rockets?logo=github)](https://github.com/btwld/rockets)
-[![GH Contrib](https://img.shields.io/github/contributors/btwld/rockets?logo=github)](https://github.com/btwld/rockets/graphs/contributors)
+[![GH Last Commit](https://img.shields.io/github/last-commit/tnramalho/rockets-sdk?logo=github)](https://github.com/tnramalho/rockets-sdk)
+[![GH Contrib](https://img.shields.io/github/contributors/tnramalho/rockets-sdk?logo=github)](https://github.com/tnramalho/rockets-sdk/graphs/contributors)
 
 ## Table of Contents
 
@@ -53,41 +53,39 @@
 
 ### Overview
 
-The Rockets SDK is a comprehensive, enterprise-grade toolkit for building
+Rockets Server Auth is a comprehensive, enterprise-grade authentication toolkit for building
 secure and scalable NestJS applications. It provides a unified solution that
 combines authentication, user management, OTP verification, email
 notifications, and API documentation into a single, cohesive package.
 
-Built with TypeScript and following NestJS best practices, the Rockets SDK
+Built with TypeScript and following NestJS best practices, Rockets Server Auth
 eliminates the complexity of setting up authentication systems while
 maintaining flexibility for customization and extension.
 
+**Note**: This package provides authentication endpoints and services. For core server functionality, use it together with `@bitwild/rockets-server`.
+
 ### Key Features
 
-- **🔐 Complete Authentication System**: JWT tokens, local authentication,
-  refresh tokens, and password recovery
-- **🔗 OAuth Integration**: Support for Google, GitHub, and Apple OAuth
-  providers by default, with custom providers support
-- **👥 User Management**: Full CRUD operations, userMetadata management, and
-  password history
-- **📱 OTP Support**: One-time password generation and validation for secure
-  authentication
-- **📧 Email Notifications**: Built-in email service with template support
+- **🔐 Multiple Authentication Methods**: Password, JWT tokens, refresh tokens, and OAuth
+- **🔗 OAuth Integration**: Support for Google, GitHub, and Apple OAuth providers
+- **👥 User Registration & Management**: Complete signup flow with validation
+- **🔑 Password Recovery**: Email-based password reset with secure passcodes
+- **📱 OTP Support**: One-time password generation and validation for secure authentication
+- **👑 Role-Based Access Control**: Admin role system with user role management
+- **📧 Email Notifications**: Built-in email service with template support for OTP and recovery
+- **🔄 Token Management**: JWT access and refresh token handling with automatic rotation
 - **📚 API Documentation**: Automatic Swagger/OpenAPI documentation generation
-- **🔧 Highly Configurable**: Extensive configuration options for all modules
-- **🏗️ Modular Architecture**: Use only what you need, extend what you want
+- **🔧 Highly Configurable**: Extensive configuration options for all authentication modules
+- **🏗️ Modular Architecture**: Enable/disable specific authentication features as needed
 - **🛡️ Type Safety**: Full TypeScript support with comprehensive interfaces
-- **🧪 Testing Support**: Complete testing utilities and fixtures including
-  e2e tests
-- **🔌 Adapter Pattern**: Support for multiple database adapters
+- **🧪 Testing Support**: Complete testing utilities and fixtures including e2e tests
+- **🔌 Provider Integration**: JWT auth provider for `@bitwild/rockets-server`
 
 ### Installation
 
-**⚠️ CRITICAL: Alpha Version Issue**:
+**About this package**:
 
-> **The current alpha version (7.0.0-alpha.6) has a dependency injection
-> issue with AuthJwtGuard that prevents the minimal setup from working. This
-> is a known issue being investigated.**
+> Rockets Server Auth provides complete authentication and authorization features including login, signup, recovery, OAuth, OTP, and admin functionality. It works together with `@bitwild/rockets-server` to provide a complete authenticated application solution.
 
 **Version Requirements**:
 
@@ -101,12 +99,13 @@ Let's create a new NestJS project:
 npx @nestjs/cli@10 new my-app-with-rockets --package-manager yarn --language TypeScript --strict
 ```
 
-Install the Rockets SDK and all required dependencies:
+Install Rockets Server Auth and required dependencies:
 
 ```bash
-yarn add @bitwild/rockets-server-auth @concepta/nestjs-typeorm-ext \
-  @concepta/nestjs-common typeorm @nestjs/typeorm @nestjs/config \
-  @nestjs/swagger class-transformer class-validator sqlite3
+yarn add @bitwild/rockets-server-auth @bitwild/rockets-server \
+  @concepta/nestjs-typeorm-ext @concepta/nestjs-common \
+  typeorm @nestjs/typeorm @nestjs/config @nestjs/swagger \
+  class-transformer class-validator sqlite3
 ```
 
 ---
@@ -116,7 +115,7 @@ yarn add @bitwild/rockets-server-auth @concepta/nestjs-typeorm-ext \
 ### Quick Start
 
 This tutorial will guide you through setting up a complete authentication
-system with the Rockets SDK in just a few steps. We'll use SQLite in-memory
+system with Rockets Server Auth in just a few steps. We'll use SQLite in-memory
 database for instant setup without any configuration.
 
 ### Basic Setup
@@ -124,7 +123,7 @@ database for instant setup without any configuration.
 #### Step 1: Create Your Entities
 
 First, create the required database entities by extending the base entities
-provided by the SDK:
+provided by the SDK. These entities support the complete authentication system:
 
 ```typescript
 // entities/user.entity.ts
@@ -323,16 +322,18 @@ With the basic setup complete, your application now provides these endpoints:
 - `GET /oauth/callback` - Handle OAuth callback and return tokens
 - `POST /oauth/callback` - Handle OAuth callback via POST method
 
-#### User Management Endpoints
+#### User Profile Endpoints (from @bitwild/rockets-server)
 
-- `GET /user` - Get current user userMetadata
-- `PATCH /user` - Update current user userMetadata
+When used together with `@bitwild/rockets-server`, these endpoints are also available:
+- `GET /me` - Get current user profile with metadata
+- `PATCH /me` - Update current user metadata
 
 #### Admin Endpoints (optional)
 
 If you enable the admin module (see How-to Guides > admin), these routes become
 available and are protected by `AdminGuard`:
 
+**User Administration:**
 - `GET /admin/users` - List users
 - `GET /admin/users/:id` - Get a user
 - `POST /admin/users` - Create a user
@@ -340,10 +341,16 @@ available and are protected by `AdminGuard`:
 - `PUT /admin/users/:id` - Replace a user
 - `DELETE /admin/users/:id` - Delete a user
 
+**Role Administration:**
+- `GET /admin/users/:userId/roles` - List roles assigned to a specific user
+- `POST /admin/users/:userId/roles` - Assign role to a specific user
+
 #### OTP Endpoints
 
 - `POST /otp` - Send OTP to user email (returns 200 OK)
 - `PATCH /otp` - Confirm OTP code (returns 200 OK with tokens)
+
+**Note**: Rockets Server Auth provides authentication endpoints. For user profile management (`/me` endpoints), use it together with `@bitwild/rockets-server`.
 
 ### Testing the Setup
 
@@ -570,7 +577,7 @@ option does, how it connects with core modules, when you should customize it
 
 ### Configuration Overview
 
-The Rockets SDK uses a hierarchical configuration system with the following structure:
+Rockets Server Auth uses a hierarchical configuration system with the following structure:
 
 ```typescript
 interface RocketsAuthOptionsInterface {
@@ -1640,7 +1647,7 @@ documentation.
 
 ### Architecture Overview
 
-The Rockets SDK follows a modular, layered architecture designed for
+Rockets Server Auth follows a modular, layered architecture designed for
 enterprise applications:
 
 ```mermaid
@@ -1781,7 +1788,7 @@ services: {
 
 #### 1. Testing Support
 
-The Rockets SDK provides comprehensive testing support including:
+Rockets Server Auth provides comprehensive testing support including:
 
 **Unit Tests**: Individual module and service testing with mock dependencies
 **Integration Tests**: End-to-end testing of complete authentication flows
@@ -1873,7 +1880,7 @@ describe('AuthOAuthController (e2e)', () => {
 
 #### 2. Authentication Flow
 
-The Rockets SDK implements a comprehensive authentication flow:
+Rockets Server Auth implements a comprehensive authentication flow:
 
 #### 1a. User Registration Flow
 
@@ -2158,7 +2165,7 @@ sequenceDiagram
 
 #### 5. OAuth Flow
 
-The Rockets SDK implements a comprehensive OAuth flow for third-party
+Rockets Server Auth implements a comprehensive OAuth flow for third-party
 authentication:
 
 #### 5a. OAuth Authorization Flow
@@ -2291,6 +2298,98 @@ export class AppModule {}
 
 ---
 
+### roleAdmin
+
+Role management is provided via a dynamic submodule that you enable through the module configuration. It provides comprehensive role-based access control including:
+
+- User role assignment endpoints (`GET /admin/users/:userId/roles`, `POST /admin/users/:userId/roles`)
+- Role assignment management for specific users
+- Admin role validation and guards
+
+All endpoints are properly guarded by `AdminGuard` and documented in Swagger.
+
+#### Prerequisites
+
+- A TypeORM repository for your role and user-role entities available via `TypeOrmModule.forFeature([RoleEntity, UserRoleEntity])`
+- A CRUD adapter implementing `CrudAdapter` for user-role management
+- DTOs for role assignment operations
+- An admin role that exists in your database with the name matching `ADMIN_ROLE_NAME`
+
+#### Minimal role adapter example
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { TypeOrmCrudAdapter } from '@concepta/nestjs-crud';
+import { UserRoleEntity } from './entities/user-role.entity';
+
+@Injectable()
+export class RoleTypeOrmCrudAdapter extends TypeOrmCrudAdapter<UserRoleEntity> {
+  constructor(
+    @InjectRepository(UserRoleEntity) repo: Repository<UserRoleEntity>,
+  ) {
+    super(repo);
+  }
+}
+```
+
+#### Enable roleAdmin in RocketsAuthModule
+
+```typescript
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, RoleEntity, UserRoleEntity]),
+    RocketsAuthModule.forRootAsync({
+      // ... other options
+      imports: [TypeOrmModule.forFeature([UserEntity, RoleEntity, UserRoleEntity])],
+      useFactory: () => ({
+        settings: {
+          role: {
+            adminRoleName: 'admin', // Must match role in database
+          },
+        },
+        services: {
+          mailerService: yourMailerService,
+        },
+      }),
+      roleAdmin: {
+        // Ensure your repositories are imported
+        imports: [TypeOrmModule.forFeature([RoleEntity, UserRoleEntity])],
+        // The CRUD adapter for user-role assignments
+        adapter: RoleTypeOrmCrudAdapter,
+        // Route base path (default: 'admin/users/:userId/roles')
+        path: 'admin/users/:userId/roles',
+        // Swagger model types
+        model: UserRoleDto,
+        // Optional DTOs for mutations
+        dto: {
+          createOne: UserRoleCreateDto,
+          updateOne: UserRoleUpdateDto,
+        },
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+#### Admin role requirements
+
+- The admin role must exist in your database before using admin endpoints
+- The role name must exactly match the `ADMIN_ROLE_NAME` environment variable (default: 'admin')
+- Users must be assigned the admin role to access admin endpoints
+- The `AdminGuard` validates role membership for protected routes
+
+#### Generated routes
+
+**Role Management Endpoints:**
+
+- `GET /admin/users/:userId/roles` - List roles assigned to a specific user (admin only)
+- `POST /admin/users/:userId/roles` - Assign role to a specific user (admin only)
+
+---
+
 ## User Management
 
 The Rockets SDK provides comprehensive user management functionality through
@@ -2372,14 +2471,103 @@ Users can update their own userMetadata information:
 ### Authentication Requirements
 
 - **Public Endpoints:** `/signup` - No authentication required
-- **Authenticated Endpoints:** `/user` (GET, PATCH) - Requires valid JWT token
-- **Admin Endpoints:** `/admin/users/*` - Requires admin role
+- **Authenticated Endpoints:** `/me` (from @bitwild/rockets-server) - Requires valid JWT token
+- **Admin Endpoints:** `/admin/users/*`, `/admin/users/:userId/roles` - Requires admin role
+
+---
+
+## Role Management
+
+Rockets Server Auth provides comprehensive role-based access control with user role assignment capabilities. The system supports dynamic role management through admin endpoints.
+
+### Role-Based Access Control
+
+The role system is built around the concept of assignable roles that can be managed through admin endpoints. Users can have multiple roles assigned, enabling flexible permission management.
+
+### Admin Role Configuration
+
+The admin role system requires proper configuration:
+
+```typescript
+// Configure admin role name (default: 'admin')
+RocketsAuthModule.forRoot({
+  settings: {
+    role: {
+      adminRoleName: 'admin', // Must match the role name in your database
+    },
+  },
+  // ... other configuration
+});
+```
+
+**Environment Variables:**
+- `ADMIN_ROLE_NAME` - defaults to `'admin'`
+
+**Important**: The admin role must exist in your roles store (database) and the role name must exactly match the configured `adminRoleName`.
+
+### User Role Assignment
+
+#### Get User Role Assignments (GET /admin/users/:userId/roles)
+
+List roles assigned to a specific user:
+
+```bash
+GET /admin/users/user-456/roles
+Authorization: Bearer <admin-jwt-token>
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "role-assignment-123",
+      "userId": "user-456",
+      "roleId": "role-789",
+      "dateCreated": "2024-01-01T00:00:00.000Z",
+      "dateUpdated": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 10
+}
+```
+
+#### Assign Role to User (POST /admin/users/:userId/roles)
+
+Assign a role to a specific user:
+
+```bash
+curl -X POST http://localhost:3000/admin/users/user-456/roles \
+  -H "Authorization: Bearer <admin-jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "roleId": "role-789"
+  }'
+```
+
+**Note**: The current API does not provide a direct endpoint to remove role assignments. Role removal functionality may need to be implemented based on your specific requirements.
+
+### Role Requirements
+
+1. **Role Creation**: Roles must be created manually in your database or through custom endpoints
+2. **Admin Role**: The admin role must exist and match the configured `adminRoleName`
+3. **Role Validation**: User role assignments are validated through the `AdminGuard`
+
+### Security Considerations
+
+- All role management endpoints require admin privileges
+- Role assignments are validated during authentication
+- The admin role name must be configured consistently across environment and database
+- Role-based access control is enforced through guards and decorators
 
 ---
 
 ## DTO Validation Patterns
 
-The Rockets SDK allows you to customize user data validation by providing your
+Rockets Server Auth allows you to customize user data validation by providing your
 own DTOs. This section shows common patterns for extending user functionality
 with custom fields and validation rules.
 

@@ -25,7 +25,7 @@ const options: RocketsOptionsInterface = {
 @Module({
   imports: [
     // TypeORM configuration with SQLite in-memory
-    TypeOrmModule.forRoot({
+    TypeOrmExtModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
       entities: [UserMetadataEntity, PetEntity],

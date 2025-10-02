@@ -14,8 +14,9 @@ async function ensureInitialAdmin(app: INestApplication) {
   const roleService = app.get(RoleService);
   const passwordCreationService = app.get(PasswordCreationService);
 
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  // test user
+  const adminEmail = process.env.ADMIN_EMAIL || 'user@example.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'StrongP@ssw0rd';
   const adminRoleName = 'admin';
 
   // Ensure role exists

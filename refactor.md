@@ -99,7 +99,7 @@ Auth/
 
 ### User Management Endpoints
 1. `/user` (GET/PUT/DELETE/POST)
-   - Description: Manages user profile information, allowing retrieval and updates of user data
+   - Description: Manages user userMetadata information, allowing retrieval and updates of user data
    - Status: Implemented
    - Existing Components:
      - `UserModelService` for user create/update/remove
