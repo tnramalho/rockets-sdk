@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 -->
 # Rockets Server
 
 ## Project
@@ -27,6 +28,7 @@
 ---
 
 ## Introduction
+
 ### Overview
 
 Rockets Server is a minimal NestJS infrastructure module that makes it easy to integrate with any third-party authentication system. By implementing a simple interface, you can authenticate users from any external provider (like Auth0, Firebase, Cognito, etc.) while Rockets Server handles storing and managing additional user metadata.
@@ -407,9 +409,11 @@ Rockets Server provides exactly **2 endpoints**:
 Get current authenticated user with metadata.
 
 **Headers:**
+
 - `Authorization: Bearer <token>` (required)
 
 **Response:**
+
 ```json
 {
   "id": "string",
@@ -431,10 +435,12 @@ Get current authenticated user with metadata.
 Update current user's metadata.
 
 **Headers:**
+
 - `Authorization: Bearer <token>` (required)
 - `Content-Type: application/json`
 
 **Body:**
+
 ```json
 {
   "userMetadata": {
@@ -480,6 +486,7 @@ This package provides minimal functionality. For a complete authentication syste
 **[@bitwild/rockets-server-auth](https://www.npmjs.com/package/@bitwild/rockets-server-auth)**
 
 Which includes:
+
 - Login, signup, password recovery endpoints
 - OAuth integration (Google, GitHub, Apple)
 - OTP support

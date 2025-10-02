@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 MD024 -->
 # Rockets Server Auth
 
 ## Project
@@ -325,6 +326,7 @@ With the basic setup complete, your application now provides these endpoints:
 #### User Profile Endpoints (from @bitwild/rockets-server)
 
 When used together with `@bitwild/rockets-server`, these endpoints are also available:
+
 - `GET /me` - Get current user profile with metadata
 - `PATCH /me` - Update current user metadata
 
@@ -334,6 +336,7 @@ If you enable the admin module (see How-to Guides > admin), these routes become
 available and are protected by `AdminGuard`:
 
 **User Administration:**
+
 - `GET /admin/users` - List users
 - `GET /admin/users/:id` - Get a user
 - `POST /admin/users` - Create a user
@@ -342,6 +345,7 @@ available and are protected by `AdminGuard`:
 - `DELETE /admin/users/:id` - Delete a user
 
 **Role Administration:**
+
 - `GET /admin/users/:userId/roles` - List roles assigned to a specific user
 - `POST /admin/users/:userId/roles` - Assign role to a specific user
 
@@ -2501,6 +2505,7 @@ RocketsAuthModule.forRoot({
 ```
 
 **Environment Variables:**
+
 - `ADMIN_ROLE_NAME` - defaults to `'admin'`
 
 **Important**: The admin role must exist in your roles store (database) and the role name must exactly match the configured `adminRoleName`.
