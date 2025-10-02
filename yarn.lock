@@ -14156,31 +14156,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rockets-store@workspace:examples/rockets-store":
-  version: 0.0.0-use.local
-  resolution: "rockets-store@workspace:examples/rockets-store"
-  dependencies:
-    "@bitwild/rockets-server": "workspace:*"
-    "@concepta/nestjs-access-control": "npm:^7.0.0-alpha.7"
-    "@concepta/nestjs-typeorm-ext": "npm:^7.0.0-alpha.7"
-    "@nestjs/common": "npm:10.4.19"
-    "@nestjs/core": "npm:10.4.19"
-    "@nestjs/platform-express": "npm:10.4.19"
-    "@nestjs/swagger": "npm:7.4.0"
-    "@nestjs/typeorm": "npm:10.0.2"
-    "@types/node": "npm:^18.19.44"
-    class-transformer: "npm:^0.5.1"
-    class-validator: "npm:^0.14.1"
-    reflect-metadata: "npm:^0.1.14"
-    rxjs: "npm:^7.8.1"
-    sqlite3: "npm:^5.1.7"
-    ts-node: "npm:^10.9.2"
-    tsconfig-paths: "npm:^4.2.0"
-    typeorm: "npm:^0.3.20"
-    typescript: "npm:^5.4.0"
-  languageName: unknown
-  linkType: soft
-
 "root@workspace:.":
   version: 0.0.0-use.local
   resolution: "root@workspace:."
