@@ -16,6 +16,95 @@
 
 ## 🏗️ **Base DTO Pattern**
 
+### **SDK DTO Extension Pattern**
+
+When working with Rockets SDK, always extend from SDK DTOs instead of creating from scratch:
+
+```typescript
+// user-metadata.dto.ts - Extending from SDK UserMetadata DTO (CORRECT PATTERN)
+import { RocketsAuthUserMetadataDto } from '@bitwild/rockets-server-auth';
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
+import { IsOptional, IsNumber, Min, IsString, MinLength, IsUrl, IsArray } from 'class-validator';
+
+export class UserMetadataDto extends RocketsAuthUserMetadataDto {
+  @ApiProperty({
+    description: 'User ID (owner of this metadata)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: true,
+  })
+  @IsString()
+  @Expose()
+  userId!: string;
+
+  @ApiProperty({
+    description: 'User age',
+    example: 25,
+    required: false,
+    minimum: 18,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: 'Age must be a number' })
+  @Min(18, { message: 'Must be at least 18 years old' })
+  @Expose()
+  age?: number;
+
+  @ApiProperty({
+    description: 'User first name',
+    example: 'John',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(2, { message: 'First name must be at least 2 characters' })
+  @Expose()
+  firstName?: string;
+
+  @ApiProperty({
+    description: 'User last name',
+    example: 'Doe',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(2, { message: 'Last name must be at least 2 characters' })
+  @Expose()
+  lastName?: string;
+
+  @ApiProperty({
+    description: 'User avatar URL',
+    example: 'https://example.com/avatar.jpg',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl({}, { message: 'Must be a valid URL' })
+  @Expose()
+  avatarUrl?: string;
+
+  @ApiProperty({
+    description: 'User skills',
+    example: ['TypeScript', 'React', 'NestJS'],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @Expose()
+  skills?: string[];
+}
+```
+
+**Key Points for SDK Extension:**
+- ✅ **NEVER modify User entity**: User (email, password, roles) is managed by SDK
+- ✅ **Always use UserMetadata**: For custom fields like firstName, lastName, age, etc.
+- ✅ **Use @Expose()**: Required for custom fields in base DTO
+- ✅ **Add validation**: Use class-validator decorators
+- ✅ **Document with @ApiProperty**: For Swagger documentation
+
+---
+
+## 🏗️ **Base DTO Pattern**
+
 ### **Main Entity DTO Structure**
 
 All entity DTOs should follow this standardized pattern:
@@ -127,6 +216,8 @@ export class ArtistDto extends CommonEntityDto implements ArtistInterface {
 
 ### **Create DTO Pattern**
 
+#### **1. Standard Create DTO**
+
 ```typescript
 /**
  * Artist Create DTO
@@ -174,6 +265,23 @@ export class ArtistCreateDto
 }
 ```
 
+#### **2. SDK DTO Extension Pattern (UserMetadata)**
+
+```typescript
+// user-metadata-create.dto.ts - CORRECT: Extends DTO and picks properties
+import { PickType } from '@nestjs/swagger';
+import { UserMetadataDto } from './user-metadata.dto';
+
+export class UserMetadataCreateDto extends PickType(UserMetadataDto, [
+  'userId',
+  'age',
+  'firstName', 
+  'lastName',
+  'avatarUrl',
+  'skills'
+] as const) implements UserMetadataCreatableInterface {}
+```
+
 ### **Create Many DTO Pattern**
 
 ```typescript
@@ -201,6 +309,8 @@ export class ArtistCreateManyDto {
 
 ### **Update DTO Pattern**
 
+#### **1. Standard Update DTO**
+
 ```typescript
 /**
  * Artist Update DTO
@@ -211,6 +321,25 @@ export class ArtistUpdateDto extends IntersectionType(
   PickType(ArtistDto, ['id'] as const),
   PartialType(PickType(ArtistDto, ['name', 'status', 'biography', 'country'] as const)),
 ) implements ArtistUpdatableInterface {}
+```
+
+#### **2. SDK DTO Extension Pattern (UserMetadata)**
+
+```typescript
+// user-metadata-update.dto.ts - CORRECT: IntersectionType with required ID + partial fields
+import { IntersectionType, PickType, PartialType } from '@nestjs/swagger';
+import { UserMetadataDto } from './user-metadata.dto';
+
+export class UserMetadataUpdateDto extends IntersectionType(
+  PickType(UserMetadataDto, ['id'] as const),
+  PartialType(PickType(UserMetadataDto, [
+    'age',
+    'firstName', 
+    'lastName',
+    'avatarUrl',
+    'skills'
+  ] as const))
+) implements UserMetadataUpdatableInterface {}
 ```
 
 ### **Model Update DTO Pattern**
@@ -734,3 +863,15 @@ export class ArtistCreateDto {
 - ✅ Relationship handling for complex data
 
 **📋 Build robust APIs with well-designed DTOs!**
+
+---
+
+---
+
+## 🔗 **Related Guides**
+
+- [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Test DTO validation
+- [CRUD_PATTERNS_GUIDE.md](./CRUD_PATTERNS_GUIDE.md) - Use DTOs in CRUD
+- [CONFIGURATION_GUIDE.md](./CONFIGURATION_GUIDE.md) - SDK configuration
+- [AI_TEMPLATES_GUIDE.md](./AI_TEMPLATES_GUIDE.md) - Generate DTOs
+- [ROCKETS_AI_INDEX.md](./ROCKETS_AI_INDEX.md) - Navigation hub

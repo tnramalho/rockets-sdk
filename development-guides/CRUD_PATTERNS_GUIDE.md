@@ -726,13 +726,13 @@ name: string;
 
 ### **3. Use Query Optimization**
 ```typescript
-// In model service
+// In model service - Use QueryBuilder for complex queries
 async findActiveWithAlbums(): Promise<ArtistEntityInterface[]> {
-  return this.repo.find({
-    where: { status: ArtistStatus.ACTIVE },
-    relations: ['albums'],
-    order: { name: 'ASC' },
-  });
+  return this.repo.createQueryBuilder('artist')
+    .leftJoinAndSelect('artist.albums', 'album')
+    .where('artist.status = :status', { status: ArtistStatus.ACTIVE })
+    .orderBy('artist.name', 'ASC')
+    .getMany();
 }
 ```
 
@@ -750,3 +750,12 @@ async findActiveWithAlbums(): Promise<ArtistEntityInterface[]> {
 - ✅ Constants are used for all resource definitions
 
 **🚀 Build robust CRUD operations with the Direct CRUD pattern!**
+
+---
+
+## 🔗 **Related Guides**
+
+- [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Test CRUD operations
+- [ACCESS_CONTROL_GUIDE.md](./ACCESS_CONTROL_GUIDE.md) - Secure CRUD endpoints
+- [AI_TEMPLATES_GUIDE.md](./AI_TEMPLATES_GUIDE.md) - Generate complete modules
+- [ROCKETS_AI_INDEX.md](./ROCKETS_AI_INDEX.md) - Navigation hub

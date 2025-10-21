@@ -16,13 +16,18 @@
 |------|-------|-------|
 | **Generate complete modules** (copy-paste templates) | [AI_TEMPLATES_GUIDE.md](./AI_TEMPLATES_GUIDE.md) | 900 |
 | **CRUD patterns** (services, controllers, adapters) | [CRUD_PATTERNS_GUIDE.md](./CRUD_PATTERNS_GUIDE.md) | 300 |
-| **Add security** (access control, permissions) | [ACCESS_CONTROL_GUIDE.md](./ACCESS_CONTROL_GUIDE.md) | 200 |
+| **Add security** (ACL setup, access control, permissions, roles, ownership filtering) | [ACCESS_CONTROL_GUIDE.md](./ACCESS_CONTROL_GUIDE.md) | 250 |
 | **Create DTOs** (validation, PickType patterns) | [DTO_PATTERNS_GUIDE.md](./DTO_PATTERNS_GUIDE.md) | 150 |
+| **Write tests** (unit, e2e, fixtures, AAA pattern) | [TESTING_GUIDE.md](./TESTING_GUIDE.md) | 800 |
 
 ### **🔧 Advanced Integration**
 | Task | Guide | Lines |
 |------|-------|-------|
 | **Add @concepta packages** (ecosystem integration) | [CONCEPTA_PACKAGES_GUIDE.md](./CONCEPTA_PACKAGES_GUIDE.md) | 350 |
+| **Advanced module patterns** (ConfigurableModuleBuilder, provider factories) | [ADVANCED_PATTERNS_GUIDE.md](./ADVANCED_PATTERNS_GUIDE.md) | 400 |
+| **SDK service integration** (extend vs implement, service patterns) | [SDK_SERVICES_GUIDE.md](./SDK_SERVICES_GUIDE.md) | 300 |
+| **Advanced entities** (complex relationships, views, inheritance) | [ADVANCED_ENTITIES_GUIDE.md](./ADVANCED_ENTITIES_GUIDE.md) | 450 |
+| **Custom authentication** (providers, strategies, guards, MFA) | [AUTHENTICATION_ADVANCED_GUIDE.md](./AUTHENTICATION_ADVANCED_GUIDE.md) | 400 |
 
 ---
 
@@ -37,6 +42,7 @@
 2. 📖 Read [CRUD_PATTERNS_GUIDE.md](./CRUD_PATTERNS_GUIDE.md) - Implement CRUD operations
 3. 📖 Read [ACCESS_CONTROL_GUIDE.md](./ACCESS_CONTROL_GUIDE.md) - Add security
 4. 📖 Read [DTO_PATTERNS_GUIDE.md](./DTO_PATTERNS_GUIDE.md) - Create DTOs
+5. 📖 Read [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Write comprehensive tests
 
 ---
 
@@ -90,7 +96,37 @@ Read CRUD_PATTERNS_GUIDE.md and show me the latest patterns.
 ### **For Security:**
 ```
 I need to add access control to my {Entity} module.
-Read ACCESS_CONTROL_GUIDE.md and implement the security patterns.
+Read ACCESS_CONTROL_GUIDE.md and implement ACL setup, roles, and security patterns.
+```
+
+### **For Testing:**
+```
+I need to write tests for my {ServiceName} following Rockets SDK patterns.
+Read TESTING_GUIDE.md and generate unit tests with AAA pattern, fixtures, and mocks.
+```
+
+### **For Advanced Patterns:**
+```
+I need to implement {advanced feature} using advanced patterns.
+Read ADVANCED_PATTERNS_GUIDE.md and help me with ConfigurableModuleBuilder patterns.
+```
+
+### **For SDK Services:**
+```
+I need to integrate with SDK services like UserModelService.
+Read SDK_SERVICES_GUIDE.md and show me service extension vs implementation patterns.
+```
+
+### **For Complex Entities:**
+```
+I need to implement complex entity relationships with {requirements}.
+Read ADVANCED_ENTITIES_GUIDE.md and help me with inheritance and view patterns.
+```
+
+### **For Custom Authentication:**
+```
+I need to customize authentication with {custom requirements}.
+Read AUTHENTICATION_ADVANCED_GUIDE.md and implement custom providers and strategies.
 ```
 
 ---

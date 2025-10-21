@@ -6,11 +6,85 @@
 
 | Task | Section | Time |
 |------|---------|------|
+| **Module Import Order** | [Module Import Order](#module-import-order) | 2 min |
 | Setup main.ts application | [Application Bootstrap](#application-bootstrap) | 5 min |
 | Configure rockets-server | [Rockets Server Configuration](#rockets-server-configuration) | 10 min |
 | Configure rockets-server-auth | [Rockets Server Auth Configuration](#rockets-server-auth-configuration) | 15 min |
 | Environment variables | [Environment Configuration](#environment-configuration) | 5 min |
 | Database setup | [Database Configuration](#database-configuration) | 10 min |
+
+---
+
+## ⚠️ **Module Import Order**
+
+> **CRITICAL**: When using both `RocketsModule` and `RocketsAuthModule` together, the import order is **mandatory**.
+
+### **Correct Import Order**
+
+```typescript
+// app.module.ts
+@Module({
+  imports: [
+    // 1. FIRST: RocketsAuthModule - provides RocketsJwtAuthProvider
+    RocketsAuthModule.forRootAsync({
+      // ... configuration
+    }),
+    
+    // 2. SECOND: RocketsModule - consumes RocketsJwtAuthProvider
+    RocketsModule.forRootAsync({
+      inject: [RocketsJwtAuthProvider],
+      useFactory: (authProvider: RocketsJwtAuthProvider) => ({
+        authProvider,
+        enableGlobalGuard: true,
+        // ... other configuration
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### **Why This Order Matters**
+
+- **RocketsAuthModule** exports `RocketsJwtAuthProvider`
+- **RocketsModule** needs to inject `RocketsJwtAuthProvider` for authentication
+- **Dependency Resolution**: NestJS resolves dependencies in import order
+
+### **With Access Control**
+
+When adding AccessControlModule, use this order:
+
+```typescript
+@Module({
+  imports: [
+    // 1. AccessControlModule (global module)
+    AccessControlModule.forRoot({...}),
+    
+    // 2. RocketsAuthModule with ACL configuration
+    RocketsAuthModule.forRootAsync({
+      accessControl: { ... },
+      // ... other config
+    }),
+    
+    // 3. RocketsModule with auth provider
+    RocketsModule.forRootAsync({
+      inject: [RocketsJwtAuthProvider],
+      // ... config
+    }),
+  ],
+})
+```
+
+### **Common Errors**
+
+```bash
+# Wrong order causes this error:
+❌ Nest can't resolve dependencies of RocketsModule (?). 
+   Please make sure that the RocketsJwtAuthProvider is available.
+
+# Solution: Import RocketsAuthModule BEFORE RocketsModule
+✅ RocketsAuthModule → RocketsModule
+```
 
 ---
 
@@ -381,10 +455,153 @@ export class AppModule {}
 ```
 
 **Key Points:**
-- ✅ **TypeOrmExtModule.forFeature()** - For model services and enhanced repository features
-- ✅ **TypeOrmModule.forFeature()** - For CRUD adapters (required in both main imports and CRUD config imports)
-- ✅ **CRUD imports are required** - Each CRUD configuration must include `TypeOrmModule.forFeature([Entity])`
-- ✅ **Adapters expect standard TypeORM repositories** - They use `@InjectRepository(Entity)` pattern
+
+### 📌 **TypeORM Module Usage: When to Use Which?**
+
+#### **TypeOrmExtModule.forFeature({ ... })**
+
+**Purpose:** Dynamic repository injection for Model Services
+
+**When to use:**
+- ✅ When you need to inject repositories into **Model Services** (e.g., `UserModelService`, `RoleModelService`)
+- ✅ When using `@InjectDynamicRepository()` decorator
+- ✅ **REQUIRED** by Rockets packages (rockets-server, rockets-server-auth) for their internal Model Services
+- ✅ Provides enhanced repository features and dynamic token injection
+
+**Pattern:**
+```typescript
+TypeOrmExtModule.forFeature({
+  user: { entity: UserEntity },        // Key-based injection
+  role: { entity: RoleEntity },
+  pet: { entity: PetEntity },
+})
+```
+
+**Usage in services:**
+```typescript
+@Injectable()
+export class PetModelService {
+  constructor(
+    @InjectDynamicRepository('pet')  // Matches the key above
+    private readonly repo: Repository<PetEntity>,
+  ) {}
+}
+```
+
+---
+
+#### **TypeOrmModule.forFeature([...])**
+
+**Purpose:** Standard TypeORM repository injection for CRUD operations
+
+**When to use:**
+- ✅ When you need to inject repositories into **CRUD Adapters** (e.g., `PetTypeOrmCrudAdapter`)
+- ✅ When using `@InjectRepository()` decorator (standard TypeORM)
+- ✅ **REQUIRED** for all CRUD operations with TypeORM adapters
+- ✅ **REQUIRED** in CRUD configuration imports (userCrud, roleCrud, etc.)
+
+**Pattern:**
+```typescript
+TypeOrmModule.forFeature([UserEntity, RoleEntity, PetEntity])  // Array of entities
+```
+
+**Usage in adapters:**
+```typescript
+@Injectable()
+export class PetTypeOrmCrudAdapter {
+  constructor(
+    @InjectRepository(PetEntity)  // Standard TypeORM injection
+    private readonly repo: Repository<PetEntity>,
+  ) {}
+}
+```
+
+---
+
+#### **When You Need Both (Common Pattern)**
+
+**For most CRUD modules, you'll use BOTH:**
+
+```typescript
+@Module({
+  imports: [
+    // For CRUD operations (adapters)
+    TypeOrmModule.forFeature([PetEntity]),
+    
+    // For Model Services (model services used by Rockets)
+    TypeOrmExtModule.forFeature({
+      pet: { entity: PetEntity },
+    }),
+  ],
+  providers: [
+    PetTypeOrmCrudAdapter,  // Uses TypeOrmModule
+    PetModelService,         // Uses TypeOrmExtModule
+    PetCrudService,
+  ],
+})
+export class PetModule {}
+```
+
+---
+
+#### **Quick Decision Tree**
+
+```
+Are you implementing CRUD operations?
+├─ YES → Use TypeOrmModule.forFeature([Entity])
+│        (Required for CrudAdapter)
+│
+└─ Are you using Rockets Model Services?
+   └─ YES → ALSO use TypeOrmExtModule.forFeature({ key: { entity: Entity } })
+            (Required for ModelService injection)
+```
+
+---
+
+#### **Common Mistakes to Avoid**
+
+❌ **Mistake 1:** Only using `TypeOrmExtModule` for CRUD
+```typescript
+// WRONG - CRUD adapters need TypeOrmModule
+@Module({
+  imports: [
+    TypeOrmExtModule.forFeature({ pet: { entity: PetEntity } }),
+  ],
+  providers: [PetTypeOrmCrudAdapter], // ❌ Won't work!
+})
+```
+
+❌ **Mistake 2:** Forgetting `TypeOrmModule` in CRUD config imports
+```typescript
+// WRONG - CRUD config needs its own imports
+userCrud: {
+  adapter: UserTypeOrmCrudAdapter,  // ❌ Won't find repository!
+  // Missing: imports: [TypeOrmModule.forFeature([UserEntity])]
+}
+```
+
+✅ **Correct:** Include both when needed
+```typescript
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([PetEntity]),      // For CRUD
+    TypeOrmExtModule.forFeature({               // For Model Services
+      pet: { entity: PetEntity },
+    }),
+  ],
+})
+```
+
+---
+
+#### **Summary**
+
+| Module | Use For | Injection | Pattern |
+|--------|---------|-----------|---------|
+| `TypeOrmExtModule` | Model Services | `@InjectDynamicRepository('key')` | `{ key: { entity: Entity } }` |
+| `TypeOrmModule` | CRUD Adapters | `@InjectRepository(Entity)` | `[Entity]` |
+
+**Rule of Thumb:** If you're doing CRUD operations with Rockets → **Use both**
 
 ---
 

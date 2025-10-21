@@ -6,8 +6,12 @@
 
 | Task | Section | Time |
 |------|---------|------|
+| **Setup ACL from scratch** | [ACL Setup & Configuration](#acl-setup--configuration) | **15 min** |
+| Understand user roles structure | [AuthorizedUser Interface](#authorizeduser-interface) | 5 min |
+| Configure default roles | [Default Role Assignment on Signup](#default-role-assignment-on-signup) | 10 min |
 | Create access query service | [Access Query Service Pattern](#access-query-service-pattern) | 10 min |
 | Add controller decorators | [Controller Access Control](#controller-access-control) | 5 min |
+| Implement ownership filtering | [Controller-Level Ownership Filtering](#controller-level-ownership-filtering) | 10 min |
 | Define resource types | [Resource Type Definitions](#resource-type-definitions) | 5 min |
 | Role-based permissions | [Role Permission Patterns](#role-permission-patterns) | 15 min |
 | Custom access logic | [Business Logic Access Control](#business-logic-access-control) | 20 min |
@@ -29,6 +33,314 @@ Request → Authentication → Access Guard → Access Query Service → Permiss
 3. **Decorators**: Apply access control to controller endpoints
 4. **Context**: Provides request, user, and query information
 5. **Role System**: Hierarchical user roles and permissions
+6. **ACL Rules**: Define role-based permissions using `accesscontrol` library
+
+---
+
+## 🚀 **ACL Setup & Configuration**
+
+### **Step 1: Install Required Package**
+
+```bash
+yarn add accesscontrol
+```
+
+### **Step 2: Create ACL Rules File**
+
+Create `src/app.acl.ts`:
+
+```typescript
+import { AccessControl } from 'accesscontrol';
+
+/**
+ * Application roles enum
+ * Defines all possible roles in the system
+ */
+export enum AppRole {
+  Admin = 'admin',
+  Manager = 'manager',
+  User = 'user',
+}
+
+/**
+ * Application resources enum
+ * Defines all resources that can be access-controlled
+ */
+export enum AppResource {
+  Pet = 'pet',
+  PetVaccination = 'pet-vaccination',
+  PetAppointment = 'pet-appointment',
+}
+
+const allResources = Object.values(AppResource);
+
+/**
+ * Access Control Rules
+ * Uses the accesscontrol library to define role-based permissions
+ * 
+ * Pattern:
+ * - .grant(role) - Grant permissions to a role
+ * - .resource(resource) - Specify the resource
+ * - .createAny() / .readAny() / .updateAny() / .deleteAny() - Any permission
+ * - .createOwn() / .readOwn() / .updateOwn() / .deleteOwn() - Own permission
+ * 
+ * @see https://www.npmjs.com/package/accesscontrol
+ */
+export const acRules: AccessControl = new AccessControl();
+
+// Admin role has full access to all resources
+acRules
+  .grant([AppRole.Admin])
+  .resource(allResources)
+  .createAny()
+  .readAny()
+  .updateAny()
+  .deleteAny();
+
+// Manager role can create, read, and update but CANNOT delete
+acRules
+  .grant([AppRole.Manager])
+  .resource(allResources)
+  .createAny()
+  .readAny()
+  .updateAny();
+
+// User role - can only access their own resources (ownership-based)
+// The Access Query Service will verify ownership
+acRules
+  .grant([AppRole.User])
+  .resource(allResources)
+  .createOwn()
+  .readOwn()
+  .updateOwn()
+  .deleteOwn();
+```
+
+### **Step 3: Create Access Control Service**
+
+Create `src/access-control.service.ts`:
+
+```typescript
+import { AccessControlServiceInterface } from '@concepta/nestjs-access-control';
+import { ExecutionContext, Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+
+/**
+ * Access Control Service Implementation
+ * 
+ * Implements AccessControlServiceInterface to provide user and role information
+ * to the AccessControlGuard for permission checking.
+ */
+@Injectable()
+export class ACService implements AccessControlServiceInterface {
+  private readonly logger = new Logger(ACService.name);
+  
+  /**
+   * Get the authenticated user from the execution context
+   */
+  async getUser<T>(context: ExecutionContext): Promise<T> {
+    const request = context.switchToHttp().getRequest();
+    return request.user as T;
+  }
+  
+  /**
+   * Get the roles of the authenticated user
+   * 
+   * Returns roles from the authenticated user object which are populated
+   * by the authentication provider during token validation.
+   */
+  async getUserRoles(context: ExecutionContext): Promise<string | string[]> {
+    const request = context.switchToHttp().getRequest();
+    const endpoint = `${request.method} ${request.url}`;
+    
+    this.logger.debug(`Checking roles for: ${endpoint}`);
+    
+    const jwtUser = await this.getUser<{ 
+      id: string; 
+      userRoles?: { role: { name: string } }[] 
+    }>(context);
+
+    if (!jwtUser || !jwtUser.id) {
+      this.logger.warn(`User not authenticated for: ${endpoint}`);
+      throw new UnauthorizedException('User is not authenticated');
+    }
+
+    // Extract role names from nested structure
+    const roles = jwtUser.userRoles?.map(ur => ur.role.name) || [];
+    
+    this.logger.debug(`User ${jwtUser.id} has roles: ${JSON.stringify(roles)}`);
+    
+    return roles;
+  }
+}
+```
+
+### **Step 5: Integrate with RocketsAuthModule**
+
+Update `src/app.module.ts`:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { RocketsAuthModule } from '@bitwild/rockets-server-auth';
+
+import { ACService } from './access-control.service';
+import { acRules, AppRole } from './app.acl';
+
+@Module({
+  imports: [
+    // Import AccessControlModule first
+    AccessControlModule,
+    
+    // Configure RocketsAuthModule with ACL
+    RocketsAuthModule.forRootAsync({
+      inject: [],
+      useFactory: () => ({
+        settings: {
+          role: {
+            adminRoleName: AppRole.Admin,
+            defaultUserRoleName: AppRole.User,
+          },
+        },
+        accessControl: {
+          service: new ACService(),
+          settings: {
+            rules: acRules,  // Pass ACL rules here
+          },
+        },
+      }),
+    }),
+    
+    // ... other modules
+  ],
+})
+export class AppModule {}
+```
+
+### **ACL Permission Patterns**
+
+**Any vs Own permissions:**
+
+- `.createAny()` / `.readAny()` / `.updateAny()` / `.deleteAny()` - Access to any resource
+- `.createOwn()` / `.readOwn()` / `.updateOwn()` / `.deleteOwn()` - Access only to owned resources
+
+**Usage in Access Query Services:**
+
+The `query.possession` will be:
+- `'any'` for Any permissions → Grant access to all resources
+- `'own'` for Own permissions → Verify ownership before granting access
+
+**Example:**
+
+```typescript
+async canAccess(context: AccessControlContextInterface): Promise<boolean> {
+  const query = context.getQuery();
+  
+  if (query.possession === 'any') {
+    return true;  // Admin/Manager with Any permission
+  }
+  
+  if (query.possession === 'own') {
+    // Check ownership for User role
+    return this.checkOwnership(user, entityId);
+  }
+  
+  return false;
+}
+```
+
+---
+
+## 👤 **AuthorizedUser Interface**
+
+The authenticated user object follows this structure:
+
+```typescript
+export interface AuthorizedUser {
+  id: string;
+  sub: string;
+  email?: string;
+  userRoles?: { role: { name: string } }[];  // Nested structure
+  claims?: Record<string, unknown>;
+}
+```
+
+**Example authenticated user:**
+```json
+{
+  "id": "user-uuid",
+  "sub": "user-uuid",
+  "email": "user@example.com",
+  "userRoles": [
+    { "role": { "name": "user" } }
+  ]
+}
+```
+
+**Extracting role names:**
+```typescript
+const roleNames = user.userRoles?.map(ur => ur.role.name) || [];
+const hasAdminRole = roleNames.includes(AppRole.Admin);
+```
+
+**Why nested structure?**
+- Matches database schema (user → userRoles → role)
+- Avoids conflicts with custom code that may use `roles` property
+- Allows future expansion (role metadata, permissions)
+- Type-safe with AppRole enum
+
+---
+
+## 🔑 **Default Role Assignment on Signup**
+
+**Configuration:**
+
+```typescript
+// In RocketsAuthModule.forRootAsync()
+{
+  settings: {
+    role: {
+      adminRoleName: AppRole.Admin,
+      defaultUserRoleName: AppRole.User, // Automatically assigned on signup
+    }
+  }
+}
+```
+
+**Bootstrap initialization:**
+
+Ensure default roles exist before users sign up:
+
+```typescript
+// In main.ts
+import { RoleModelService } from '@concepta/nestjs-role';
+
+async function ensureDefaultRoles(app: INestApplication) {
+  const roleModelService = app.get(RoleModelService);
+  
+  const defaultRoles = [
+    { name: 'admin', description: 'Administrator with full access' },
+    { name: 'manager', description: 'Manager with limited access' },
+    { name: 'user', description: 'Default role for authenticated users' },
+  ];
+  
+  for (const roleData of defaultRoles) {
+    const existing = await roleModelService.find({ where: { name: roleData.name } });
+    if (!existing || existing.length === 0) {
+      await roleModelService.create(roleData);
+    }
+  }
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await ensureDefaultRoles(app);
+  await app.listen(3000);
+}
+```
+
+**How it works:**
+- When a user signs up via `/signup`, the system checks if `defaultUserRoleName` is configured
+- If configured and the role exists, it's automatically assigned to the new user
+- This ensures all users have at least one role, preventing access control errors
 
 ---
 
@@ -150,7 +462,8 @@ export class ArtistAccessQueryService implements CanAccess {
     entityId?: string,
     request?: any
   ): Promise<boolean> {
-    const userRole = user?.roles?.[0]?.name || 'User';
+    const roleNames = user?.userRoles?.map(ur => ur.role.name) || [];
+    const userRole = roleNames[0] || 'User';
 
     switch (userRole) {
       case 'Admin':
@@ -280,7 +593,8 @@ export class SongAccessQueryService implements CanAccess {
     action: string,
     songId?: string
   ): Promise<boolean> {
-    const userRole = user?.roles?.[0]?.name || 'User';
+    const roleNames = user?.userRoles?.map(ur => ur.role.name) || [];
+    const userRole = roleNames[0] || 'User';
 
     // Admin always has access
     if (userRole === 'Admin') {
@@ -297,17 +611,17 @@ export class SongAccessQueryService implements CanAccess {
         return true;
       }
 
-      // Only admins can delete songs
-      if (action === 'delete') {
-        return userRole === 'Admin';
-      }
+    // Only admins can delete songs
+    if (action === 'delete') {
+      return roleNames.includes('Admin');
     }
+  }
 
-    // General role-based access for creating songs
-    if (resource === 'song-many' && action === 'create') {
-      // ImprintArtists and Clericals can create songs
-      return ['ImprintArtist', 'Clerical'].includes(userRole);
-    }
+  // General role-based access for creating songs
+  if (resource === 'song-many' && action === 'create') {
+    // ImprintArtists and Clericals can create songs
+    return roleNames.some(role => ['ImprintArtist', 'Clerical'].includes(role));
+  }
 
     // Read access for songs
     if ((resource === 'song-one' || resource === 'song-many') && action === 'read') {
@@ -466,6 +780,97 @@ export class SongCustomController {
 }
 ```
 
+### **Controller-Level Ownership Filtering**
+
+For ownership-based permissions (`readOwn`, `updateOwn`, etc.), you can automatically filter data in the controller to ensure users only see their own resources:
+
+```typescript
+// pet.crud.controller.ts
+import { AuthUser } from '@concepta/nestjs-authentication';
+import { AuthorizedUser } from '@bitwild/rockets-server';
+import { AppRole } from './app.acl';
+
+@CrudController({
+  path: 'pets',
+  model: {
+    type: PetResponseDto,
+    paginatedType: PetPaginatedDto,
+  },
+})
+@AccessControlQuery({
+  service: PetAccessQueryService,
+})
+@ApiTags('pets')
+export class PetCrudController {
+  constructor(private petCrudService: PetCrudService) {}
+
+  @CrudReadMany()
+  @AccessControlReadMany(PetResource.Many)
+  async getMany(
+    @CrudRequest() crudRequest: CrudRequestInterface<PetEntity>,
+    @AuthUser() user: AuthorizedUser,
+  ) {
+    // Extract role names from nested structure
+    const roleNames = user.userRoles?.map(ur => ur.role.name) || [];
+    
+    // Check if user has only "user" role (ownership-based access)
+    const hasOnlyUserRole = roleNames.includes(AppRole.User) && 
+                            !roleNames.includes(AppRole.Admin) && 
+                            !roleNames.includes(AppRole.Manager);
+    
+    if (hasOnlyUserRole) {
+      // Add userId filter for ownership-based access
+      const modifiedRequest: CrudRequestInterface<PetEntity> = {
+        ...crudRequest,
+        parsed: {
+          ...(crudRequest.parsed || {}),
+          filter: [
+            ...((crudRequest.parsed?.filter as any[]) || []),
+            { field: 'userId', operator: '$eq', value: user.id }
+          ],
+        },
+      };
+      return this.petCrudService.getMany(modifiedRequest);
+    }
+    
+    // Admins and managers see all records
+    return this.petCrudService.getMany(crudRequest);
+  }
+
+  @CrudCreateOne({ dto: PetCreateDto })
+  @AccessControlCreateOne(PetResource.One)
+  async createOne(
+    @CrudRequest() crudRequest: CrudRequestInterface<PetEntity>,
+    @CrudBody() petCreateDto: PetCreateDto,
+    @AuthUser() user: AuthorizedUser,
+  ) {
+    // Automatically assign userId from authenticated user
+    petCreateDto.userId = user.id;
+    return this.petCrudService.createOne(crudRequest, petCreateDto);
+  }
+
+  // ... other methods
+}
+```
+
+**When to use:**
+- Use controller filtering for **list operations** (`getMany`) to automatically filter by ownership
+- Use Access Query Service for **ownership checks on single entities** (`getOne`, `update`, `delete`)
+- Combine both approaches for complete ownership-based access control
+
+**Benefits:**
+- Users automatically see only their own data without additional queries
+- No additional database queries needed for list filtering
+- Type-safe with `AppRole` enum
+- Works seamlessly with `AccessControlQuery` service for single-entity operations
+- Prevents Insecure Direct Object Reference (IDOR) vulnerabilities
+
+**Pattern:**
+1. Extract role names: `const roleNames = user.userRoles?.map(ur => ur.role.name) || []`
+2. Check role level: `roleNames.includes(AppRole.User) && !roleNames.includes(AppRole.Admin)`
+3. Modify CRUD request: Add `userId` filter to `crudRequest.parsed.filter`
+4. Use AppRole enum for type-safety and consistency
+
 ---
 
 ## 👥 **Role Permission Patterns**
@@ -542,13 +947,13 @@ export class PermissionUtils {
   }
 
   /**
-   * Get highest role from user roles array
+   * Get highest role from user userRoles array
    */
-  static getHighestRole(roles: any[]): UserRole {
-    if (!roles || roles.length === 0) return UserRole.USER;
+  static getHighestRole(user: { userRoles?: { role: { name: string } }[] }): UserRole {
+    if (!user.userRoles || user.userRoles.length === 0) return UserRole.USER;
 
-    const userRoles = roles.map(role => role.name as UserRole);
-    const sortedRoles = userRoles.sort((a, b) => 
+    const roleNames = user.userRoles.map(ur => ur.role.name as UserRole);
+    const sortedRoles = roleNames.sort((a, b) => 
       (RoleHierarchy[b] || 0) - (RoleHierarchy[a] || 0)
     );
 
@@ -573,7 +978,7 @@ export class EnhancedAccessQueryService implements CanAccess {
     
     if (!user) return false;
 
-    const userRole = PermissionUtils.getHighestRole(user.roles);
+    const userRole = PermissionUtils.getHighestRole(user);
     const resource = this.extractResourceType(query.resource);
     const action = query.action;
 
@@ -626,7 +1031,7 @@ export class OwnershipAccessQueryService implements CanAccess {
     
     if (!user) return false;
 
-    const userRole = PermissionUtils.getHighestRole(user.roles);
+    const userRole = PermissionUtils.getHighestRole(user);
     const resource = query.resource;
     const action = query.action;
     const entityId = request.params?.id;
@@ -685,7 +1090,8 @@ export class OwnershipAccessQueryService implements CanAccess {
 
     // Only admins can delete songs
     if (action === 'delete') {
-      return user.roles?.some(role => role.name === UserRole.ADMIN);
+      const roleNames = user.userRoles?.map(ur => ur.role.name) || [];
+      return roleNames.includes(UserRole.ADMIN);
     }
 
     return false;
@@ -738,7 +1144,8 @@ export class TimeBasedAccessQueryService implements CanAccess {
     const day = now.getDay(); // 0 = Sunday, 6 = Saturday
 
     // Business hours restriction for certain roles
-    if (user.roles?.some(role => role.name === 'Clerical')) {
+    const roleNames = user.userRoles?.map(ur => ur.role.name) || [];
+    if (roleNames.includes('Clerical')) {
       // Clerical users can only access during business hours (9 AM - 6 PM, Monday-Friday)
       if (day === 0 || day === 6 || hour < 9 || hour >= 18) {
         console.log('Access denied: Outside business hours for Clerical role');
@@ -749,7 +1156,7 @@ export class TimeBasedAccessQueryService implements CanAccess {
     // Maintenance window restriction
     if (this.isMaintenanceWindow(now)) {
       // Only admins can access during maintenance
-      if (!user.roles?.some(role => role.name === UserRole.ADMIN)) {
+      if (!roleNames.includes(UserRole.ADMIN)) {
         console.log('Access denied: Maintenance window active');
         return false;
       }
@@ -918,3 +1325,12 @@ export class ArtistModule {}
 - ✅ Time-based and context-based restrictions work correctly
 
 **🔒 Build secure applications with proper access control!**
+
+---
+
+## 🔗 **Related Guides**
+
+- [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Test access control and permissions
+- [CRUD_PATTERNS_GUIDE.md](./CRUD_PATTERNS_GUIDE.md) - CRUD implementation with access control
+- [CONFIGURATION_GUIDE.md](./CONFIGURATION_GUIDE.md) - Configure access control module
+- [ROCKETS_AI_INDEX.md](./ROCKETS_AI_INDEX.md) - Navigation hub
