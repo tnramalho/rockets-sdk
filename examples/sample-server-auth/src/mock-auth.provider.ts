@@ -8,7 +8,7 @@ export class MockAuthProvider implements AuthProviderInterface {
       id: 'mock-user-id',
       sub: 'mock-user-sub',
       email: 'mock@example.com',
-      roles: ['user'],
+      userRoles: [{ role: { name: 'user' } }],
       claims: {},
     };
   }

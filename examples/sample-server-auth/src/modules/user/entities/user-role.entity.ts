@@ -8,6 +8,6 @@ export class UserRoleEntity extends RoleAssignmentSqliteEntity {
   @ManyToOne(() => UserEntity)
   user!: UserEntity;
 
-  @ManyToOne(() => RoleEntity)
+  @ManyToOne(() => RoleEntity, { eager: true })
   role!: RoleEntity;
 }

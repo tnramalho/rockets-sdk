@@ -1,7 +1,9 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, OneToOne } from 'typeorm';
 import { UserSqliteEntity } from '@concepta/nestjs-typeorm-ext';
 import { UserOtpEntity } from './user-otp.entity';
 import { FederatedEntity } from './federated.entity';
+import { UserMetadataEntity } from './user-metadata.entity';
+import { UserRoleEntity } from './user-role.entity';
 
 @Entity('user')
 export class UserEntity extends UserSqliteEntity {
@@ -31,4 +33,15 @@ export class UserEntity extends UserSqliteEntity {
   
   @OneToMany(() => FederatedEntity, (federated) => federated.assignee)
   federatedAccounts?: FederatedEntity[];
+
+  @OneToOne(() => UserMetadataEntity, (userMetadata) => userMetadata.user, {
+    cascade: true,
+    eager: true,
+  })
+  userMetadata?: UserMetadataEntity;
+
+  @OneToMany(() => UserRoleEntity, (userRole) => userRole.user, {
+    eager: true,
+  })
+  userRoles?: UserRoleEntity[];
 }

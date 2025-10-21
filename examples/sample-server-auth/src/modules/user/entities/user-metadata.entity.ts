@@ -4,8 +4,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { BaseUserMetadataEntityInterface } from '@bitwild/rockets-server';
+import { UserEntity } from './user.entity';
 
 @Entity('userMetadata')
 export class UserMetadataEntity implements BaseUserMetadataEntityInterface {
@@ -39,4 +42,8 @@ export class UserMetadataEntity implements BaseUserMetadataEntityInterface {
 
   @Column({ type: 'text', nullable: true })
   bio?: string;
+
+  @OneToOne(() => UserEntity, (user) => user.userMetadata)
+  @JoinColumn({ name: 'userId' })
+  user!: UserEntity;
 }

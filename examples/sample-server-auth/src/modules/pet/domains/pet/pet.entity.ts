@@ -1,16 +1,18 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
-import { PetInterface, PetStatus } from './pet.interface';
+import { CommonSqliteEntity } from '@concepta/nestjs-typeorm-ext';
+import { PetEntityInterface, PetStatus } from './pet.interface';
+import { PetVaccinationEntity } from '../pet-vaccination';
+import { PetAppointmentEntity } from '../pet-appointment';
 
 @Entity('pets')
-export class PetEntity implements PetInterface {
+export class PetEntity extends CommonSqliteEntity implements PetEntityInterface {
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  declare id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   name!: string;
@@ -41,15 +43,9 @@ export class PetEntity implements PetInterface {
   @Column({ type: 'varchar', length: 255, nullable: false })
   userId!: string;
 
-  @CreateDateColumn()
-  dateCreated!: Date;
+  @OneToMany(() => PetVaccinationEntity, (vaccination) => vaccination.pet)
+  vaccinations?: PetVaccinationEntity[];
 
-  @UpdateDateColumn()
-  dateUpdated!: Date;
-
-  @Column({ type: 'datetime', nullable: true })
-  dateDeleted!: Date | null;
-
-  @Column({ type: 'int', default: 1 })
-  version!: number;
+  @OneToMany(() => PetAppointmentEntity, (appointment) => appointment.pet)
+  appointments?: PetAppointmentEntity[];
 }

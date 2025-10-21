@@ -6,6 +6,8 @@ import {
   RemoveOneInterface,
   UpdateOneInterface
 } from '@concepta/nestjs-common';
+import { PetVaccinationEntityInterface } from '../pet-vaccination/pet-vaccination.interface';
+import { PetAppointmentEntityInterface } from '../pet-appointment/pet-appointment.interface';
 
 // Audit field type aliases for consistency
 export type AuditDateCreated = Date;
@@ -45,7 +47,10 @@ export interface PetInterface extends ReferenceIdInterface {
  * Pet Entity Interface
  * Defines the structure of the Pet entity in the database
  */
-export interface PetEntityInterface extends PetInterface {}
+export interface PetEntityInterface extends PetInterface {
+  vaccinations?: PetVaccinationEntityInterface[];
+  appointments?: PetAppointmentEntityInterface[];
+}
 
 /**
  * Pet Creatable Interface

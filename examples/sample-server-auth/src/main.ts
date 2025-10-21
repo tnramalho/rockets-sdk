@@ -36,14 +36,24 @@ async function ensureInitialAdmin(app: INestApplication) {
       where: [{ username: adminEmail }, { email: adminEmail }],
     })
   )?.[0];
+  
   if (!adminUser) {
     const hashed = await passwordCreationService.create(adminPassword);
+    // Note: In sample-server-auth, UserEntity has cascade: true on userMetadata relation
+    // so we can pass metadata directly and TypeORM will handle it
+    // This is adapter-specific (TypeORM) but works for this example
     adminUser = await userModelService.create({
       username: adminEmail,
       email: adminEmail,
       active: true,
       ...hashed,
-    });
+      userMetadata: {
+        firstName: 'Admin',
+        lastName: 'User',
+        username: 'admin',
+        bio: 'Default administrator account',
+      },
+    } as Parameters<typeof userModelService.create>[0]);
   }
 
   // Ensure role is assigned to user
@@ -63,10 +73,47 @@ async function ensureInitialAdmin(app: INestApplication) {
   }
 }
 
+async function ensureManagerRole(app: INestApplication) {
+  const roleModelService = app.get(RoleModelService);
+  
+  const managerRoleName = 'manager';
+  let managerRole = (
+    await roleModelService.find({ where: { name: managerRoleName } })
+  )?.[0];
+  
+  if (!managerRole) {
+    await roleModelService.create({
+      name: managerRoleName,
+      description: 'Manager role with limited permissions (cannot delete)',
+    });
+  }
+}
+
+
+async function ensureDefaultUserRole(app: INestApplication) {
+  const roleModelService = app.get(RoleModelService);
+  
+  const defaultUserRoleName = 'user';
+  let userRole = (
+    await roleModelService.find({ where: { name: defaultUserRoleName } })
+  )?.[0];
+  
+  if (!userRole) {
+    await roleModelService.create({
+      name: defaultUserRoleName,
+      description: 'Default role for authenticated users',
+    });
+  }
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   
+  // Enable graceful shutdown hooks
+  //app.enableShutdownHooks();
+  
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+   
   // Get the swagger ui service, and set it up
   const swaggerUiService = app.get(SwaggerUiService);
   swaggerUiService.builder().addBearerAuth();
@@ -75,19 +122,16 @@ async function bootstrap() {
   const exceptionsFilter = app.get(HttpAdapterHost);
   app.useGlobalFilters(new ExceptionsFilter(exceptionsFilter));
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3001);
 
   try {
     await ensureInitialAdmin(app);
-    // eslint-disable-next-line no-console
-    console.log('Ensured initial admin user and role');
+    await ensureManagerRole(app);
+    await ensureDefaultUserRole(app);
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('Initial admin bootstrap failed:', err);
-  }
-
-  // eslint-disable-next-line no-console
-  console.log('Sample server listening on http://localhost:3000');
+    console.error('Bootstrap failed:', err);
+  } 
 }
 
 bootstrap();

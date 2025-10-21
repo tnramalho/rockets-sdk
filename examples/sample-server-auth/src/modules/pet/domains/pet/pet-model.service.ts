@@ -12,8 +12,9 @@ import {
   PetModelServiceInterface,
   PetStatus,
 } from './pet.interface';
-import { PET_MODULE_PET_ENTITY_KEY } from './constants/pet.constants';
+import { PET_MODULE_PET_ENTITY_KEY } from '../../constants/pet.constants';
 import { PetCreateDto, PetUpdateDto } from './pet.dto';
+import { PetNotFoundException } from './pet.exception';
 
 /**
  * Pet Model Service
@@ -73,7 +74,7 @@ export class PetModelService
     });
     
     if (!pet) {
-      throw new Error(`Pet with ID ${id} not found`);
+      throw new PetNotFoundException();
     }
     
     return pet;
@@ -139,7 +140,7 @@ export class PetModelService
       where: { 
         userId, 
         species,
-        dateDeleted: null as any
+        dateDeleted: undefined
       }
     });
   }
@@ -152,7 +153,7 @@ export class PetModelService
       where: { 
         id: petId, 
         userId,
-        dateDeleted: null as any
+        dateDeleted: undefined
       }
     });
     return !!pet;

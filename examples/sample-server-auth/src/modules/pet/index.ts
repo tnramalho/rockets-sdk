@@ -1,17 +1,14 @@
-// Pet Module exports
+// Pet Module
 export { PetModule } from './pet.module';
 
-// Entities
-export { PetEntity } from './pet.entity';
+// Pet Domain
+export * from './domains/pet';
 
-// DTOs
-export { PetDto, PetCreateDto, PetUpdateDto, PetResponseDto, BasePetDto } from './pet.dto';
+// Pet Vaccination Domain
+export * from './domains/pet-vaccination';
 
-// Interfaces
-export * from './pet.interface';
-
-// Services
-export { PetModelService } from './pet-model.service';
+// Pet Appointment Domain
+export * from './domains/pet-appointment';
 
 // Constants
 export * from './constants/pet.constants';

@@ -15,6 +15,7 @@ export * from './dto/user-update.dto';
 
 // Adapters
 export * from './adapters/user-typeorm-crud.adapter';
+export * from './adapters/user-metadata-typeorm-crud.adapter';
 
 // Providers
 export { RocketsJwtAuthProvider } from '@bitwild/rockets-server-auth';

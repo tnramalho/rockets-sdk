@@ -1,8 +1,4 @@
-import {
-  BaseUserMetadataDto,
-  UserMetadataCreatableInterface,
-  UserMetadataModelUpdatableInterface
-} from '@bitwild/rockets-server';
+import { RocketsAuthUserMetadataDto } from '@bitwild/rockets-server-auth';
 import { ApiProperty, PartialType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import {
@@ -14,7 +10,7 @@ import {
 } from 'class-validator';
 
 @Exclude()
-export class UserMetadataDto extends BaseUserMetadataDto {
+export class UserMetadataDto extends RocketsAuthUserMetadataDto {
   @Expose()
   @ApiProperty({
     description: 'User first name',
@@ -67,26 +63,9 @@ export class UserMetadataDto extends BaseUserMetadataDto {
 }
 
 export class UserMetadataCreateDto 
-  extends PickType(UserMetadataDto, ['firstName', 'lastName', 'username', 'bio'] as const) 
-  implements UserMetadataCreatableInterface {
-  @ApiProperty({
-    description: 'User ID',
-    example: 'user-123',
-  })
-  @IsString()
-  @IsNotEmpty()
-  userId!: string;
-
+  extends PickType(UserMetadataDto, ['userId', 'firstName', 'lastName', 'username', 'bio'] as const) {
   // Add index signature to satisfy Record<string, unknown>
   [key: string]: unknown;
 }
 
-export class UserMetadataUpdateDto extends PartialType(PickType(UserMetadataDto, ['firstName', 'lastName', 'username', 'bio'] as const)) implements UserMetadataModelUpdatableInterface {
-  @ApiProperty({
-    description: 'UserMetadata ID',
-    example: 'userMetadata-123',
-  })
-  @IsString()
-  @IsNotEmpty()
-  id!: string;
-}
+export class UserMetadataUpdateDto extends UserMetadataDto {}
