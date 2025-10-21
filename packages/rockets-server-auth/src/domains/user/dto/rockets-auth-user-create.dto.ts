@@ -10,7 +10,13 @@ import { RocketsAuthUserDto } from './rockets-auth-user.dto';
  */
 export class RocketsAuthUserCreateDto
   extends IntersectionType(
-    PickType(RocketsAuthUserDto, ['email', 'username', 'active'] as const),
+    PickType(RocketsAuthUserDto, [
+      'email',
+      'username',
+      'active',
+      // Allow nested metadata during signup
+      'userMetadata',
+    ] as const),
     UserPasswordDto,
   )
   implements RocketsAuthUserCreatableInterface {}

@@ -517,6 +517,8 @@ import { RocketsModule } from '@bitwild/rockets-server';
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity]),
+    // IMPORTANT: RocketsAuthModule MUST be imported BEFORE RocketsModule
+    // because RocketsModule depends on RocketsJwtAuthProvider from RocketsAuthModule
     RocketsAuthModule.forRootAsync({
       imports: [TypeOrmModule.forFeature([UserEntity])],
       useFactory: () => ({
@@ -525,6 +527,7 @@ import { RocketsModule } from '@bitwild/rockets-server';
         },
       }),
     }),
+    // RocketsModule imports AFTER RocketsAuthModule to access RocketsJwtAuthProvider
     RocketsModule.forRootAsync({
       inject: [RocketsJwtAuthProvider],
       useFactory: (authProvider: RocketsJwtAuthProvider) => ({
@@ -541,6 +544,29 @@ export class AppModule {}
 ### Troubleshooting
 
 #### Common Issues
+
+#### Module Import Order
+
+**Problem**: `Nest can't resolve dependencies of RocketsModule (?). Please make sure that the RocketsJwtAuthProvider is available.`
+
+**Cause**: RocketsModule is imported before RocketsAuthModule
+
+**Solution**: Always import RocketsAuthModule **before** RocketsModule:
+
+```typescript
+@Module({
+  imports: [
+    RocketsAuthModule.forRootAsync({...}), // ✅ First
+    RocketsModule.forRootAsync({...}),     // ✅ Second  
+  ],
+})
+```
+
+**Wrong Order** ❌:
+```typescript
+RocketsModule.forRootAsync({...}),     // Wrong - first
+RocketsAuthModule.forRootAsync({...}), // Wrong - second
+```
 
 #### AuthJwtGuard Reflector dependency
 
@@ -1005,7 +1031,7 @@ user: {
   imports: [
     TypeOrmExtModule.forFeature({
       user: { entity: UserEntity },
-      userUserMetadata: { entity: UserUserMetadataEntity },
+      userMetadata: { entity: UserMetadataEntity },
       userPasswordHistory: { entity: UserPasswordHistoryEntity },
     }),
   ],
@@ -2285,6 +2311,64 @@ export class AppModule {}
 - The role name must match the environment variable `ADMIN_ROLE_NAME`
   (default is `admin`). Ensure the stored role name and env variable are
   identical.
+
+#### Default User Role Assignment
+
+You can configure a default role that is automatically assigned to new users during signup:
+
+**Configuration:**
+
+```typescript
+RocketsAuthModule.forRootAsync({
+  useFactory: () => ({
+    settings: {
+      role: {
+        adminRoleName: process.env.ADMIN_ROLE_NAME ?? 'admin',
+        defaultUserRoleName: process.env.DEFAULT_USER_ROLE_NAME ?? 'user',
+      },
+    },
+  }),
+})
+```
+
+**How it works:**
+
+- When a user signs up via `/signup`, the system checks if `defaultUserRoleName` is configured
+- If configured and the role exists, it's automatically assigned to the new user
+- This ensures all users have at least one role, preventing access control errors
+
+**Bootstrap initialization:**
+
+Ensure the default role exists before users sign up:
+
+```typescript
+// In main.ts
+import { RoleModelService } from '@concepta/nestjs-role';
+
+async function ensureDefaultUserRole(app: INestApplication) {
+  const roleModelService = app.get(RoleModelService);
+  const defaultUserRoleName = 'user';
+  
+  const userRole = (await roleModelService.find({ where: { name: defaultUserRoleName } }))?.[0];
+  
+  if (!userRole) {
+    await roleModelService.create({
+      name: defaultUserRoleName,
+      description: 'Default role for authenticated users',
+    });
+  }
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await ensureDefaultUserRole(app);
+  await app.listen(3000);
+}
+```
+
+**Environment variables:**
+
+- `DEFAULT_USER_ROLE_NAME` - The name of the default role (defaults to `'user'`)
 
 #### Generated routes
 

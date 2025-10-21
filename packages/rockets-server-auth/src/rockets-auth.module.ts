@@ -15,6 +15,7 @@ import {
  * - AuthJwtModule: For JWT-based authentication (optional)
  * - AuthRefreshModule: For refresh token handling (optional)
  */
+
 @Module({})
 export class RocketsAuthModule extends RocketsAuthModuleClass {
   static forRoot(options: RocketsAuthOptions): DynamicModule {

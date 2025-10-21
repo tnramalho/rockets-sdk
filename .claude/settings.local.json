@@ -22,7 +22,16 @@
       "Bash(yarn start:dev)",
       "Bash(ls:*)",
       "Bash(yarn install)",
-      "Bash(pkill -f \"nest start\")"
+      "Bash(pkill -f \"nest start\")",
+      "Bash(cp:*)",
+      "Bash(yarn lint)",
+      "Bash(yarn lint:*)",
+      "Bash(yarn test:*)",
+      "Bash(yarn clean)",
+      "Bash(yarn workspaces:*)",
+      "Bash(curl:*)",
+      "Bash(true)",
+      "Bash(timeout 10s npm run start:dev)"
     ],
     "deny": []
   }

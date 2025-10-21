@@ -413,125 +413,6 @@
         ]
       }
     },
-    "/admin/users/{id}": {
-      "patch": {
-        "operationId": "admin_users_updateOne",
-        "summary": "",
-        "description": "Updates the currently authenticated user userMetadata information",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "description": "User userMetadata information to update",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExtendedUserUpdateDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User userMetadata updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExtendedUserDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid input data"
-          },
-          "401": {
-            "description": "Unauthorized - User not authenticated"
-          }
-        },
-        "tags": [
-          "admin"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "get": {
-        "operationId": "admin_users_getOne",
-        "summary": "",
-        "parameters": [
-          {
-            "name": "fields",
-            "required": false,
-            "in": "query",
-            "description": "Selects resource fields. <a href=\"https://github.com/nestjsx/crud/wiki/Requests#select\" target=\"_blank\">Docs</a>",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "style": "form",
-            "explode": false
-          },
-          {
-            "name": "",
-            "required": false,
-            "in": "query",
-            "description": "Adds relational resources. <a href=\"https://github.com/nestjsx/crud/wiki/Requests#join\" target=\"_blank\">Docs</a>",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "style": "form",
-            "explode": true
-          },
-          {
-            "name": "cache",
-            "required": false,
-            "in": "query",
-            "description": "Reset cache (if was enabled). <a href=\"https://github.com/nestjsx/crud/wiki/Requests#cache\" target=\"_blank\">Docs</a>",
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 1
-            }
-          },
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Read-One ExtendedUserDto",
-            "schema": {},
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExtendedUserDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "admin"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
     "/admin/users": {
       "get": {
         "operationId": "admin_users_getMany",
@@ -657,21 +538,132 @@
         ],
         "responses": {
           "200": {
-            "description": "Read-All ExtendedUserDto as array or paginated response.",
+            "description": "Read-All ExtendedUserDto as paginated response.",
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/PaginatedDto"
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ExtendedUserDto"
-                      }
-                    }
-                  ]
+                  "$ref": "#/components/schemas/PaginatedDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/admin/users/{id}": {
+      "get": {
+        "operationId": "admin_users_getOne",
+        "summary": "",
+        "parameters": [
+          {
+            "name": "fields",
+            "required": false,
+            "in": "query",
+            "description": "Selects resource fields. <a href=\"https://github.com/nestjsx/crud/wiki/Requests#select\" target=\"_blank\">Docs</a>",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "",
+            "required": false,
+            "in": "query",
+            "description": "Adds relational resources. <a href=\"https://github.com/nestjsx/crud/wiki/Requests#join\" target=\"_blank\">Docs</a>",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "cache",
+            "required": false,
+            "in": "query",
+            "description": "Reset cache (if was enabled). <a href=\"https://github.com/nestjsx/crud/wiki/Requests#cache\" target=\"_blank\">Docs</a>",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read-One ExtendedUserDto",
+            "schema": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedUserDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "admin_users_updateOne",
+        "summary": "",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendedUserUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update-One ExtendedUserDto",
+            "schema": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedUserDto"
                 }
               }
             }
@@ -691,7 +683,7 @@
       "post": {
         "operationId": "signup_createOne",
         "summary": "Create a new user account",
-        "description": "Registers a new user in the system with email, username and password",
+        "description": "Registers a new user in the system with email, username, password and optional metadata",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -996,21 +988,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Read-All RocketsAuthRoleDto as array or paginated response.",
+            "description": "Read-All RocketsAuthRoleDto as paginated response.",
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/PaginatedDto"
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/RocketsAuthRoleDto"
-                      }
-                    }
-                  ]
+                  "$ref": "#/components/schemas/PaginatedDto"
                 }
               }
             }
@@ -1295,39 +1277,6 @@
           "refreshToken"
         ]
       },
-      "ExtendedUserUpdateDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier"
-          },
-          "email": {
-            "type": "string",
-            "description": "Email"
-          },
-          "username": {
-            "type": "string",
-            "description": "Username"
-          },
-          "active": {
-            "type": "boolean",
-            "description": "Active"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "username",
-          "active"
-        ]
-      },
       "ExtendedUserDto": {
         "type": "object",
         "properties": {
@@ -1399,6 +1348,10 @@
               "$ref": "#/components/schemas/RocketsAuthRoleDto"
             }
           },
+          "limit": {
+            "type": "number",
+            "description": "Limit number of items"
+          },
           "count": {
             "type": "number",
             "description": "Count of all records"
@@ -1418,10 +1371,44 @@
         },
         "required": [
           "data",
+          "limit",
           "count",
           "total",
           "page",
           "pageCount"
+        ]
+      },
+      "ExtendedUserUpdateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Active"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "username",
+          "active"
         ]
       },
       "ExtendedUserCreateDto": {
@@ -1542,7 +1529,16 @@
       },
       "AdminAssignUserRoleDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "description": "Role ID to assign to the user",
+            "example": "08a82592-714e-4da0-ace5-45ed3b4eb795"
+          }
+        },
+        "required": [
+          "roleId"
+        ]
       }
     }
   }

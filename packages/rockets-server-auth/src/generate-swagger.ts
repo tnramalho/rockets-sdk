@@ -7,7 +7,7 @@ import {
   TypeOrmExtModule,
   UserSqliteEntity,
 } from '@concepta/nestjs-typeorm-ext';
-import { UserModelService, UserPasswordDto } from '@concepta/nestjs-user';
+import { UserPasswordDto } from '@concepta/nestjs-user';
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -25,7 +25,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Column, Entity, Repository } from 'typeorm';
 import { RocketsAuthUserDto } from './domains/user/dto/rockets-auth-user.dto';
+import { RocketsAuthUserMetadataDto } from './domains/user/dto/rockets-auth-user-metadata.dto';
 import { RocketsAuthUserEntityInterface } from './domains/user/interfaces/rockets-auth-user-entity.interface';
+import { RocketsAuthUserMetadataEntityInterface } from './domains/user/interfaces/rockets-auth-user-metadata-entity.interface';
 import { RocketsAuthRoleDto } from './domains/role/dto/rockets-auth-role.dto';
 import { RocketsAuthRoleCreateDto } from './domains/role/dto/rockets-auth-role-create.dto';
 import { RocketsAuthRoleUpdateDto } from './domains/role/dto/rockets-auth-role-update.dto';
@@ -39,10 +41,10 @@ class UserEntity
   implements RocketsAuthUserEntityInterface
 {
   @Column({ type: 'varchar', length: 255, nullable: true })
-  firstName: string;
+  firstName!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  lastName: string;
+  lastName!: string;
 }
 
 @Entity()
@@ -54,16 +56,48 @@ class UserRoleEntity extends RoleAssignmentSqliteEntity {}
 @Entity()
 class UserOtpEntity extends OtpSqliteEntity {
   // TypeORM needs this properly defined, but it's not used for swagger gen
-  assignee: UserEntity;
+  assignee!: UserEntity;
 }
 
 @Entity()
 class FederatedEntity extends FederatedSqliteEntity {}
 
+@Entity()
+class UserMetadataEntity implements RocketsAuthUserMetadataEntityInterface {
+  [key: string]: unknown;
+
+  @Column({ type: 'varchar', primary: true })
+  id!: string;
+
+  @Column({ type: 'varchar' })
+  userId!: string;
+
+  @Column({ type: 'datetime' })
+  dateCreated!: Date;
+
+  @Column({ type: 'datetime' })
+  dateUpdated!: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  dateDeleted!: Date | null;
+
+  @Column({ type: 'int', default: 1 })
+  version!: number;
+}
+
 class AdminUserTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthUserEntityInterface> {
   constructor(
     @InjectRepository(UserEntity)
     private readonly repository: Repository<RocketsAuthUserEntityInterface>,
+  ) {
+    super(repository);
+  }
+}
+
+class UserMetadataTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthUserMetadataEntityInterface> {
+  constructor(
+    @InjectRepository(UserMetadataEntity)
+    private readonly repository: Repository<RocketsAuthUserMetadataEntityInterface>,
   ) {
     super(repository);
   }
@@ -75,108 +109,6 @@ class AdminRoleTypeOrmCrudAdapter extends TypeOrmCrudAdapter<RocketsAuthRoleEnti
     private readonly repository: Repository<RocketsAuthRoleEntityInterface>,
   ) {
     super(repository);
-  }
-}
-
-// Mock services for swagger generation
-class MockUserModelService implements Partial<UserModelService> {
-  async byId(id: string) {
-    return Promise.resolve({
-      id,
-      username: 'test',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['byId']>);
-  }
-  async byEmail(email: string) {
-    return Promise.resolve({
-      id: '1',
-      email,
-      username: 'test',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['byEmail']>);
-  }
-  async bySubject(_subject: string) {
-    return Promise.resolve({
-      id: '1',
-      username: 'test',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['bySubject']>);
-  }
-  async byUsername(username: string) {
-    return Promise.resolve({
-      id: '1',
-      username,
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['byUsername']>);
-  }
-  async create(data: Parameters<UserModelService['create']>[0]) {
-    return Promise.resolve({
-      ...data,
-      id: '1',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['create']>);
-  }
-  async update(data: Parameters<UserModelService['update']>[0]) {
-    return Promise.resolve({
-      ...data,
-      id: '1',
-      username: 'test',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['update']>);
-  }
-  async replace(data: Parameters<UserModelService['replace']>[0]) {
-    return Promise.resolve({
-      ...data,
-      id: '1',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['replace']>);
-  }
-  async remove(object: { id: string }) {
-    return Promise.resolve({
-      id: object.id,
-      username: 'test',
-      firstName: 'John',
-      lastName: 'Doe',
-      dateCreated: new Date(),
-      dateUpdated: new Date(),
-      dateDeleted: null,
-      version: 1,
-    } as unknown as ReturnType<UserModelService['remove']>);
   }
 }
 
@@ -196,7 +128,7 @@ class ExtendedUserDto extends RocketsAuthUserDto {
   @ApiProperty()
   @Expose()
   @IsString()
-  test: string;
+  test: string = '';
 }
 
 class ExtendedUserCreateDto extends IntersectionType(
@@ -225,7 +157,6 @@ class ExtendedUserUpdateDto extends PickType(ExtendedUserDto, [
 async function generateSwaggerJson() {
   try {
     process.env.ADMIN_ROLE_NAME = process.env.ADMIN_ROLE_NAME || 'admin';
-    const mockUserModelService = new MockUserModelService();
 
     @Module({
       imports: [
@@ -240,9 +171,10 @@ async function generateSwaggerJson() {
             UserRoleEntity,
             UserOtpEntity,
             FederatedEntity,
+            UserMetadataEntity,
           ],
         }),
-        TypeOrmModule.forFeature([UserEntity, RoleEntity]),
+        TypeOrmModule.forFeature([UserEntity, RoleEntity, UserMetadataEntity]),
         TypeOrmExtModule.forRootAsync({
           inject: [],
           useFactory: () => {
@@ -258,13 +190,18 @@ async function generateSwaggerJson() {
                 UserRoleEntity,
                 UserOtpEntity,
                 FederatedEntity,
+                UserMetadataEntity,
               ],
             };
           },
         }),
         RocketsAuthModule.forRootAsync({
           imports: [
-            TypeOrmModule.forFeature([UserEntity, RoleEntity]),
+            TypeOrmModule.forFeature([
+              UserEntity,
+              RoleEntity,
+              UserMetadataEntity,
+            ]),
             TypeOrmExtModule.forFeature({
               user: { entity: UserEntity },
               role: { entity: RoleEntity },
@@ -274,12 +211,20 @@ async function generateSwaggerJson() {
             }),
           ],
           userCrud: {
-            imports: [TypeOrmModule.forFeature([UserEntity])],
+            imports: [
+              TypeOrmModule.forFeature([UserEntity, UserMetadataEntity]),
+            ],
             adapter: AdminUserTypeOrmCrudAdapter,
             model: ExtendedUserDto,
             dto: {
               createOne: ExtendedUserCreateDto,
               updateOne: ExtendedUserUpdateDto,
+            },
+            userMetadataConfig: {
+              adapter: UserMetadataTypeOrmCrudAdapter,
+              entity: UserMetadataEntity,
+              createDto: RocketsAuthUserMetadataDto,
+              updateDto: RocketsAuthUserMetadataDto,
             },
           },
           roleCrud: {
@@ -300,21 +245,10 @@ async function generateSwaggerJson() {
             ],
           },
           useFactory: () => ({
-            jwt: {
-              settings: {
-                access: { secret: 'test-secret' },
-                refresh: { secret: 'test-secret' },
-                default: { secret: 'test-secret' },
-              },
-            },
-            federated: {
-              userModelService: mockUserModelService,
-            },
             services: {
               mailerService: {
                 sendMail: () => Promise.resolve(),
               },
-              userModelService: mockUserModelService,
             },
           }),
         }),
@@ -352,10 +286,6 @@ async function generateSwaggerJson() {
 
     // Close the app to free resources
     await app.close();
-
-    // console.debug(
-    //   'Swagger JSON file generated successfully at swagger/swagger.json',
-    // );
   } catch (error) {
     console.error('Error generating Swagger documentation:', error);
     if (error instanceof Error && error.stack) {

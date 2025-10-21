@@ -11,7 +11,7 @@ export class ServerAuthProviderFixture implements AuthProviderInterface {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         claims: {
           sub: 'serverauth-user-1',
           email: 'serverauth@example.com',
@@ -23,7 +23,7 @@ export class ServerAuthProviderFixture implements AuthProviderInterface {
         id: 'firebase-user-1',
         sub: 'firebase-user-1',
         email: 'firebase@example.com',
-        roles: ['user'],
+        userRoles: [{ role: { name: 'user' } }],
         claims: {
           sub: 'firebase-user-1',
           email: 'firebase@example.com',

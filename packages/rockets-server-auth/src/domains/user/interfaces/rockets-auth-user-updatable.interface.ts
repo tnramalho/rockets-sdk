@@ -8,5 +8,8 @@ import { RocketsAuthUserInterface } from './rockets-auth-user.interface';
 export interface RocketsAuthUserUpdatableInterface
   extends Pick<RocketsAuthUserInterface, 'id'>,
     Partial<
-      Pick<RocketsAuthUserCreatableInterface, 'email' | 'username' | 'active'>
+      Pick<
+        RocketsAuthUserCreatableInterface,
+        'email' | 'username' | 'active' | 'userMetadata'
+      >
     > {}

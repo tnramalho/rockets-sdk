@@ -184,7 +184,7 @@ export class MockAuthProvider implements AuthProviderInterface {
         id: 'user-123',
         sub: 'user-123',
         email: 'user@example.com',
-        roles: ['user'],
+        userRoles: [{ role: { name: 'user' } }],
         userMetadata: {
           firstName: 'John',
           lastName: 'Doe',
@@ -319,7 +319,7 @@ Expected response:
   "sub": "user-123",
   "email": "user@example.com",
   "username": "testuser",
-  "roles": ["user"],
+  "userRoles": [{ "role": { "name": "user" } }],
   "userMetadata": {
     "firstName": "John",
     "lastName": "Doe"
@@ -420,7 +420,7 @@ Get current authenticated user with metadata.
   "sub": "string", 
   "email": "string",
   "username": "string",
-  "roles": ["string"],
+  "userRoles": [{ "role": { "name": "string" } }],
   "userMetadata": {
     "firstName": "string",
     "lastName": "string",
@@ -428,6 +428,12 @@ Get current authenticated user with metadata.
     "location": "string"
   }
 }
+```
+
+**Note:** The `userRoles` property uses a nested structure that matches the database schema. Extract role names using:
+
+```typescript
+const roleNames = user.userRoles?.map(ur => ur.role.name) || [];
 ```
 
 #### PATCH /me

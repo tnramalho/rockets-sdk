@@ -15,12 +15,22 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiProperty,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AdminGuard } from '../../../guards/admin.guard';
+import { Expose } from 'class-transformer';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 class AdminAssignUserRoleDto {
+  @ApiProperty({
+    description: 'Role ID to assign to the user',
+    example: '08a82592-714e-4da0-ace5-45ed3b4eb795',
+  })
+  @Expose()
+  @IsString()
+  @IsNotEmpty()
   roleId!: string;
 }
 

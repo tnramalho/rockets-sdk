@@ -15,6 +15,7 @@ describe(AuthPasswordController.name, () => {
     dateUpdated: new Date(),
     dateDeleted: null,
     version: 2,
+    userMetadata: {},
   };
   beforeEach(async () => {
     mockIssueTokenService = {

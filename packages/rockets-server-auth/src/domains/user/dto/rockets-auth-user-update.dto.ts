@@ -16,6 +16,7 @@ export class RocketsAuthUserUpdateDto
         'username',
         'email',
         'active',
+        'userMetadata',
       ] as const),
     ),
   )

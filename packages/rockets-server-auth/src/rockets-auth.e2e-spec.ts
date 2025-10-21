@@ -30,12 +30,14 @@ import { RocketsAuthModule } from './rockets-auth.module';
 import { RoleEntityFixture } from './__fixtures__/role/role.entity.fixture';
 import { UserRoleEntityFixture } from './__fixtures__/role/user-role.entity.fixture';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserUserMetadataEntityFixture } from './__fixtures__/user/user-metadata.entity.fixture';
+import { UserMetadataEntityFixture } from './__fixtures__/user/user-metadata.entity.fixture';
 import { UserPasswordHistoryEntityFixture } from './__fixtures__/user/user-password-history.entity.fixture';
 import { AdminUserTypeOrmCrudAdapter } from './__fixtures__/admin/admin-user-crud.adapter';
 import { RocketsAuthUserDto } from './domains/user/dto/rockets-auth-user.dto';
+import { RocketsAuthUserMetadataDto } from './domains/user/dto/rockets-auth-user-metadata.dto';
 import { RocketsAuthUserCreateDto } from './domains/user/dto/rockets-auth-user-create.dto';
 import { RocketsAuthUserUpdateDto } from './domains/user/dto/rockets-auth-user-update.dto';
+import { UserMetadataTypeOrmCrudAdapterFixture } from './__fixtures__/services/user-metadata-typeorm-crud.adapter.fixture';
 
 // Test controller with protected route
 @Controller('test')
@@ -100,7 +102,7 @@ describe('RocketsAuth (e2e)', () => {
           ...ormConfig,
           entities: [
             UserFixture,
-            UserUserMetadataEntityFixture,
+            UserMetadataEntityFixture,
             UserOtpEntityFixture,
             UserPasswordHistoryEntityFixture,
             FederatedEntityFixture,
@@ -116,12 +118,23 @@ describe('RocketsAuth (e2e)', () => {
         ]),
         RocketsAuthModule.forRoot({
           userCrud: {
-            imports: [TypeOrmModule.forFeature([UserFixture])],
+            imports: [
+              TypeOrmModule.forFeature([
+                UserFixture,
+                UserMetadataEntityFixture,
+              ]),
+            ],
             adapter: AdminUserTypeOrmCrudAdapter,
             model: RocketsAuthUserDto,
             dto: {
               createOne: RocketsAuthUserCreateDto,
               updateOne: RocketsAuthUserUpdateDto,
+            },
+            userMetadataConfig: {
+              adapter: UserMetadataTypeOrmCrudAdapterFixture,
+              entity: UserMetadataEntityFixture,
+              createDto: RocketsAuthUserMetadataDto,
+              updateDto: RocketsAuthUserMetadataDto,
             },
           },
           jwt: {

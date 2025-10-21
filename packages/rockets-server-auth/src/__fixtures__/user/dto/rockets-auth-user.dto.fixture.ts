@@ -1,34 +1,26 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Allow, IsNumber, IsOptional, Min } from 'class-validator';
+import { Expose, Type } from 'class-transformer';
+import { IsOptional, ValidateNested } from 'class-validator';
 import { RocketsAuthUserDto } from '../../../domains/user/dto/rockets-auth-user.dto';
-import { RocketsAuthUserInterface } from '../../../domains/user/interfaces/rockets-auth-user.interface';
-import { Expose } from 'class-transformer';
+import { RocketsAuthUserMetadataFixtureDto } from './rockets-auth-user-metadata.dto.fixture';
 
 /**
- * Test-specific DTO with age validation for user create tests
+ * Rockets Auth User DTO Fixture
  *
- * This DTO includes age validation for testing purposes across e2e tests
- * without affecting the main project DTOs
+ * Extends RocketsAuthUserDto and uses the fixture metadata DTO
+ * with implementation-specific fields for testing.
+ *
+ * Note: Extra properties like firstName, lastName, age, bio should be
+ * placed in userMetadata, not directly on the user object.
  */
-export class RocketsAuthUserDtoFixture
-  extends RocketsAuthUserDto
-  implements RocketsAuthUserInterface
-{
-  @ApiPropertyOptional()
-  @Allow()
-  @IsOptional()
-  @Expose()
-  firstName?: string;
-
+export class RocketsAuthUserFixtureDto extends RocketsAuthUserDto {
   @ApiPropertyOptional({
-    description: 'User age',
-    example: 25,
-    required: false,
-    type: Number,
+    type: RocketsAuthUserMetadataFixtureDto,
+    description: 'User metadata',
   })
-  @IsOptional()
-  @IsNumber({}, { message: 'Age must be a number' })
-  @Min(18, { message: 'Age must be at least 18 years old' })
   @Expose()
-  age?: number;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RocketsAuthUserMetadataFixtureDto)
+  userMetadata?: RocketsAuthUserMetadataFixtureDto;
 }

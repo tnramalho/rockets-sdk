@@ -1,4 +1,5 @@
 import { UserEntityInterface } from '@concepta/nestjs-common';
+import { RocketsAuthUserMetadataEntityInterface } from './rockets-auth-user-metadata-entity.interface';
 
 /**
  * User Entity Interface
@@ -10,4 +11,5 @@ export interface RocketsAuthUserEntityInterface extends UserEntityInterface {
    * When extending the base interface, you can add additional properties
    * specific to your application here
    */
+  userMetadata?: RocketsAuthUserMetadataEntityInterface | null;
 }

@@ -1,21 +1,23 @@
 import { UserPasswordDto } from '@concepta/nestjs-user';
 import { IntersectionType, PickType } from '@nestjs/swagger';
 import { RocketsAuthUserCreatableInterface } from '../../../domains/user/interfaces/rockets-auth-user-creatable.interface';
-import { RocketsAuthUserDtoFixture } from './rockets-auth-user.dto.fixture';
+import { RocketsAuthUserFixtureDto } from './rockets-auth-user.dto.fixture';
 
 /**
- * Test-specific DTO with age validation for user create tests
+ * Test-specific DTO for user create tests
  *
- * This DTO includes age validation for testing purposes across e2e tests
- * without affecting the main project DTOs
+ * This DTO is used for testing purposes across e2e tests
+ * without affecting the main project DTOs.
+ *
+ * Note: Properties like age, firstName, lastName should be in userMetadata.
  */
 export class RocketsAuthUserCreateDtoFixture
   extends IntersectionType(
-    PickType(RocketsAuthUserDtoFixture, [
+    PickType(RocketsAuthUserFixtureDto, [
       'email',
       'username',
       'active',
-      'age',
+      'userMetadata',
     ] as const),
     UserPasswordDto,
   )

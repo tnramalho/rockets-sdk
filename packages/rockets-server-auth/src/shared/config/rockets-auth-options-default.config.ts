@@ -14,6 +14,7 @@ export const rocketsAuthOptionsDefaultConfig = registerAs(
     return {
       role: {
         adminRoleName: process.env?.ADMIN_ROLE_NAME ?? 'admin',
+        defaultUserRoleName: process.env?.DEFAULT_USER_ROLE_NAME ?? 'user',
       },
       email: {
         from: 'from',

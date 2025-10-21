@@ -8,7 +8,10 @@ export { rocketsAuthOptionsDefaultConfig } from './config/rockets-auth-options-d
 
 // Interfaces
 export { RocketsAuthOptionsInterface } from './interfaces/rockets-auth-options.interface';
-export { RocketsAuthOptionsExtrasInterface } from './interfaces/rockets-auth-options-extras.interface';
+export {
+  RocketsAuthOptionsExtrasInterface,
+  UserMetadataConfigInterface,
+} from './interfaces/rockets-auth-options-extras.interface';
 export { RocketsAuthEntitiesOptionsInterface } from './interfaces/rockets-auth-entities-options.interface';
 export { RocketsAuthSettingsInterface } from './interfaces/rockets-auth-settings.interface';
 export { RocketsAuthUserModelServiceInterface } from './interfaces/rockets-auth-user-model-service.interface';

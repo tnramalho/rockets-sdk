@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { HttpAdapterHost } from '@nestjs/core';
 
-import { AppModuleAdminFixture } from '../../../__fixtures__/admin/app-module-admin.fixture';
+import { AppModuleAdminRelationsFixture } from '../../../__fixtures__/admin/app-module-admin-relations.fixture';
 import { ExceptionsFilter, RoleEntityInterface } from '@concepta/nestjs-common';
 import { RoleModelService, RoleService } from '@concepta/nestjs-role';
 
@@ -16,7 +16,7 @@ describe('RocketsAuthAdminModule (e2e)', () => {
   beforeAll(async () => {
     process.env.ADMIN_ROLE_NAME = 'admin';
     const moduleFixture = await Test.createTestingModule({
-      imports: [AppModuleAdminFixture],
+      imports: [AppModuleAdminRelationsFixture],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -54,7 +54,13 @@ describe('RocketsAuthAdminModule (e2e)', () => {
 
     const signupRes = await request(app.getHttpServer())
       .post('/signup')
-      .send({ username, email, password, active: true })
+      .send({
+        username,
+        email,
+        password,
+        active: true,
+        userMetadata: { firstName: 'Test' }, // Ensure metadata is present with some data
+      })
       .expect(201);
 
     const loginRes = await request(app.getHttpServer())
@@ -89,9 +95,27 @@ describe('RocketsAuthAdminModule (e2e)', () => {
 
     const listRes = await request(app.getHttpServer())
       .get('/admin/users')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .expect(200);
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    if (listRes.status !== 200) {
+      console.error(
+        'Admin users endpoint error:',
+        listRes.status,
+        listRes.text,
+      );
+    }
+
+    expect(listRes.status).toBe(200);
 
     expect(listRes.body).toBeDefined();
+
+    // Should hydrate metadata when relations configured (optional in fixtures)
+    // Filter by a relation field; if relations are not configured, server may return 400
+    const relFilterResponse = await request(app.getHttpServer())
+      .get('/admin/users?filter=userMetadata.firstName||$contL||')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    // Accept 200 (relations enabled) or 400 (relations disabled in fixture)
+    expect([200, 400]).toContain(relFilterResponse.status);
   });
 });

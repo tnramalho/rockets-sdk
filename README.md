@@ -114,3 +114,7 @@ finalized our Contributor License Agreement.
 
 This project is licensed under the MIT License - see the
 [LICENSE.txt](LICENSE.txt) file for details.
+
+Notes:
+Rockest server has a global server guard that uses auth provider
+rockets server auth can choose to use the gloal jwt one

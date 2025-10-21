@@ -15,19 +15,20 @@ import { UserFixture } from '../user/user.entity.fixture';
 
 import { RocketsAuthUserCreateDto } from '../../domains/user/dto/rockets-auth-user-create.dto';
 import { RocketsAuthUserUpdateDto } from '../../domains/user/dto/rockets-auth-user-update.dto';
-import { RocketsAuthUserDto } from '../../domains/user/dto/rockets-auth-user.dto';
-import { RocketsAuthUserMetadataDto } from '../../domains/user/dto/rockets-auth-user-metadata.dto';
 import { AdminUserTypeOrmCrudAdapter } from './admin-user-crud.adapter';
 import { RocketsAuthRoleDto } from '../../domains/role/dto/rockets-auth-role.dto';
 import { RocketsAuthRoleUpdateDto } from '../../domains/role/dto/rockets-auth-role-update.dto';
 import { RoleTypeOrmCrudAdapter } from '../role/role-typeorm-crud.adapter';
 import { RocketsAuthRoleCreateDto } from '../../domains/role';
 import { UserMetadataTypeOrmCrudAdapterFixture as UserMetadataAdapter } from '../services/user-metadata-typeorm-crud.adapter.fixture';
+import { RocketsAuthUserMetadataFixtureDto } from '../user/dto/rockets-auth-user-metadata.dto.fixture';
+import { RocketsAuthUserFixtureDto } from '../user/dto/rockets-auth-user.dto.fixture';
+import { ACServiceFixture } from './access-control.service.fixture';
+import { acRulesFixture } from './app.acl.fixture';
 
 @Global()
 @Module({
   imports: [
-    // TypeORM datasource
     TypeOrmModule.forRoot({
       ...ormConfig,
       entities: [
@@ -40,23 +41,20 @@ import { UserMetadataTypeOrmCrudAdapterFixture as UserMetadataAdapter } from '..
         UserRoleEntityFixture,
       ],
     }),
-    // Dynamic repos for feature modules
     TypeOrmExtModule.forRootAsync({
       inject: [],
-      useFactory: () => {
-        return {
-          ...ormConfig,
-          entities: [
-            UserFixture,
-            UserOtpEntityFixture,
-            UserPasswordHistoryEntityFixture,
-            UserMetadataEntityFixture,
-            FederatedEntityFixture,
-            UserRoleEntityFixture,
-            RoleEntityFixture,
-          ],
-        };
-      },
+      useFactory: () => ({
+        ...ormConfig,
+        entities: [
+          UserFixture,
+          UserOtpEntityFixture,
+          UserPasswordHistoryEntityFixture,
+          UserMetadataEntityFixture,
+          FederatedEntityFixture,
+          UserRoleEntityFixture,
+          RoleEntityFixture,
+        ],
+      }),
     }),
     TypeOrmExtModule.forFeature({
       user: { entity: UserFixture },
@@ -76,7 +74,7 @@ import { UserMetadataTypeOrmCrudAdapterFixture as UserMetadataAdapter } from '..
           TypeOrmModule.forFeature([UserFixture, UserMetadataEntityFixture]),
         ],
         adapter: AdminUserTypeOrmCrudAdapter,
-        model: RocketsAuthUserDto,
+        model: RocketsAuthUserFixtureDto,
         dto: {
           createOne: RocketsAuthUserCreateDto,
           updateOne: RocketsAuthUserUpdateDto,
@@ -84,8 +82,8 @@ import { UserMetadataTypeOrmCrudAdapterFixture as UserMetadataAdapter } from '..
         userMetadataConfig: {
           adapter: UserMetadataAdapter,
           entity: UserMetadataEntityFixture,
-          createDto: RocketsAuthUserMetadataDto,
-          updateDto: RocketsAuthUserMetadataDto,
+          createDto: RocketsAuthUserMetadataFixtureDto,
+          updateDto: RocketsAuthUserMetadataFixtureDto,
         },
       },
       roleCrud: {
@@ -107,18 +105,17 @@ import { UserMetadataTypeOrmCrudAdapterFixture as UserMetadataAdapter } from '..
             default: { secret: 'test-secret' },
           },
         },
-        services: {
-          mailerService: { sendMail: () => Promise.resolve() },
+        services: { mailerService: { sendMail: () => Promise.resolve() } },
+        accessControl: {
+          service: new ACServiceFixture(),
+          settings: {
+            rules: acRulesFixture,
+          },
         },
       }),
     }),
   ],
-  providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // }
-  ],
-  exports: [],
+  providers: [ACServiceFixture],
+  exports: [ACServiceFixture],
 })
-export class AppModuleAdminFixture {}
+export class AppModuleAdminRelationsFixture {}

@@ -10,7 +10,7 @@ export class MockAuthProvider implements AuthProviderInterface {
         id: 'user-123',
         sub: 'user-123', 
         email: 'user1@example.com',
-        roles: ['user'],
+        userRoles: [{ role: { name: 'user' }}],
         claims: {
           token,
           provider: 'mock'
@@ -21,7 +21,7 @@ export class MockAuthProvider implements AuthProviderInterface {
         id: 'user-456',
         sub: 'user-456',
         email: 'user2@example.com', 
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' }}],
         claims: {
           token,
           provider: 'mock'
@@ -34,7 +34,7 @@ export class MockAuthProvider implements AuthProviderInterface {
       id: 'default-user',
       sub: 'default-user',
       email: 'default@example.com',
-      roles: ['user'],
+      userRoles: [{ role: { name: 'user' }}],
       claims: {
         token,
         provider: 'mock'

@@ -163,7 +163,7 @@ describe('RocketsModule - User Integration (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
@@ -203,7 +203,7 @@ describe('RocketsModule - User Integration (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: expect.any(String),
           userId: 'serverauth-user-1',
@@ -243,7 +243,7 @@ describe('RocketsModule - User Integration (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         // Should not have userMetadata fields when empty
       });
     });

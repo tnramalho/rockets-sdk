@@ -8,5 +8,5 @@ export class RocketsAuthOtpSendDto {
   })
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 }

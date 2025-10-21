@@ -78,7 +78,8 @@ describe('Roles Admin (e2e)', () => {
       .get('/admin/roles')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
-    expect(Array.isArray(listRes.body)).toBe(true);
+    // Expect paginated response shape with data array
+    expect(Array.isArray(listRes.body?.data ?? listRes.body)).toBe(true);
 
     // Update role
     const updated = await request(app.getHttpServer())

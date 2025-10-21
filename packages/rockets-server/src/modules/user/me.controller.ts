@@ -50,10 +50,10 @@ export class MeController {
     let userMetadata: UserMetadataEntityInterface | null;
 
     try {
-      const userUserMetadata =
+      const metadata =
         await this.userMetadataModelService.getUserMetadataByUserId(user.id);
 
-      userMetadata = userUserMetadata;
+      userMetadata = metadata;
     } catch (error) {
       // UserMetadata not found, use empty userMetadata
       userMetadata = null;
@@ -61,9 +61,7 @@ export class MeController {
 
     const response = {
       ...user,
-      userMetadata: {
-        ...userMetadata,
-      },
+      userMetadata: userMetadata ? { ...userMetadata } : {},
     };
 
     return response;

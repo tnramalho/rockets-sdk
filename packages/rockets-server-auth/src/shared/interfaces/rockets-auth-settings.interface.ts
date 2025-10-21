@@ -6,6 +6,7 @@ import { RocketsAuthOtpSettingsInterface } from '../../domains/otp/interfaces/ro
 export interface RocketsAuthSettingsInterface {
   role: {
     adminRoleName: string;
+    defaultUserRoleName?: string;
   };
   email: {
     from: string;

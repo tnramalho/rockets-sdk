@@ -8,7 +8,7 @@ export class RocketsAuthOtpConfirmDto {
   })
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'OTP passcode to verify',
@@ -16,5 +16,5 @@ export class RocketsAuthOtpConfirmDto {
   })
   @IsString()
   @IsNotEmpty()
-  passcode: string;
+  passcode!: string;
 }

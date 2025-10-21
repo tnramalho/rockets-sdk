@@ -1,3 +1,4 @@
+import { AccessControlModule } from '@concepta/nestjs-access-control';
 import { AuthAppleGuard, AuthAppleModule } from '@concepta/nestjs-auth-apple';
 import { AuthAppleOptionsInterface } from '@concepta/nestjs-auth-apple/dist/interfaces/auth-apple-options.interface';
 import {
@@ -73,7 +74,9 @@ import { RocketsAuthNotificationService } from './domains/otp/services/rockets-a
 import { RocketsAuthOtpService } from './domains/otp/services/rockets-auth-otp.service';
 import { RocketsJwtAuthProvider } from './provider/rockets-jwt-auth.provider';
 
-const RAW_OPTIONS_TOKEN = Symbol('__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__');
+export const RAW_OPTIONS_TOKEN = Symbol(
+  '__ROCKETS_SERVER_MODULE_RAW_OPTIONS_TOKEN__',
+);
 
 export const {
   ConfigurableModuleClass: RocketsAuthModuleClass,
@@ -520,6 +523,18 @@ export function createRocketsAuthImports(importOptions: {
       entities: ['userRole', ...(importOptions.extras?.role?.entities || [])],
     }),
   ];
+
+  // Conditionally register AccessControlModule if configuration provided
+  if (importOptions.extras?.accessControl) {
+    imports.push(
+      AccessControlModule.forRoot({
+        service: importOptions.extras.accessControl.service,
+        settings: importOptions.extras.accessControl.settings,
+        appFilter: importOptions.extras.accessControl.appFilter,
+        appGuard: false,
+      }),
+    );
+  }
 
   return imports;
 }

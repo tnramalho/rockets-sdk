@@ -10,7 +10,7 @@ export class FirebaseAuthProviderFixture implements AuthProviderInterface {
       id: 'firebase-user-1',
       sub: 'firebase-user-1',
       email: 'firebase@example.com',
-      roles: ['user'],
+      userRoles: [{ role: { name: 'user' } }],
       claims: {
         sub: 'firebase-user-1',
         email: 'firebase@example.com',

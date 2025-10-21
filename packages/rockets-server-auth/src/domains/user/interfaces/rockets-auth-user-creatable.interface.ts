@@ -6,5 +6,5 @@ import { RocketsAuthUserInterface } from './rockets-auth-user.interface';
  */
 export interface RocketsAuthUserCreatableInterface
   extends Pick<RocketsAuthUserInterface, 'username' | 'email'>,
-    Partial<Pick<RocketsAuthUserInterface, 'active'>>,
+    Partial<Pick<RocketsAuthUserInterface, 'active' | 'userMetadata'>>,
     PasswordPlainInterface {}

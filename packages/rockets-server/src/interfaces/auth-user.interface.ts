@@ -2,6 +2,6 @@ export interface AuthorizedUser {
   id: string;
   sub: string;
   email?: string;
-  roles?: string[];
+  userRoles?: { role: { name: string } }[];
   claims?: Record<string, unknown>;
 }

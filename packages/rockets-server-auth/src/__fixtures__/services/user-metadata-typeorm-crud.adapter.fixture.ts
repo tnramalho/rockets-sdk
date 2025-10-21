@@ -1,9 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { TypeOrmCrudAdapter } from '@concepta/nestjs-crud';
-import { UserUserMetadataEntityFixture } from '../user/user-metadata.entity.fixture';
+import { CrudAdapter, TypeOrmCrudAdapter } from '@concepta/nestjs-crud';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserMetadataEntityFixture } from '../user/user-metadata.entity.fixture';
+import { RocketsAuthUserMetadataEntityInterface } from '../../domains/user/interfaces/rockets-auth-user-metadata-entity.interface';
 
 @Injectable()
-export class UserUserMetadataTypeOrmCrudAdapterFixture extends TypeOrmCrudAdapter<UserUserMetadataEntityFixture> {
-  // This is a fixture adapter for testing purposes
-  // In a real application, this would be properly configured with a repository
+export class UserMetadataTypeOrmCrudAdapterFixture
+  extends TypeOrmCrudAdapter<RocketsAuthUserMetadataEntityInterface>
+  implements CrudAdapter<RocketsAuthUserMetadataEntityInterface>
+{
+  constructor(
+    @InjectRepository(UserMetadataEntityFixture)
+    repo: Repository<RocketsAuthUserMetadataEntityInterface>,
+  ) {
+    super(repo);
+  }
 }

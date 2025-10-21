@@ -3,8 +3,8 @@
         { "pattern": "packages/*" }   
     ],
     "files.exclude": {
-        "**/node_modules": true,
-        "**/*dist*": true,
+       // "**/node_modules": true,
+       // "**/*dist*": true,
         "**/*coverage*": true,
     }
 }

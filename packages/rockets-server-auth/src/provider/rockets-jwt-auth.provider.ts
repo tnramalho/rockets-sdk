@@ -7,7 +7,7 @@ import {
 import { VerifyTokenService } from '@concepta/nestjs-authentication';
 import { UserModelService } from '@concepta/nestjs-user';
 import { UserEntityInterface } from '@concepta/nestjs-common';
-import { RoleService } from '@concepta/nestjs-role';
+import { RoleService, RoleModelService } from '@concepta/nestjs-role';
 
 @Injectable()
 export class RocketsJwtAuthProvider {
@@ -19,7 +19,9 @@ export class RocketsJwtAuthProvider {
     @Inject(UserModelService)
     private readonly userModelService: UserModelService,
     @Inject(RoleService)
-    private readonly roleModelService: RoleService,
+    private readonly roleService: RoleService,
+    @Inject(RoleModelService)
+    private readonly roleModelService: RoleModelService,
   ) {}
 
   async validateToken(token: string) {
@@ -39,19 +41,29 @@ export class RocketsJwtAuthProvider {
         this.logger.warn(`User not found for subject: ${payload.sub}`);
         throw new UnauthorizedException('User not found');
       }
-      const roles = await this.roleModelService.getAssignedRoles({
+      // Get assigned role IDs
+      const assignedRoleIds = await this.roleService.getAssignedRoles({
         assignment: 'user',
         assignee: {
           id: user.id,
         },
       });
-      const rolesString = roles.map((role) => role.id);
+
+      // Fetch full role entities to get role names
+      let roleNames: string[] = [];
+      if (assignedRoleIds && assignedRoleIds.length > 0) {
+        const roleIds = assignedRoleIds.map((role) => role.id);
+        const roles = await this.roleModelService.find({
+          where: roleIds.map((id) => ({ id })),
+        });
+        roleNames = roles.map((role) => role.name);
+      }
 
       const authorizedUser = {
         id: user.id,
         sub: payload.sub, // Use sub from JWT payload
         email: user.email,
-        roles: rolesString || [], // Use roles from JWT payload
+        userRoles: roleNames.map((name) => ({ role: { name } })),
         claims: {
           // Include any custom claims from the JWT
           ...payload,

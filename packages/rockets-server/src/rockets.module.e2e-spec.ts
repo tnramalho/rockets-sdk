@@ -75,7 +75,7 @@ class TestController {
     return {
       id: user.id,
       email: user.email || 'no-email',
-      roles: user.roles || [],
+      roles: user.userRoles?.map((ur) => ur.role.name) || [],
       message: 'User data retrieved successfully',
     };
   }
@@ -182,7 +182,7 @@ describe('RocketsModule (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
       });
     });
 
@@ -209,7 +209,7 @@ describe('RocketsModule (e2e)', () => {
         id: 'firebase-user-1',
         sub: 'firebase-user-1',
         email: 'firebase@example.com',
-        roles: ['user'],
+        userRoles: [{ role: { name: 'user' } }],
       });
     });
 
@@ -252,7 +252,7 @@ describe('RocketsModule (e2e)', () => {
           id: 'serverauth-user-1',
           sub: 'serverauth-user-1',
           email: 'serverauth@example.com',
-          roles: ['admin'],
+          userRoles: [{ role: { name: 'admin' } }],
         },
       });
     });
@@ -369,7 +369,7 @@ describe('RocketsModule (e2e)', () => {
           id: 'serverauth-user-1',
           sub: 'serverauth-user-1',
           email: 'serverauth@example.com',
-          roles: ['admin'],
+          userRoles: [{ role: { name: 'admin' } }],
         },
       });
     });

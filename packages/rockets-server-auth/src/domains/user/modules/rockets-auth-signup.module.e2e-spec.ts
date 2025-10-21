@@ -13,10 +13,12 @@ import { RoleEntityFixture } from '../../../__fixtures__/role/role.entity.fixtur
 import { UserRoleEntityFixture } from '../../../__fixtures__/role/user-role.entity.fixture';
 import { RocketsAuthUserCreateDtoFixture } from '../../../__fixtures__/user/dto/rockets-auth-user-create.dto.fixture';
 import { RocketsAuthUserUpdateDtoFixture } from '../../../__fixtures__/user/dto/rockets-auth-user-update.dto.fixture';
-import { RocketsAuthUserDtoFixture } from '../../../__fixtures__/user/dto/rockets-auth-user.dto.fixture';
+import { RocketsAuthUserFixtureDto } from '../../../__fixtures__/user/dto/rockets-auth-user.dto.fixture';
+import { RocketsAuthUserMetadataDto } from '../dto/rockets-auth-user-metadata.dto';
 import { UserOtpEntityFixture } from '../../../__fixtures__/user/user-otp-entity.fixture';
 import { UserPasswordHistoryEntityFixture } from '../../../__fixtures__/user/user-password-history.entity.fixture';
-import { UserUserMetadataEntityFixture } from '../../../__fixtures__/user/user-metadata.entity.fixture';
+import { UserMetadataEntityFixture } from '../../../__fixtures__/user/user-metadata.entity.fixture';
+import { UserMetadataTypeOrmCrudAdapterFixture } from '../../../__fixtures__/services/user-metadata-typeorm-crud.adapter.fixture';
 import { UserFixture } from '../../../__fixtures__/user/user.entity.fixture';
 import { RocketsAuthModule } from '../../../rockets-auth.module';
 
@@ -58,7 +60,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
           ...ormConfig,
           entities: [
             UserFixture,
-            UserUserMetadataEntityFixture,
+            UserMetadataEntityFixture,
             UserOtpEntityFixture,
             UserPasswordHistoryEntityFixture,
             FederatedEntityFixture,
@@ -68,17 +70,29 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         }),
         TypeOrmModule.forFeature([
           UserFixture,
+          UserMetadataEntityFixture,
           UserRoleEntityFixture,
           RoleEntityFixture,
         ]),
         RocketsAuthModule.forRoot({
           userCrud: {
-            imports: [TypeOrmModule.forFeature([UserFixture])],
+            imports: [
+              TypeOrmModule.forFeature([
+                UserFixture,
+                UserMetadataEntityFixture,
+              ]),
+            ],
             adapter: AdminUserTypeOrmCrudAdapter,
-            model: RocketsAuthUserDtoFixture,
+            model: RocketsAuthUserFixtureDto,
             dto: {
               createOne: RocketsAuthUserCreateDtoFixture,
               updateOne: RocketsAuthUserUpdateDtoFixture,
+            },
+            userMetadataConfig: {
+              adapter: UserMetadataTypeOrmCrudAdapterFixture,
+              entity: UserMetadataEntityFixture,
+              createDto: RocketsAuthUserMetadataDto,
+              updateDto: RocketsAuthUserMetadataDto,
             },
           },
           jwt: {
@@ -142,7 +156,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'signupuser@example.com',
         password: 'Password123!',
         active: true,
-        age: 25,
+        userMetadata: { age: 25 },
       };
 
       const response = await request(app.getHttpServer())
@@ -154,8 +168,6 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
       expect(response.body.username).toBe('signupuser');
       expect(response.body.email).toBe('signupuser@example.com');
       expect(response.body.active).toBe(true);
-      // Age might not be returned in signup response depending on DTO configuration
-      // expect(response.body.age).toBe(25);
       expect(response.body.id).toBeDefined();
       expect(response.body.dateCreated).toBeDefined();
       expect(response.body.dateUpdated).toBeDefined();
@@ -173,7 +185,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'validageuser@example.com',
         password: 'Password123!',
         active: true,
-        age: 18, // Minimum valid age
+        userMetadata: { age: 18 }, // Minimum valid age
       };
 
       const response = await request(app.getHttpServer())
@@ -194,7 +206,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'olderuser@example.com',
         password: 'Password123!',
         active: true,
-        age: 65, // Valid older age
+        userMetadata: { age: 65 }, // Valid older age
       };
 
       const response = await request(app.getHttpServer())
@@ -214,7 +226,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'younguser@example.com',
         password: 'Password123!',
         active: true,
-        age: 17, // Below minimum age
+        userMetadata: { age: 17 }, // Below minimum age
       };
 
       await request(app.getHttpServer())
@@ -229,7 +241,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'childuser@example.com',
         password: 'Password123!',
         active: true,
-        age: 10, // Much below minimum age
+        userMetadata: { age: 10 }, // Much below minimum age
       };
 
       await request(app.getHttpServer())
@@ -244,7 +256,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'negativeuser@example.com',
         password: 'Password123!',
         active: true,
-        age: -5, // Negative age
+        userMetadata: { age: -5 }, // Negative age
       };
 
       await request(app.getHttpServer())
@@ -259,7 +271,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'zerouser@example.com',
         password: 'Password123!',
         active: true,
-        age: 0, // Zero age
+        userMetadata: { age: 0 }, // Zero age
       };
 
       await request(app.getHttpServer())
@@ -274,7 +286,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'stringageuser@example.com',
         password: 'Password123!',
         active: true,
-        age: 'twenty-five', // String instead of number
+        userMetadata: { age: 'twenty-five' }, // String instead of number
       };
 
       await request(app.getHttpServer())
@@ -289,7 +301,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'boolageuser@example.com',
         password: 'Password123!',
         active: true,
-        age: true, // Boolean instead of number
+        userMetadata: { age: true }, // Boolean instead of number
       };
 
       await request(app.getHttpServer())
@@ -304,7 +316,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'decimaluser@example.com',
         password: 'Password123!',
         active: true,
-        age: 17.5, // Decimal age below minimum
+        userMetadata: { age: 17.5 }, // Decimal age below minimum
       };
 
       await request(app.getHttpServer())
@@ -319,7 +331,7 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         email: 'decimalgooduser@example.com',
         password: 'Password123!',
         active: true,
-        age: 18.5, // Decimal age above minimum
+        userMetadata: { age: 18.5 }, // Decimal age above minimum
       };
 
       const response = await request(app.getHttpServer())
@@ -349,8 +361,8 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
 
       expect(response.body).toBeDefined();
       expect(response.body.username).toBe('noageuser');
-      // Age should be undefined or null when not provided
-      expect(response.body.age).toBeNull();
+      // Age should be undefined when not provided (it's in userMetadata)
+      expect(response.body.userMetadata?.age).toBeUndefined();
     });
 
     it('should not allow signup without duplicate username', async () => {
@@ -446,6 +458,156 @@ describe('RocketsAuthSignUpModule (e2e)', () => {
         .post('/signup')
         .send(userData)
         .expect(400);
+    });
+
+    it('should create user with metadata nested object', async () => {
+      const userData = {
+        username: 'metauuser',
+        email: 'metauuser@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { firstName: 'Meta' },
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.username).toBe('metauuser');
+      expect(response.body.email).toBe('metauuser@example.com');
+      expect(response.body.id).toBeDefined();
+    });
+
+    it('should reject signup with metadata firstName that is not a string', async () => {
+      const userData = {
+        username: 'invalidmetadata1',
+        email: 'invalidmetadata1@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { firstName: 123 }, // Should be string
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should reject signup with metadata firstName too long', async () => {
+      const userData = {
+        username: 'invalidmetadata2',
+        email: 'invalidmetadata2@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { firstName: 'a'.repeat(101) }, // Max 100 characters
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should reject signup with metadata firstName empty string', async () => {
+      const userData = {
+        username: 'invalidmetadata3',
+        email: 'invalidmetadata3@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { firstName: '' }, // Min 1 character
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should reject signup with metadata lastName that is not a string', async () => {
+      const userData = {
+        username: 'invalidmetadata4',
+        email: 'invalidmetadata4@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { lastName: true }, // Should be string
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should reject signup with metadata username too short', async () => {
+      const userData = {
+        username: 'invalidmetadata5',
+        email: 'invalidmetadata5@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { username: 'ab' }, // Min 3 characters
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should reject signup with metadata username too long', async () => {
+      const userData = {
+        username: 'invalidmetadata6',
+        email: 'invalidmetadata6@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { username: 'a'.repeat(51) }, // Max 50 characters
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should reject signup with metadata bio too long', async () => {
+      const userData = {
+        username: 'invalidmetadata7',
+        email: 'invalidmetadata7@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: { bio: 'a'.repeat(501) }, // Max 500 characters
+      };
+
+      await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should accept valid metadata with all fields', async () => {
+      const userData = {
+        username: 'validmetadata',
+        email: 'validmetadata@example.com',
+        password: 'Password123!',
+        active: true,
+        userMetadata: {
+          firstName: 'John',
+          lastName: 'Doe',
+          username: 'johndoe',
+          bio: 'A valid bio with less than 500 characters',
+        },
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/signup')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.username).toBe('validmetadata');
+      expect(response.body.email).toBe('validmetadata@example.com');
+      expect(response.body.id).toBeDefined();
     });
   });
 });

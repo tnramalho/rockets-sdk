@@ -185,7 +185,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
@@ -243,7 +243,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
@@ -294,7 +294,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
@@ -337,7 +337,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
@@ -386,7 +386,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
@@ -446,7 +446,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           ...complexUserMetadata.userMetadata,
           id: 'userMetadata-1',
@@ -539,7 +539,7 @@ describe('RocketsModule - Dynamic UserMetadata Service (e2e)', () => {
         id: 'serverauth-user-1',
         sub: 'serverauth-user-1',
         email: 'serverauth@example.com',
-        roles: ['admin'],
+        userRoles: [{ role: { name: 'admin' } }],
         userMetadata: {
           id: 'userMetadata-1',
           userId: 'serverauth-user-1',
