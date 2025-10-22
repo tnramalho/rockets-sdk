@@ -1,9 +1,11 @@
 import { RoleCreatableInterface } from '@concepta/nestjs-common';
 
 /**
- * Rockets Server Role Creatable Interface
+ * Rockets Auth Role Creatable Interface
  *
- * Extends the base role creatable interface from the common module
+ * Currently extends RoleCreatableInterface without additions.
+ * This serves as a namespace extension point for future auth-specific role creation fields.
+ *
  */
 export interface RocketsAuthRoleCreatableInterface
   extends RoleCreatableInterface {}

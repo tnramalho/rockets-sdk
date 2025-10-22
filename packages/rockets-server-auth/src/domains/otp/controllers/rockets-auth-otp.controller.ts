@@ -4,6 +4,7 @@ import {
   IssueTokenServiceInterface,
 } from '@concepta/nestjs-authentication';
 import { Body, Controller, Inject, Patch, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -24,7 +25,7 @@ import { RocketsAuthOtpService } from '../services/rockets-auth-otp.service';
  */
 @Controller('otp')
 @AuthPublic()
-@ApiTags('otp')
+@ApiTags('Authentication')
 export class RocketsAuthOtpController {
   constructor(
     @Inject(AuthLocalIssueTokenService)
@@ -55,6 +56,7 @@ export class RocketsAuthOtpController {
   @ApiBadRequestResponse({
     description: 'Invalid email format',
   })
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 OTP requests per minute
   @Post('')
   async sendOtp(@Body() dto: RocketsAuthOtpSendDto): Promise<void> {
     return this.otpService.sendOtp(dto.email);
@@ -88,6 +90,7 @@ export class RocketsAuthOtpController {
   @ApiUnauthorizedResponse({
     description: 'Invalid OTP or expired passcode',
   })
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 confirmation attempts per minute
   @Patch('')
   async confirmOtp(
     @Body() dto: RocketsAuthOtpConfirmDto,

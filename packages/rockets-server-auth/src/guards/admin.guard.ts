@@ -5,13 +5,18 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { RocketsAuthSettingsInterface } from '../shared/interfaces/rockets-auth-settings.interface';
 import { ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN } from '../shared/constants/rockets-auth.constants';
+import { logAndGetErrorDetails } from '../shared/utils/error-logging.helper';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
+  private readonly logger = new Logger(AdminGuard.name);
+
   constructor(
     @Inject(ROCKETS_AUTH_MODULE_OPTIONS_DEFAULT_SETTINGS_TOKEN)
     private readonly settings: RocketsAuthSettingsInterface,
@@ -50,12 +55,20 @@ export class AdminGuard implements CanActivate {
         return isAdmin;
       } else throw new ForbiddenException();
     } catch (error) {
-      // If there's an error checking roles (e.g., role doesn't exist), deny access
       if (error instanceof ForbiddenException) {
         throw error;
       }
 
-      throw new ForbiddenException();
+      // Log the actual error for debugging
+      logAndGetErrorDetails(
+        error,
+        this.logger,
+        'Error checking admin role for user',
+        { userId: user.id, errorId: 'ADMIN_CHECK_FAILED' },
+      );
+
+      // Return appropriate 5xx for infrastructure issues
+      throw new ServiceUnavailableException('Unable to verify admin access');
     }
   }
 }

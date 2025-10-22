@@ -3,7 +3,7 @@ import { RocketsAuthUserInterface } from '../interfaces/rockets-auth-user.interf
 import { RocketsAuthUserMetadataDto } from './rockets-auth-user-metadata.dto';
 
 /**
- * Rockets Server User DTO
+ * Rockets Auth User DTO
  *
  * Extends the base user DTO from the user module
  */

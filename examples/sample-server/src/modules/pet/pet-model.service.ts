@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   RepositoryInterface,
   ModelService,
@@ -57,7 +57,7 @@ export class PetModelService
    */
   async update(data: PetModelUpdatableInterface): Promise<PetEntityInterface> {
     // Ensure userId cannot be updated
-    const { userId, ...updateData } = data as any;
+    const {...updateData } = data;
     return super.update(updateData);
   }
 
@@ -68,12 +68,12 @@ export class PetModelService
     const pet = await this.repo.findOne({
       where: { 
         id, 
-        dateDeleted: null as any
+        dateDeleted: undefined
       }
     });
     
     if (!pet) {
-      throw new Error(`Pet with ID ${id} not found`);
+      throw new NotFoundException(`Pet with ID ${id} not found`);
     }
     
     return pet;
@@ -86,7 +86,7 @@ export class PetModelService
     return this.repo.find({
       where: { 
         userId, 
-        dateDeleted: null as any
+        dateDeleted: undefined
       }
     });
   }
@@ -141,7 +141,7 @@ export class PetModelService
       where: { 
         userId, 
         species,
-        dateDeleted: null as any
+        dateDeleted: undefined
       }
     });
   }
@@ -154,7 +154,7 @@ export class PetModelService
       where: { 
         id: petId, 
         userId,
-        dateDeleted: null as any
+        dateDeleted: undefined
       }
     });
     return !!pet;

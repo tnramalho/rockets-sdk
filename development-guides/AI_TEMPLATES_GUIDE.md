@@ -29,8 +29,8 @@ src/
 │       ├── {entity}.constants.ts    # module constants
 │       ├── {entity}-model.service.ts # business logic
 │       ├── {entity}-typeorm-crud.adapter.ts # database adapter
-│       ├── {entity}.crud.service.ts # CRUD operations
-│       ├── {entity}.crud.controller.ts # API endpoints
+│       ├── {entity}-crud.service.ts # CRUD operations
+│       ├── {entity}-crud.controller.ts # API endpoints
 │       ├── {entity}-access-query.service.ts # access control
 │       ├── {entity}.module.ts       # module configuration
 │       └── index.ts                 # exports

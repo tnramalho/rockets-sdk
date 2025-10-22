@@ -9,10 +9,12 @@ import {
   Controller,
   Get,
   Inject,
+  Logger,
   Param,
   Patch,
   Post,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -25,6 +27,7 @@ import {
 import { RocketsAuthRecoverLoginDto } from '../dto/rockets-auth-recover-login.dto';
 import { RocketsAuthRecoverPasswordDto } from '../dto/rockets-auth-recover-password.dto';
 import { RocketsAuthUpdatePasswordDto } from '../dto/rockets-auth-update-password.dto';
+import { logAndGetErrorDetails } from '../../../shared/utils/error-logging.helper';
 
 /**
  * Controller for account recovery operations
@@ -32,8 +35,10 @@ import { RocketsAuthUpdatePasswordDto } from '../dto/rockets-auth-update-passwor
  */
 @Controller('recovery')
 @AuthPublic()
-@ApiTags('auth')
+@ApiTags('Authentication')
 export class RocketsAuthRecoveryController {
+  private readonly logger = new Logger(RocketsAuthRecoveryController.name);
+
   constructor(
     @Inject(AuthRecoveryService)
     private readonly authRecoveryService: AuthRecoveryServiceInterface,
@@ -63,11 +68,20 @@ export class RocketsAuthRecoveryController {
   @ApiBadRequestResponse({
     description: 'Invalid email format',
   })
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per 60 seconds
   @Post('/login')
   async recoverLogin(
     @Body() recoverLoginDto: RocketsAuthRecoverLoginDto,
   ): Promise<void> {
-    await this.authRecoveryService.recoverLogin(recoverLoginDto.email);
+    try {
+      await this.authRecoveryService.recoverLogin(recoverLoginDto.email);
+      this.logger.log('Login recovery initiated'); // Don't log email
+    } catch (error) {
+      logAndGetErrorDetails(error, this.logger, 'Login recovery failed', {
+        errorId: 'RECOVERY_LOGIN_FAILED',
+      });
+      // Don't re-throw - return void for security (timing attack prevention)
+    }
   }
 
   @ApiOperation({
@@ -94,11 +108,20 @@ export class RocketsAuthRecoveryController {
   @ApiBadRequestResponse({
     description: 'Invalid email format',
   })
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per 60 seconds
   @Post('/password')
   async recoverPassword(
     @Body() recoverPasswordDto: RocketsAuthRecoverPasswordDto,
   ): Promise<void> {
-    await this.authRecoveryService.recoverPassword(recoverPasswordDto.email);
+    try {
+      await this.authRecoveryService.recoverPassword(recoverPasswordDto.email);
+      this.logger.log('Password recovery initiated'); // Don't log email
+    } catch (error) {
+      logAndGetErrorDetails(error, this.logger, 'Password recovery failed', {
+        errorId: 'RECOVERY_PASSWORD_FAILED',
+      });
+      // Don't re-throw - return void for security (timing attack prevention)
+    }
   }
 
   @ApiOperation({

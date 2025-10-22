@@ -34,6 +34,7 @@ import {
 import { UserCrudOptionsExtrasInterface } from '../../../shared/interfaces/rockets-auth-options-extras.interface';
 import { RocketsAuthUserCreateDto } from '../dto/rockets-auth-user-create.dto';
 import { RocketsAuthUserDto } from '../dto/rockets-auth-user.dto';
+import { getErrorDetails } from '../../../shared/utils/error-logging.helper';
 import { CrudRelations } from '@concepta/nestjs-crud/dist/crud/decorators/routes/crud-relations.decorator';
 
 import { AuthPublic } from '@concepta/nestjs-authentication';
@@ -213,8 +214,7 @@ export class RocketsAuthSignUpModule {
             }
           } catch (error) {
             // Log but don't fail signup if role assignment fails
-            const errorMessage =
-              error instanceof Error ? error.message : 'Unknown error';
+            const { errorMessage } = getErrorDetails(error);
             console.warn(`Failed to assign default role: ${errorMessage}`);
           }
         }
@@ -268,19 +268,15 @@ export class RocketsAuthSignUpModule {
         crudRequest: CrudRequestInterface<UserCreatableInterface>,
         dto: InstanceType<typeof CreateDto>,
       ) {
-        try {
-          // Validate DTO
-          const pipe = new ValidationPipe({
-            transform: true,
-            forbidUnknownValues: true,
-          });
-          await pipe.transform(dto, { type: 'body', metatype: CreateDto });
+        // Validate DTO
+        const pipe = new ValidationPipe({
+          transform: true,
+          forbidUnknownValues: true,
+        });
+        await pipe.transform(dto, { type: 'body', metatype: CreateDto });
 
-          // Delegate all business logic to service
-          return await super.createOne(crudRequest, dto);
-        } catch (err) {
-          throw err;
-        }
+        // Delegate all business logic to service
+        return await super.createOne(crudRequest, dto);
       }
     }
 

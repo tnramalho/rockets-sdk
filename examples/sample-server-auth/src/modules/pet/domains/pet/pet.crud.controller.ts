@@ -81,7 +81,7 @@ import { AppRole } from '../../../../app.acl';
   service: PetAccessQueryService,
 })
 @UseGuards(AccessControlGuard)
-@ApiTags('pets')
+@ApiTags('Pets')
 @ApiBearerAuth()
 export class PetCrudController implements CrudControllerInterface<
   PetEntity,

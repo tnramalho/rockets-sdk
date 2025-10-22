@@ -598,6 +598,8 @@ quantity!: number;
 releaseDate!: Date;
 
 // Date with range validation
+// Note: @Transform executes BEFORE @IsDate() validation
+// Consider using custom validators for complex business rules
 @Type(() => Date)
 @IsDate()
 @IsOptional()

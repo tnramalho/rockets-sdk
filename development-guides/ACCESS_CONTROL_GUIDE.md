@@ -506,6 +506,10 @@ export class ArtistAccessQueryService implements CanAccess {
     user: any,
     entityId?: string
   ): Promise<boolean> {
+    // NOTE: This is a simplified example showing only two resources.
+    // Production implementations should handle all resource types
+    // (artist, song, album, etc.) with proper fallback logic.
+
     // ImprintArtists can only read artists, cannot create/update/delete
     if (resource === 'artist-one' || resource === 'artist-many') {
       if (action === 'read') {

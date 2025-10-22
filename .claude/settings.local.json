@@ -31,7 +31,10 @@
       "Bash(yarn workspaces:*)",
       "Bash(curl:*)",
       "Bash(true)",
-      "Bash(timeout 10s npm run start:dev)"
+      "Bash(timeout 10s npm run start:dev)",
+      "Bash(npm install:*)",
+      "Bash(yarn add:*)",
+      "Bash(yarn test:*)"
     ],
     "deny": []
   }

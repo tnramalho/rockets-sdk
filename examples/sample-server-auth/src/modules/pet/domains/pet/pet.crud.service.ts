@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { RuntimeException } from '@concepta/nestjs-common';
 import { CrudService, CrudRelationRegistry } from '@concepta/nestjs-crud';
 import { CrudRequestInterface } from '@concepta/nestjs-crud';
 import { PetEntityInterface, PetStatus } from './pet.interface';
@@ -33,7 +34,7 @@ export class PetCrudService extends CrudService<PetEntity, [PetVaccinationEntity
     try {
       return await super.createOne(req, dto, options);
     } catch (error) {
-      if (error instanceof PetException) {
+      if (error instanceof RuntimeException) {
         throw error;
       }
       throw new PetException('Failed to create pet', { originalError: error });
@@ -48,7 +49,7 @@ export class PetCrudService extends CrudService<PetEntity, [PetVaccinationEntity
     try {
       return await super.updateOne(req, dto, options);
     } catch (error) {
-      if (error instanceof PetException) {
+      if (error instanceof RuntimeException) {
         throw error;
       }
       console.error('Unexpected error in pet updateOne:', error);
@@ -63,7 +64,7 @@ export class PetCrudService extends CrudService<PetEntity, [PetVaccinationEntity
     try {
       return await super.deleteOne(req, options);
     } catch (error) {
-      if (error instanceof PetException) {
+      if (error instanceof RuntimeException) {
         throw error;
       }
       throw new PetException('Failed to delete pet', { originalError: error });

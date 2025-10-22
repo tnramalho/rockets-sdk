@@ -7,6 +7,7 @@ import { SwaggerUiService } from '@concepta/nestjs-swagger-ui';
 import { UserModelService } from '@concepta/nestjs-user';
 import { RoleModelService, RoleService } from '@concepta/nestjs-role';
 import { PasswordCreationService } from '@concepta/nestjs-password';
+import helmet from 'helmet';
 
 async function ensureInitialAdmin(app: INestApplication) {
   const userModelService = app.get(UserModelService);
@@ -14,9 +15,15 @@ async function ensureInitialAdmin(app: INestApplication) {
   const roleService = app.get(RoleService);
   const passwordCreationService = app.get(PasswordCreationService);
 
-  // test user
-  const adminEmail = process.env.ADMIN_EMAIL || 'user@example.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'StrongP@ssw0rd';
+  // admin user credentials
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    console.error('ERROR: ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required');
+    console.error('Please set these in your .env file');
+    process.exit(1);
+  }
   const adminRoleName = 'admin';
 
   // Ensure role exists
@@ -111,6 +118,15 @@ async function bootstrap() {
   
   // Enable graceful shutdown hooks
   //app.enableShutdownHooks();
+
+  // Add security headers
+  app.use(helmet());
+
+  // Configure CORS
+  app.enableCors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    credentials: true,
+  });
   
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
    

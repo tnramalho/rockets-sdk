@@ -65,7 +65,7 @@ import {
 @AccessControlQuery({
   service: PetAppointmentAccessQueryService,
 })
-@ApiTags('pet-appointments')
+@ApiTags('Pets')
 @ApiBearerAuth()
 export class PetAppointmentCrudController implements CrudControllerInterface<
   PetAppointmentEntityInterface,

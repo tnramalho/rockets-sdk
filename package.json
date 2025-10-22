@@ -28,7 +28,7 @@
     "@types/jest": "^27.5.2",
     "@types/node": "^18.19.44",
     "@types/nodemailer": "^6.4.15",
-    "@types/supertest": "^2.0.16",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "class-transformer": "^0.5.1",
@@ -52,7 +52,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.8.1",
     "standard-version": "^9.5.0",
-    "supertest": "^6.3.4",
+    "supertest": "^7.1.4",
     "ts-jest": "^27.1.5",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
@@ -88,5 +88,11 @@
     "changelog:major": "standard-version --release-as major",
     "generate-swagger": "cd packages/rockets-server-auth && yarn generate-swagger"
   },
-  "packageManager": "yarn@4.4.0"
+  "packageManager": "yarn@4.4.0",
+  "dependencies": {
+    "@nestjs/swagger": "^11.2.1",
+    "@nestjs/throttler": "^6.4.0",
+    "helmet": "^8.1.0",
+    "swagger-ui-express": "^5.0.1"
+  }
 }

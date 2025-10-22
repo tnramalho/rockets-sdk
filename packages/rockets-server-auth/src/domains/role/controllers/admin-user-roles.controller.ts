@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Inject,
+  Logger,
   Param,
   Post,
   UseGuards,
@@ -39,6 +40,8 @@ class AdminAssignUserRoleDto {
 @ApiTags('admin')
 @Controller('admin/users/:userId/roles')
 export class AdminUserRolesController {
+  private readonly logger = new Logger(AdminUserRolesController.name);
+
   constructor(
     @Inject(RoleService)
     private readonly roleService: RoleService,
@@ -71,7 +74,7 @@ export class AdminUserRolesController {
       assignee: { id: userId },
       role: { id: dto.roleId },
     });
-  }
 
-  // Note: Current RoleService API does not expose unassign method.
+    this.logger.log(`Role ${dto.roleId} assigned to user ${userId}`);
+  }
 }

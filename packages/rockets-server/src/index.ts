@@ -46,3 +46,10 @@ export {
 
 // Export main module
 export { RocketsModule } from './rockets.module';
+
+// Export utils
+export {
+  logAndGetErrorDetails,
+  getErrorDetails,
+  ErrorDetails,
+} from './utils/error-logging.helper';

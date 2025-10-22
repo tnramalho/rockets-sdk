@@ -28,7 +28,7 @@ import { RocketsAuthUserInterface } from '../../user/interfaces/rockets-auth-use
 @Controller('token/refresh')
 @UseGuards(AuthRefreshGuard)
 @AuthPublic()
-@ApiTags('auth')
+@ApiTags('Authentication')
 @ApiSecurity('bearer')
 export class AuthTokenRefreshController {
   constructor(

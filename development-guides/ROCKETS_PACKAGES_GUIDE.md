@@ -36,6 +36,28 @@
 | **Admin Features** | ❌ | ✅ |
 | **Setup Complexity** | Low | Medium |
 
+### **User Type Systems**
+
+This project uses two complementary user type systems:
+
+#### rockets-server-auth (Authentication)
+- **Purpose:** Authentication, authorization, and user identity
+- **Key Types:** `RocketsAuthUserInterface`, credentials, roles
+- **Used by:** Auth controllers, guards, JWT providers
+- **Focus:** "Who is this user?" and "What can they do?"
+
+#### rockets-server (User Metadata)
+- **Purpose:** Extended user profile data and application-specific attributes  
+- **Key Types:** `UserEntityInterface`, `UserMetadataEntityInterface`
+- **Used by:** Application features, user profiles, settings
+- **Focus:** "What do we know about this user?"
+
+#### Relationship
+- **Auth user** (sub claim) → links to → **Application user** (id)
+- **Auth handles:** User authentication and authorization
+- **Metadata handles:** User profile data and application state
+- **Integration:** Both systems work together via shared user identifiers
+
 ---
 
 ## 🏗️ **Project Foundation Setup**
@@ -74,6 +96,8 @@ yarn add @bitwild/rockets-server-auth @bitwild/rockets-server \
 ```
 
 ### **Phase 3: Application Configuration**
+
+⚠️ **Important:** If using `@bitwild/rockets-server`, you'll need dynamic repository tokens. See [Phase 3.1: Dynamic Repository Tokens](#phase-31-dynamic-repository-tokens-critical) before proceeding.
 
 #### **Template A: Complete Auth System (Recommended)**
 ```typescript

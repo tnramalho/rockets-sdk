@@ -6,6 +6,16 @@ export * from './constants/rockets-auth.constants';
 // Config
 export { rocketsAuthOptionsDefaultConfig } from './config/rockets-auth-options-default.config';
 
+// Exceptions
+export { RocketsAuthException } from './exceptions/rockets-auth.exception';
+
+// Utils
+export {
+  logAndGetErrorDetails,
+  getErrorDetails,
+  ErrorDetails,
+} from './utils/error-logging.helper';
+
 // Interfaces
 export { RocketsAuthOptionsInterface } from './interfaces/rockets-auth-options.interface';
 export {

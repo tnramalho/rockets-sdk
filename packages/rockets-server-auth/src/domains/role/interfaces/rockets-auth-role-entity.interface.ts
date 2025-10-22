@@ -2,9 +2,11 @@ import { RoleEntityInterface } from '@concepta/nestjs-common';
 import { RocketsAuthRoleInterface } from './rockets-auth-role.interface';
 
 /**
- * Rockets Server Role Entity Interface
+ * Rockets Auth Role Entity Interface
  *
- * Extends the base role entity interface and rockets role interface
+ * Currently extends RoleEntityInterface and RocketsAuthRoleInterface without additions.
+ * This serves as a namespace extension point for future auth-specific role entity fields.
+ *
  */
 export interface RocketsAuthRoleEntityInterface
   extends RoleEntityInterface,

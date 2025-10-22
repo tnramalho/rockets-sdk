@@ -34,7 +34,7 @@ import { AuthRouterGuard } from '@concepta/nestjs-auth-router';
 @Controller('oauth')
 @UseGuards(AuthRouterGuard)
 @AuthPublic()
-@ApiTags('oauth')
+@ApiTags('Authentication')
 export class AuthOAuthController {
   constructor(
     // TODO: define where to get it from, a issue token only for oauth?

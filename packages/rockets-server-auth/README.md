@@ -563,6 +563,7 @@ export class AppModule {}
 ```
 
 **Wrong Order** ❌:
+
 ```typescript
 RocketsModule.forRootAsync({...}),     // Wrong - first
 RocketsAuthModule.forRootAsync({...}), // Wrong - second

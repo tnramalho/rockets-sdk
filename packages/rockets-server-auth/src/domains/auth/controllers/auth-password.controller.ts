@@ -8,6 +8,7 @@ import {
   IssueTokenServiceInterface,
 } from '@concepta/nestjs-authentication';
 import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBody,
   ApiOkResponse,
@@ -27,7 +28,7 @@ import { RocketsAuthUserInterface } from '../../user/interfaces/rockets-auth-use
 @Controller('token/password')
 @UseGuards(AuthLocalGuard)
 @AuthPublic()
-@ApiTags('auth')
+@ApiTags('Authentication')
 export class AuthPasswordController {
   constructor(
     @Inject(AuthLocalIssueTokenService)
@@ -60,6 +61,7 @@ export class AuthPasswordController {
     description: 'Invalid credentials or inactive account',
   })
   @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per 60 seconds
   @Post()
   async login(
     @AuthUser() user: RocketsAuthUserInterface,

@@ -1,4 +1,13 @@
-import { Controller, Get, Patch, Body, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Body,
+  Inject,
+  Logger,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AuthUser } from '@concepta/nestjs-authentication';
 import {
   ApiTags,
@@ -13,6 +22,7 @@ import {
 } from '../user-metadata/interfaces/user-metadata.interface';
 import { UserUpdateDto, UserResponseDto } from './user.dto';
 import { UserMetadataModelService } from '../user-metadata/constants/user-metadata.constants';
+import { logAndGetErrorDetails } from '../../utils/error-logging.helper';
 
 /**
  * User Controller
@@ -23,6 +33,8 @@ import { UserMetadataModelService } from '../user-metadata/constants/user-metada
 @ApiBearerAuth()
 @Controller('me')
 export class MeController {
+  private readonly logger = new Logger(MeController.name);
+
   constructor(
     @Inject(UserMetadataModelService)
     private readonly userMetadataModelService: UserMetadataModelServiceInterface,
@@ -55,8 +67,25 @@ export class MeController {
 
       userMetadata = metadata;
     } catch (error) {
-      // UserMetadata not found, use empty userMetadata
-      userMetadata = null;
+      if (
+        error instanceof NotFoundException ||
+        (error instanceof Error && error.message?.includes('not found'))
+      ) {
+        // Expected: user has no metadata yet
+        userMetadata = null;
+      } else {
+        // Unexpected: database error
+        logAndGetErrorDetails(
+          error,
+          this.logger,
+          'Failed to fetch user metadata',
+          { userId: user.id, errorId: 'USER_METADATA_FETCH_FAILED' },
+        );
+        // Either throw or return partial data - decide based on UX requirements
+        throw new InternalServerErrorException(
+          'Failed to load complete profile',
+        );
+      }
     }
 
     const response = {

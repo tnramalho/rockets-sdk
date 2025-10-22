@@ -24,7 +24,6 @@
   "dependencies": {
     "@bitwild/rockets-server": "^0.1.0-dev.1",
     "@concepta/nestjs-access-control": "7.0.0-alpha.8",
-    "accesscontrol": "^2.2.1",
     "@concepta/nestjs-auth-apple": "^7.0.0-alpha.8",
     "@concepta/nestjs-auth-github": "^7.0.0-alpha.8",
     "@concepta/nestjs-auth-google": "^7.0.0-alpha.8",
@@ -51,6 +50,8 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/swagger": "^7.4.0",
+    "@nestjs/throttler": "^5.0.0",
+    "accesscontrol": "^2.2.1",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
