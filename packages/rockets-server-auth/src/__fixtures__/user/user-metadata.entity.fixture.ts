@@ -9,14 +9,12 @@ import {
 } from 'typeorm';
 
 import { UserFixture } from './user.entity.fixture';
-import { BaseUserMetadataEntityInterface } from '@bitwild/rockets-server';
 
 /**
  * User UserMetadata Entity Fixture
  */
 @Entity()
 export class UserMetadataEntityFixture
-  implements BaseUserMetadataEntityInterface
 {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
