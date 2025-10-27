@@ -1,0 +1,28 @@
+// Shared Resources Public API
+
+// Constants
+export * from './constants/rockets-auth.constants';
+
+// Config
+export { rocketsAuthOptionsDefaultConfig } from './config/rockets-auth-options-default.config';
+
+// Exceptions
+export { RocketsAuthException } from './exceptions/rockets-auth.exception';
+
+// Utils
+export {
+  logAndGetErrorDetails,
+  getErrorDetails,
+  ErrorDetails,
+} from './utils/error-logging.helper';
+
+// Interfaces
+export { RocketsAuthOptionsInterface } from './interfaces/rockets-auth-options.interface';
+export {
+  RocketsAuthOptionsExtrasInterface,
+  UserMetadataConfigInterface,
+} from './interfaces/rockets-auth-options-extras.interface';
+export { RocketsAuthEntitiesOptionsInterface } from './interfaces/rockets-auth-entities-options.interface';
+export { RocketsAuthSettingsInterface } from './interfaces/rockets-auth-settings.interface';
+export { RocketsAuthUserModelServiceInterface } from './interfaces/rockets-auth-user-model-service.interface';
+export { RocketsAuthNotificationServiceInterface } from './interfaces/rockets-auth-notification.service.interface';
