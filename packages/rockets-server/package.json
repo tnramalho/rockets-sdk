@@ -1,6 +1,6 @@
 {
   "name": "@bitwild/rockets-server",
-  "version": "0.1.0-dev.1",
+  "version": "0.1.0-dev.8",
   "description": "Rockets Server - Core server functionality",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
