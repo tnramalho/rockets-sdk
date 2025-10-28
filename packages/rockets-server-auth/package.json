@@ -1,7 +1,7 @@
 {
-  "name": "@bitwild/rockets-server-auth",
+  "name": "@bitwild/rockets-auth",
   "version": "0.1.0-dev.8",
-  "description": "Rockets Server Auth",
+  "description": "Rockets Auth",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "BSD-3-Clause",
@@ -22,7 +22,6 @@
     "generate-swagger": "ts-node src/generate-swagger.ts"
   },
   "dependencies": {
-    "@bitwild/rockets-server": "^0.1.0-dev.1",
     "@concepta/nestjs-access-control": "7.0.0-alpha.8",
     "@concepta/nestjs-auth-apple": "^7.0.0-alpha.8",
     "@concepta/nestjs-auth-github": "^7.0.0-alpha.8",
